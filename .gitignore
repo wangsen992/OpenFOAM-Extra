@@ -33,3 +33,7 @@
 
 # clangd compile_commands
 **/compile_commands.json
+
+#OpenFOAM Cache
+**/.cache
+**/linux64GccDPInt32Opt
