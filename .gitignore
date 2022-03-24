@@ -37,6 +37,8 @@
 #OpenFOAM Cache
 **/.cache
 **/linux64GccDPInt32Opt
+**/polyMesh
+**/run/*
 
 # vim session files
 **/*.vim
