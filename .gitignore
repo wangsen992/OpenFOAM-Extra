@@ -32,4 +32,4 @@
 *.app
 
 # clangd compile_commands
-compile_commnds.json
+**/compile_commnds.json
