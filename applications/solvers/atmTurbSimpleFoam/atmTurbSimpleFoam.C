@@ -25,6 +25,7 @@ Application
     atmTurbSimpleFoam
 
 Description
+    SIMPLE Algorithm is borrowed from simpleFoam implementation with key differences in the addition of evolution equation of potential temperature, evolution equation of water vapor (mixing ratio), and moist air thermodynamics. 
 
 \*---------------------------------------------------------------------------*/
 
