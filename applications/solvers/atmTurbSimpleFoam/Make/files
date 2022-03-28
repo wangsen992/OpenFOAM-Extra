@@ -1,3 +1,4 @@
+atmTurbMesh.C
 atmTurbSimpleFoam.C
 
 EXE = $(FOAM_USER_APPBIN)/atmTurbSimpleFoam

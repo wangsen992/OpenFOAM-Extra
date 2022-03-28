@@ -73,90 +73,20 @@ int main(int argc, char *argv[])
     // create control
     simpleControl simple(mesh);
 
-    // create fields (prognostic variables)
-    Info<< "Reading field p\n" << endl;
-    volScalarField p
-    (
-        IOobject
-        (
-            "p",
-            runTime.timeName(),
-            mesh,
-            IOobject::MUST_READ,
-            IOobject::AUTO_WRITE
-        ),
-        mesh
-    );
-
-    Info<< "Reading field U\n" << endl;
-    volVectorField U
-    (
-        IOobject
-        (
-            "U",
-            runTime.timeName(),
-            mesh,
-            IOobject::MUST_READ,
-            IOobject::AUTO_WRITE
-        ),
-        mesh
-    );
-
-    // create flux (phi)
-    Info << "Reading/calculating face flux field phi" << nl << endl;
-
-    surfaceScalarField phi
-    (
-      IOobject
-      (
-        "phi",
-        runTime.timeName(),
-        mesh,
-        IOobject::READ_IF_PRESENT,
-        IOobject::AUTO_WRITE
-      ),
-      fvc::flux(U)
-    );
-
-    pressureReference pressureReference(p, simple.dict());
-
-    mesh.setFluxRequired(p.name());
+    //mesh.setFluxRequired(p.name());
 
 
 
-    Info << "Reading Atmospheric Turbulence Properties" << endl;
-    IOdictionary atmTurbulenceProperties
-    (
-      IOobject
-      (
-        "atmTurbulenceProperties",
-        runTime.constant(),
-        mesh,
-        IOobject::MUST_READ,
-        IOobject::NO_WRITE
-      )
-    );
-
-    // Issue : if loading dimensionedVector(dict.lookup(name)) there is a
-    // reading error. 
-    dimensionedVector f("f", atmTurbulenceProperties.lookup("f"));
-    dimensionedVector Ug("Ug", atmTurbulenceProperties.lookup("Ug"));
-    dimensionedScalar rho_0("rho_0", atmTurbulenceProperties.lookup("rho_0"));
-    volVectorField fU_Ug("fU_Ug", (f ^ (U - Ug)));
-    
-    // initContinuityErrs
-    scalar cumulativeContErr = 0;
-    
-    // Init turbulence model
-    singlePhaseTransportModel laminarTransport(U, phi);
-
-    autoPtr<incompressible::momentumTransportModel> turbulence
-    (
-        incompressible::momentumTransportModel::New(U, phi, laminarTransport)
-    );
-
+    // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
     if (args.optionFound("dryRun"))
     {
+      Info << "Dry Run: " << nl << endl;
+
+      volScalarField& pRef
+      (
+        mesh.objectRegistry::lookupObjectRef<volScalarField>("p")
+      );
+      Info << "pRef name" << pRef.name() << endl;
       return 0;
     }
     
@@ -256,6 +186,9 @@ int main(int argc, char *argv[])
       // Momentum corrector
       U = HbyA - rAtU()*fvc::grad(p);
       U.correctBoundaryConditions();
+
+      // Additional transport equations to solve
+      // Potential temperature
 
       // Write
       runTime.write();
