@@ -44,3 +44,4 @@
 # vim session files
 **/*.vim
 run/*
+.secret
