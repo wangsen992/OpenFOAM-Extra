@@ -42,7 +42,9 @@ evolution equation of water vapor (mixing ratio), and moist air thermodynamics.
 
 int main(int argc, char *argv[])
 {
+    // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
     // set root case
+    argList::addBoolOption("dryRun", "if specified not solve");
     argList args(argc, argv);
     if (!args.checkRootCase())
     {
@@ -71,7 +73,7 @@ int main(int argc, char *argv[])
     // create control
     simpleControl simple(mesh);
 
-    // create fields
+    // create fields (prognostic variables)
     Info<< "Reading field p\n" << endl;
     volScalarField p
     (
@@ -120,12 +122,6 @@ int main(int argc, char *argv[])
 
     mesh.setFluxRequired(p.name());
 
-    singlePhaseTransportModel laminarTransport(U, phi);
-
-    autoPtr<incompressible::momentumTransportModel> turbulence
-    (
-        incompressible::momentumTransportModel::New(U, phi, laminarTransport)
-    );
 
 
     Info << "Reading Atmospheric Turbulence Properties" << endl;
@@ -141,32 +137,31 @@ int main(int argc, char *argv[])
       )
     );
 
-    uniformDimensionedVectorField f 
-    (
-      IOobject("f", runTime.constant(), mesh), 
-      dimensionedVector(atmTurbulenceProperties.lookup("f"))
-    );
-    uniformDimensionedVectorField Ug 
-    (
-      IOobject("Ug", runTime.constant(), mesh), 
-      dimensionedVector(atmTurbulenceProperties.lookup("Ug"))
-    );
-    uniformDimensionedScalarField rho_0
-    (
-      IOobject("rho_0", runTime.constant(), mesh), 
-      dimensionedScalar(atmTurbulenceProperties.lookup("rho_0"))
-    );
+    // Issue : if loading dimensionedVector(dict.lookup(name)) there is a
+    // reading error. 
+    dimensionedVector f("f", atmTurbulenceProperties.lookup("f"));
+    dimensionedVector Ug("Ug", atmTurbulenceProperties.lookup("Ug"));
+    dimensionedScalar rho_0("rho_0", atmTurbulenceProperties.lookup("rho_0"));
     volVectorField fU_Ug("fU_Ug", (f ^ (U - Ug)));
     
     // initContinuityErrs
     scalar cumulativeContErr = 0;
     
+    // Init turbulence model
+    singlePhaseTransportModel laminarTransport(U, phi);
+
+    autoPtr<incompressible::momentumTransportModel> turbulence
+    (
+        incompressible::momentumTransportModel::New(U, phi, laminarTransport)
+    );
+
+    if (args.optionFound("dryRun"))
+    {
+      return 0;
+    }
+    
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-    Info<< nl << "ExecutionTime = " << runTime.elapsedCpuTime() << " s"
-        << "  ClockTime = " << runTime.elapsedClockTime() << " s"
-        << nl << endl;
-    
     while (simple.loop(runTime))
     {
       Info << "Time = " << runTime.timeName() << endl;
@@ -183,13 +178,15 @@ int main(int argc, char *argv[])
 
       UEqn.relax();
 
+      Info << "simple.momentumPredictor() = " 
+           << simple.momentumPredictor()
+           << endl;
       if (simple.momentumPredictor())
       {
           solve(UEqn == -fvc::grad(p)) ;
       }
       
-      // solve pEquation
-      
+      // Pressure Corrector
       volScalarField rAU(1.0/UEqn.A());
       volVectorField HbyA(constrainHbyA(rAU*UEqn.H(), U, p));
       surfaceScalarField phiHbyA("phiHbyA", fvc::flux(HbyA));
@@ -197,6 +194,9 @@ int main(int argc, char *argv[])
 
       tmp<volScalarField> rAtU(rAU);
 
+      Info  <<  "simple.consistent() = "
+            << simple.consistent() 
+            << endl;
       if (simple.consistent())
       {
           rAtU = 1.0/(1.0/rAU - UEqn.H1());
@@ -208,6 +208,8 @@ int main(int argc, char *argv[])
       tUEqn.clear();
 
       // Update the pressure BCs to ensure flux consistency
+      // The incompressible form of constrainPressure() used which basically
+      // overloaded the compressible form with rho being one field
       
       constrainPressure(p, U, phiHbyA, rAtU());
 
@@ -260,6 +262,11 @@ int main(int argc, char *argv[])
     };
 
     Info<< "End\n" << endl;
+
+    Info<< nl << "ExecutionTime = " << runTime.elapsedCpuTime() << " s"
+        << "  ClockTime = " << runTime.elapsedClockTime() << " s"
+        << nl << endl;
+    
 
     return 0;
 }
