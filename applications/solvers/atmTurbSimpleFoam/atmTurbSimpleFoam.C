@@ -25,33 +25,239 @@ Application
     atmTurbSimpleFoam
 
 Description
-    SIMPLE Algorithm is borrowed from simpleFoam implementation with key differences in the addition of evolution equation of potential temperature, evolution equation of water vapor (mixing ratio), and moist air thermodynamics. 
+    SIMPLE Algorithm is borrowed from simpleFoam implementation with key 
+differences in the addition of evolution equation of potential temperature, 
+evolution equation of water vapor (mixing ratio), and moist air thermodynamics. 
 
 \*---------------------------------------------------------------------------*/
 
+#include "IOobject.H"
 #include "fvCFD.H"
 #include "simpleControl.H"
 #include "pressureReference.H"
 #include "kinematicMomentumTransportModel.H"
 #include "singlePhaseTransportModel.H"
-#include "fvModels.H"
-#include "fvConstraints.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 int main(int argc, char *argv[])
 {
-    #include "setRootCase.H"
-    #include "createTime.H"
-    #include "createMesh.H"
-    #include "createControl.H"
-    #include "createFields.H"
+    // set root case
+    argList args(argc, argv);
+    if (!args.checkRootCase())
+    {
+        FatalError.exit();
+    }
 
+    // create time
+    Info << "Creat time" << nl << endl;
+    Time runTime(Time::controlDictName, args);
+
+    // create mesh
+    Info  << "Create mesh for time = " 
+          << runTime.timeName() 
+          << nl << Foam::endl;
+
+    fvMesh mesh (
+      IOobject
+      (
+        fvMesh::defaultRegion,
+        runTime.timeName(),
+        runTime,
+        IOobject::MUST_READ
+      )
+    );
+
+    // create control
+    simpleControl simple(mesh);
+
+    // create fields
+    Info<< "Reading field p\n" << endl;
+    volScalarField p
+    (
+        IOobject
+        (
+            "p",
+            runTime.timeName(),
+            mesh,
+            IOobject::MUST_READ,
+            IOobject::AUTO_WRITE
+        ),
+        mesh
+    );
+
+    Info<< "Reading field U\n" << endl;
+    volVectorField U
+    (
+        IOobject
+        (
+            "U",
+            runTime.timeName(),
+            mesh,
+            IOobject::MUST_READ,
+            IOobject::AUTO_WRITE
+        ),
+        mesh
+    );
+
+    // create flux (phi)
+    Info << "Reading/calculating face flux field phi" << nl << endl;
+
+    surfaceScalarField phi
+    (
+      IOobject
+      (
+        "phi",
+        runTime.timeName(),
+        mesh,
+        IOobject::READ_IF_PRESENT,
+        IOobject::AUTO_WRITE
+      ),
+      fvc::flux(U)
+    );
+
+    pressureReference pressureReference(p, simple.dict());
+
+    mesh.setFluxRequired(p.name());
+
+    singlePhaseTransportModel laminarTransport(U, phi);
+
+    autoPtr<incompressible::momentumTransportModel> turbulence
+    (
+        incompressible::momentumTransportModel::New(U, phi, laminarTransport)
+    );
+
+
+    Info << "Reading Atmospheric Turbulence Properties" << endl;
+    IOdictionary atmTurbulenceProperties
+    (
+      IOobject
+      (
+        "atmTurbulenceProperties",
+        runTime.constant(),
+        mesh,
+        IOobject::MUST_READ,
+        IOobject::NO_WRITE
+      )
+    );
+
+    uniformDimensionedVectorField f 
+    (
+      IOobject("f", runTime.constant(), mesh), 
+      dimensionedVector(atmTurbulenceProperties.lookup("f"))
+    );
+    uniformDimensionedVectorField Ug 
+    (
+      IOobject("Ug", runTime.constant(), mesh), 
+      dimensionedVector(atmTurbulenceProperties.lookup("Ug"))
+    );
+    uniformDimensionedScalarField rho_0
+    (
+      IOobject("rho_0", runTime.constant(), mesh), 
+      dimensionedScalar(atmTurbulenceProperties.lookup("rho_0"))
+    );
+    volVectorField fU_Ug("fU_Ug", (f ^ (U - Ug)));
+    
+    // initContinuityErrs
+    scalar cumulativeContErr = 0;
+    
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
     Info<< nl << "ExecutionTime = " << runTime.elapsedCpuTime() << " s"
         << "  ClockTime = " << runTime.elapsedClockTime() << " s"
         << nl << endl;
+    
+    while (simple.loop(runTime))
+    {
+      Info << "Time = " << runTime.timeName() << endl;
+
+      // Solve 
+      // Momentum predictor
+      tmp<fvVectorMatrix> tUEqn
+      (
+          fvm::div(phi, U)
+        + turbulence->divDevSigma(U)
+        + fU_Ug // addition of geostrophic term
+      );
+      fvVectorMatrix& UEqn = tUEqn.ref();
+
+      UEqn.relax();
+
+      if (simple.momentumPredictor())
+      {
+          solve(UEqn == -fvc::grad(p)) ;
+      }
+      
+      // solve pEquation
+      
+      volScalarField rAU(1.0/UEqn.A());
+      volVectorField HbyA(constrainHbyA(rAU*UEqn.H(), U, p));
+      surfaceScalarField phiHbyA("phiHbyA", fvc::flux(HbyA));
+      adjustPhi(phiHbyA, U, p);
+
+      tmp<volScalarField> rAtU(rAU);
+
+      if (simple.consistent())
+      {
+          rAtU = 1.0/(1.0/rAU - UEqn.H1());
+          phiHbyA +=
+              fvc::interpolate(rAtU() - rAU)*fvc::snGrad(p)*mesh.magSf();
+          HbyA -= (rAU - rAtU())*fvc::grad(p);
+      }
+
+      tUEqn.clear();
+
+      // Update the pressure BCs to ensure flux consistency
+      
+      constrainPressure(p, U, phiHbyA, rAtU());
+
+      // Non-orthogonal pressure corrector loop
+      while (simple.correctNonOrthogonal())
+      {
+          fvScalarMatrix pEqn
+          (
+              fvm::laplacian(rAtU(), p) == fvc::div(phiHbyA)
+          );
+
+          pEqn.setReference
+          (
+              pressureReference.refCell(),
+              pressureReference.refValue()
+          );
+
+          pEqn.solve();
+
+          if (simple.finalNonOrthogonalIter())
+          {
+              phi = phiHbyA - pEqn.flux();
+          }
+      }
+
+      // compute cumulativeContErr
+      volScalarField contErr(fvc::div(phi));
+
+      scalar sumLocalContErr = runTime.deltaTValue()*
+          mag(contErr)().weightedAverage(mesh.V()).value();
+
+      scalar globalContErr = runTime.deltaTValue()*
+          contErr.weightedAverage(mesh.V()).value();
+      cumulativeContErr += globalContErr;
+
+      Info<< "time step continuity errors : sum local = " << sumLocalContErr
+          << ", global = " << globalContErr
+          << ", cumulative = " << cumulativeContErr
+          << endl;
+
+      // Explicitly relax pressure for momentum corrector
+      p.relax();
+
+      // Momentum corrector
+      U = HbyA - rAtU()*fvc::grad(p);
+      U.correctBoundaryConditions();
+
+      // Write
+      runTime.write();
+    };
 
     Info<< "End\n" << endl;
 
