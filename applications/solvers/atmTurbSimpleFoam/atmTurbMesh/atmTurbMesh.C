@@ -25,6 +25,7 @@ Description
     Utilities functions to load fields needed. Replacing createFields.H code header file which is not good C++ practice. 
 \*---------------------------------------------------------------------------*/
 
+#include "IOobject.H"
 #include "atmTurbMesh.H"
 
 // Constructor
@@ -41,6 +42,31 @@ Foam::atmTurbMesh::atmTurbMesh(IOobject io)
       IOobject::NO_WRITE
     )
   ),
+  thermo_(fluidThermo::New(*this)),
+  rho_
+  (
+    IOobject
+    (
+      "rho",
+      this->time().timeName(),
+      *this,
+      IOobject::READ_IF_PRESENT,
+      IOobject::AUTO_WRITE
+    ),
+    thermo_->rho()
+  ),
+  p_
+  (
+    IOobject
+    (
+        "p",
+        this->time().timeName(),
+        *this,
+        IOobject::MUST_READ,
+        IOobject::AUTO_WRITE
+    ),
+    thermo_->p()
+  ),
   U_
   (
     IOobject
@@ -53,30 +79,29 @@ Foam::atmTurbMesh::atmTurbMesh(IOobject io)
     ),
     *this
   ),
-  p_
+  phi_
   (
     IOobject
     (
-        "p",
-        this->time().timeName(),
-        *this,
-        IOobject::MUST_READ,
-        IOobject::AUTO_WRITE
+      "phi",
+      this->time().timeName(),
+      *this,
+      IOobject::READ_IF_PRESENT,
+      IOobject::AUTO_WRITE
     ),
-    *this
+    fvc::flux(U_)
   ),
-  theta_
+  T_
   (
     IOobject
     (
-        "theta",
+        "T",
         this->time().timeName(),
         *this,
         IOobject::NO_READ,
         IOobject::AUTO_WRITE
     ),
-    *this,
-    dimensionedScalar(dimTemperature, 300)
+    thermo_->T()
   ),
   q_
   (
@@ -90,6 +115,7 @@ Foam::atmTurbMesh::atmTurbMesh(IOobject io)
     ),
     *this
   ),
+
   f_
   (
       "f", 
@@ -105,45 +131,21 @@ Foam::atmTurbMesh::atmTurbMesh(IOobject io)
       "Ug", 
       this->atmTurbDict_.lookup("Ug")
   ),
-  theta0_
-  (
-      "theta0", 
-      this->atmTurbDict_.lookup("theta0")
-  ),
   p0_
   (
       "p0", 
       this->atmTurbDict_.lookup("p0")
   ),
-  rho0_
-  (
-      "rho0", 
-      this->atmTurbDict_.lookup("rho0")
-  ),
-  phi_
-  (
-    IOobject
-    (
-      "phi",
-      this->time().timeName(),
-      *this,
-      IOobject::READ_IF_PRESENT,
-      IOobject::AUTO_WRITE
-    ),
-    fvc::flux(U_)
-  ),
-  thermo_(fluidThermo::New(*this)),
   turbulence_
   (
     incompressible::momentumTransportModel::New
     (
-      U_, phi_, thermo_()
+      // rho_,
+      U_,
+      phi_,
+      thermo_()
     )
   )
 {
-  Info << "Constructing atmTurbMesh" << endl;
-  Info << turbulence_->typeName_() << endl;
 };
 // Access Functions
-
-

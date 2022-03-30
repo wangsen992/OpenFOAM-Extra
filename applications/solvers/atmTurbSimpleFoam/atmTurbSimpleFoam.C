@@ -25,9 +25,8 @@ Application
     atmTurbSimpleFoam
 
 Description
-    SIMPLE Algorithm is borrowed from simpleFoam implementation with key 
-differences in the addition of evolution equation of potential temperature, 
-evolution equation of water vapor (mixing ratio), and moist air thermodynamics. 
+    This is not a application. This is a testing script for the libraries
+being developed right now. 
 
 \*---------------------------------------------------------------------------*/
 
@@ -73,18 +72,13 @@ int main(int argc, char *argv[])
     );
     Info << "atmTurbMesh created" << endl;
 
-    // create control
-    // simpleControl simple(mesh);
-
-    //mesh.setFluxRequired(p.name());
-
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
     if (args.optionFound("dryRun"))
     {
       Info << "Dry Run: " << nl << endl;
-      // fvVectorMatrix& UEqn = mesh.UEqn().ref();
-      fvVectorMatrix UEqn(mesh.UEqn().ref());
-      // Info << UEqn << endl;
+      tmp<fvVectorMatrix> tUEqn = mesh.UEqn();
+      Info << tUEqn->D() << endl;
+      Info << mesh.V().size() << endl;
       return 0;
     }
     

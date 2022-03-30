@@ -1,5 +1,6 @@
-atmTurbMesh.C
-atmTurbMeshSolve.C
+atmTurbMesh/atmTurbMesh.C
+atmTurbMesh/atmTurbMeshSolve.C
+
 atmTurbSimpleFoam.C
 
 EXE = $(FOAM_USER_APPBIN)/atmTurbSimpleFoam

@@ -29,6 +29,7 @@ Description
 
 #include "fvCFD.H"
 #include "fluidThermo.H"
+#include "dynamicMomentumTransportModel.H"
 #include "kinematicMomentumTransportModel.H"
 
 
@@ -46,23 +47,22 @@ protected:
     // is the starting model that handles the fluid mechanics solver behaviour
 
     IOdictionary atmTurbDict_;
+    autoPtr<fluidThermo>     thermo_;
+    volScalarField rho_; // density
+    volScalarField p_; // Perturbation Pressure to continuity
 
     // Fields (fields can be loaded from mesh directly)
     volVectorField U_; // Velocity Field
-    volScalarField p_; // Perturbation Pressure to continuity
-    volScalarField theta_; // Potential Temperature
+    surfaceScalarField phi_; // face flux
+    volScalarField T_; // Potential Temperature
     volScalarField q_; // specific humidity 
 
     dimensionedVector f_; // coriolis parameter
     dimensionedVector g_; // gravititational acceleration
     dimensionedVector Ug_; // geostrohpic wind
-    dimensionedScalar theta0_; // reference potential temperature
     dimensionedScalar p0_; // reference density
-    dimensionedScalar rho0_; // reference density
 
-    surfaceScalarField phi_; // face flux
     autoPtr<incompressible::momentumTransportModel> turbulence_;
-    autoPtr<fluidThermo>     thermo_;
 
   // Protected Static Function
   // Protected Member Function
@@ -70,32 +70,33 @@ protected:
 
 public:
 
-  // constructor
+    // constructor
     atmTurbMesh
     (
         IOobject io
     );
-  
-  // Access Functions
-  volVectorField U(){return this->U_;}
+    
+    // Access Functions
+    volVectorField U(){return this->U_;}
 
-  // construct prognostic equations
-  tmp<fvVectorMatrix> UEqn();
-  tmp<fvScalarMatrix> pEqn();
-  tmp<fvScalarMatrix> thetaEqn();
-  tmp<fvScalarMatrix> qEqn();
+    // construct prognostic equations
+    tmp<fvVectorMatrix> UEqn();
+    tmp<fvScalarMatrix> pEqn();
+    tmp<fvScalarMatrix> thetaEqn();
+    tmp<fvScalarMatrix> qEqn();
 
-  // member functions
-  void solve_U();
-  void solve_p();
-  void solve_theta();
-  void solve_q();
+    // member functions
+    void solve_U();
+    void solve_p();
+    void solve_T();
+    void solve_q();
 
-  tmp<volVectorField> fU_Ug()
-  {
-    return f_ ^ (U_ - Ug_);
-  }
+    tmp<volVectorField> fU_Ug()
+    {
+      return f_ ^ (U_ - Ug_);
+    }
     
 };
 }; // end of namespace Foam
+
 

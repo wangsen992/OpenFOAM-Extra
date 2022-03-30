@@ -32,9 +32,6 @@ tmp<fvVectorMatrix> Foam::atmTurbMesh::UEqn()
 {
     Info << "Init UEqn() " << endl;
     // Momentum predictor
-    Info << "Test Turbulence object" << endl;
-    Info << turbulence_->filePath() << endl;
-    Info << turbulence_->divDevTau(U_)<< endl;
     tmp<fvVectorMatrix> tUEqn
     (
         fvm::ddt(U_)
@@ -42,8 +39,7 @@ tmp<fvVectorMatrix> Foam::atmTurbMesh::UEqn()
       // + turbulence_->divDevSigma(U_)
       + fU_Ug() // Geostrohpic Term
       ==
-      -fvc::grad(p_) / this->rho0_ 
-      + g_ * (theta_ - theta0_) / (theta0_)
+      -fvc::grad(p_) / rho_
     );
     Info << "UEqn Constructed. " << endl;
     return tUEqn;
@@ -92,16 +88,16 @@ tmp<fvScalarMatrix> Foam::atmTurbMesh::thetaEqn()
 {
   tmp<fvScalarMatrix> tThetaEqn
   (
-      fvm::ddt(this->theta_)
-    + fvm::div(this->phi_, this->theta_)
+      fvm::ddt(T_)
+    + fvm::div(phi_, T_)
     == 
       // Warning: nut() is used instead of alphaEff T
-      fvc::laplacian(this->turbulence_->nut(), this->theta_)
+      fvc::laplacian(this->turbulence_->nut(), T_)
   );
   return tThetaEqn.ref();
 }
     
-void Foam::atmTurbMesh::solve_theta()
+void Foam::atmTurbMesh::solve_T()
 {
   Info << "solve_theta() not implemented. " << endl;
   FatalError.exit();
@@ -111,11 +107,11 @@ tmp<fvScalarMatrix> Foam::atmTurbMesh::qEqn()
 {
   tmp<fvScalarMatrix> tQEqn
   (
-      fvm::ddt(this->q_)
-    + fvm::div(this->phi_, this->q_)
+      fvm::ddt(q_)
+    + fvm::div(phi_, q_)
     == 
       // Warning: nut() is used instead of alphaEff Q
-      fvc::laplacian(this->turbulence_->nut(), this->q_)
+      fvc::laplacian(this->turbulence_->nut(), q_)
   );
   return tQEqn;
 }
