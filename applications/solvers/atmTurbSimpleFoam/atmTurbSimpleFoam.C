@@ -83,7 +83,8 @@ int main(int argc, char *argv[])
     {
       Info << "Dry Run: " << nl << endl;
       // fvVectorMatrix& UEqn = mesh.UEqn().ref();
-      Info << mesh.U() << endl;
+      fvVectorMatrix UEqn(mesh.UEqn().ref());
+      // Info << UEqn << endl;
       return 0;
     }
     

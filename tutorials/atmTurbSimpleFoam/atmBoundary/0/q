@@ -9,13 +9,13 @@ FoamFile
 {
     format      ascii;
     class       volScalarField;
-    object      T;
+    object      q;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-dimensions      [0 0 0 1 0 0 0];
+dimensions      [1 -3 0 0 0 0 0];
 
-internalField   uniform 300;
+internalField   uniform 0.01;
 
 boundaryField
 {
@@ -28,7 +28,7 @@ boundaryField
     ceiling
     {
         type            zeroGradient;
-        value           uniform 300;
+        value           uniform 0;
     }
 
     inlet

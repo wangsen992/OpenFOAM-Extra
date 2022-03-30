@@ -72,10 +72,11 @@ Foam::atmTurbMesh::atmTurbMesh(IOobject io)
         "theta",
         this->time().timeName(),
         *this,
-        IOobject::MUST_READ,
+        IOobject::NO_READ,
         IOobject::AUTO_WRITE
     ),
-    *this
+    *this,
+    dimensionedScalar(dimTemperature, 300)
   ),
   q_
   (
@@ -129,17 +130,20 @@ Foam::atmTurbMesh::atmTurbMesh(IOobject io)
       IOobject::READ_IF_PRESENT,
       IOobject::AUTO_WRITE
     ),
-    fvc::flux(this->U_)
+    fvc::flux(U_)
   ),
-  thermo_(fluidThermo::New(*this)()),
+  thermo_(fluidThermo::New(*this)),
   turbulence_
   (
     incompressible::momentumTransportModel::New
     (
-      this->U_, this->phi_, this->thermo_
-    )()
+      U_, phi_, thermo_()
+    )
   )
-{};
+{
+  Info << "Constructing atmTurbMesh" << endl;
+  Info << turbulence_->typeName_() << endl;
+};
 // Access Functions
 
 

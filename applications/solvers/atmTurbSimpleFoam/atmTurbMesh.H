@@ -61,8 +61,8 @@ protected:
     dimensionedScalar rho0_; // reference density
 
     surfaceScalarField phi_; // face flux
-    incompressible::momentumTransportModel& turbulence_;
-    fluidThermo&     thermo_;
+    autoPtr<incompressible::momentumTransportModel> turbulence_;
+    autoPtr<fluidThermo>     thermo_;
 
   // Protected Static Function
   // Protected Member Function
@@ -77,11 +77,13 @@ public:
     );
   
   // Access Functions
-  volVectorField& U(){return this->U_;}
-  fvVectorMatrix& UEqn();
-  fvScalarMatrix& pEqn();
-  fvScalarMatrix& thetaEqn();
-  fvScalarMatrix& qEqn();
+  volVectorField U(){return this->U_;}
+
+  // construct prognostic equations
+  tmp<fvVectorMatrix> UEqn();
+  tmp<fvScalarMatrix> pEqn();
+  tmp<fvScalarMatrix> thetaEqn();
+  tmp<fvScalarMatrix> qEqn();
 
   // member functions
   void solve_U();

@@ -28,35 +28,39 @@ Description
 #include "atmTurbMesh.H"
 
 // Momentum Equation Solution setup
-fvVectorMatrix& Foam::atmTurbMesh::UEqn()
+tmp<fvVectorMatrix> Foam::atmTurbMesh::UEqn()
 {
+    Info << "Init UEqn() " << endl;
     // Momentum predictor
+    Info << "Test Turbulence object" << endl;
+    Info << turbulence_->filePath() << endl;
+    Info << turbulence_->divDevTau(U_)<< endl;
     tmp<fvVectorMatrix> tUEqn
     (
-        fvm::ddt(this->U_)
-      + fvm::div(this->phi_, this->U_)
-      + this->turbulence_.divDevSigma(this->U_)
-      + this->fU_Ug() // Geostrohpic Term
+        fvm::ddt(U_)
+      + fvm::div(phi_, U_)
+      // + turbulence_->divDevSigma(U_)
+      + fU_Ug() // Geostrohpic Term
       ==
-      -fvc::grad(this->p_) / this->rho0_ 
-      + this->g_ * (this->theta_ - this->theta0_) / (this->theta0_)
+      -fvc::grad(p_) / this->rho0_ 
+      + g_ * (theta_ - theta0_) / (theta0_)
     );
-    fvVectorMatrix& UEqn = tUEqn.ref();
-    return UEqn;
+    Info << "UEqn Constructed. " << endl;
+    return tUEqn;
 }
 
 void Foam::atmTurbMesh::solve_U()
 {
-    fvVectorMatrix& UEqn(this->UEqn());
-    UEqn.relax();
-    UEqn.solve();
+    // fvVectorMatrix& UEqn(this->UEqn());
+    // UEqn.relax();
+    // UEqn.solve();
 }
 
 // Pressure corrector to enforce continuity
 // Solution control is ignored here
-fvScalarMatrix& Foam::atmTurbMesh::pEqn()
+tmp<fvScalarMatrix> Foam::atmTurbMesh::pEqn()
 {
-    fvVectorMatrix& UEqn(this->UEqn());
+    fvVectorMatrix& UEqn(this->UEqn().ref());
     volScalarField rAU(1.0/UEqn.A());
     volVectorField HbyA
     (
@@ -70,12 +74,12 @@ fvScalarMatrix& Foam::atmTurbMesh::pEqn()
     // The incompressible form of constrainPressure() used which basically
     // overloaded the compressible form with rho being one field
     constrainPressure(this->p_, this->U_, phiHbyA, rAtU());
-    static fvScalarMatrix pEqn
+    tmp<fvScalarMatrix> tpEqn
     (
       fvm::laplacian(rAtU(), this->p_) == fvc::div(phiHbyA)
     );
 
-    return pEqn; 
+    return tpEqn; 
 }
 void Foam::atmTurbMesh::solve_p()
 {
@@ -84,7 +88,7 @@ void Foam::atmTurbMesh::solve_p()
 }
 
 // Other variables
-fvScalarMatrix& Foam::atmTurbMesh::thetaEqn()
+tmp<fvScalarMatrix> Foam::atmTurbMesh::thetaEqn()
 {
   tmp<fvScalarMatrix> tThetaEqn
   (
@@ -92,7 +96,7 @@ fvScalarMatrix& Foam::atmTurbMesh::thetaEqn()
     + fvm::div(this->phi_, this->theta_)
     == 
       // Warning: nut() is used instead of alphaEff T
-      fvc::laplacian(this->turbulence_.nut(), this->theta_)
+      fvc::laplacian(this->turbulence_->nut(), this->theta_)
   );
   return tThetaEqn.ref();
 }
@@ -103,7 +107,7 @@ void Foam::atmTurbMesh::solve_theta()
   FatalError.exit();
 }
 
-fvScalarMatrix& Foam::atmTurbMesh::qEqn()
+tmp<fvScalarMatrix> Foam::atmTurbMesh::qEqn()
 {
   tmp<fvScalarMatrix> tQEqn
   (
@@ -111,9 +115,9 @@ fvScalarMatrix& Foam::atmTurbMesh::qEqn()
     + fvm::div(this->phi_, this->q_)
     == 
       // Warning: nut() is used instead of alphaEff Q
-      fvc::laplacian(this->turbulence_.nut(), this->q_)
+      fvc::laplacian(this->turbulence_->nut(), this->q_)
   );
-  return tQEqn.ref();
+  return tQEqn;
 }
 
 void Foam::atmTurbMesh::solve_q()
