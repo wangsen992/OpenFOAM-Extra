@@ -27,76 +27,119 @@ Description
 
 #include "atmTurbMesh.H"
 
-template<class TurbulenceModel, class ThermoModel>
-void Foam::atmTurbMesh<TurbulenceModel, ThermoModel>::createFields(fvMesh& mesh)
-{
-    
-    const Time& runTime(mesh.time());
-    // create fields (prognostic variables)
-    Info<< "Reading field p\n" << endl;
-    volScalarField p
+// Constructor
+Foam::atmTurbMesh::atmTurbMesh(IOobject io)
+:
+  fvMesh(io),
+  atmTurbDict_
+  (
+    IOobject
+    ( "atmTurbulenceProperties",
+      this->time().constant(),
+      *this,
+      IOobject::MUST_READ,
+      IOobject::NO_WRITE
+    )
+  ),
+  U_
+  (
+    IOobject
     (
-        IOobject
-        (
-            "p",
-            runTime.timeName(),
-            mesh,
-            IOobject::MUST_READ,
-            IOobject::AUTO_WRITE
-        ),
-        mesh
-    );
-
-    Info<< "Reading field U\n" << endl;
-    volVectorField U
-    (
-        IOobject
-        (
-            "U",
-            runTime.timeName(),
-            mesh,
-            IOobject::MUST_READ,
-            IOobject::AUTO_WRITE
-        ),
-        mesh
-    );
-
-    // create flux (phi)
-    Info << "Reading/calculating face flux field phi" << nl << endl;
-
-    surfaceScalarField phi
-    (
-      IOobject
-      (
-        "phi",
-        runTime.timeName(),
-        mesh,
-        IOobject::READ_IF_PRESENT,
+        "U",
+        this->time().timeName(),
+        *this,
+        IOobject::MUST_READ,
         IOobject::AUTO_WRITE
-      ),
-      fvc::flux(U)
-    );
-}
-
-template<class TurbulenceModel, class ThermoModel>
-void Foam::atmTurbMesh<TurbulenceModel, ThermoModel>::solveU()
-{
-    // Momentum predictor
-    tmp<fvVectorMatrix> tUEqn
+    ),
+    *this
+  ),
+  p_
+  (
+    IOobject
     (
-        fvm::div(this->phi_, this->U_)
-      + this->turbulence_->divDevSigma(this->U_)
-      + this->fU_Ug() // Geostrohpic Term
-    );
-    fvVectorMatrix& UEqn = tUEqn.ref();
+        "p",
+        this->time().timeName(),
+        *this,
+        IOobject::MUST_READ,
+        IOobject::AUTO_WRITE
+    ),
+    *this
+  ),
+  theta_
+  (
+    IOobject
+    (
+        "theta",
+        this->time().timeName(),
+        *this,
+        IOobject::MUST_READ,
+        IOobject::AUTO_WRITE
+    ),
+    *this
+  ),
+  q_
+  (
+    IOobject
+    (
+        "q",
+        this->time().timeName(),
+        *this,
+        IOobject::MUST_READ,
+        IOobject::AUTO_WRITE
+    ),
+    *this
+  ),
+  f_
+  (
+      "f", 
+      this->atmTurbDict_.lookup("f")
+  ),
+  g_
+  (
+      "g", 
+      this->atmTurbDict_.lookup("g")
+  ),
+  Ug_
+  (
+      "Ug", 
+      this->atmTurbDict_.lookup("Ug")
+  ),
+  theta0_
+  (
+      "theta0", 
+      this->atmTurbDict_.lookup("theta0")
+  ),
+  p0_
+  (
+      "p0", 
+      this->atmTurbDict_.lookup("p0")
+  ),
+  rho0_
+  (
+      "rho0", 
+      this->atmTurbDict_.lookup("rho0")
+  ),
+  phi_
+  (
+    IOobject
+    (
+      "phi",
+      this->time().timeName(),
+      *this,
+      IOobject::READ_IF_PRESENT,
+      IOobject::AUTO_WRITE
+    ),
+    fvc::flux(this->U_)
+  ),
+  thermo_(fluidThermo::New(*this)()),
+  turbulence_
+  (
+    incompressible::momentumTransportModel::New
+    (
+      this->U_, this->phi_, this->thermo_
+    )()
+  )
+{};
+// Access Functions
 
-    UEqn.relax();
-
-    solve(UEqn == -fvc::grad(this->p_)) ;
-}
-
-template<class TurbulenceModel, class ThermoModel>
-void Foam::atmTurbMesh<TurbulenceModel, ThermoModel>::solveP()
-{
-}
 

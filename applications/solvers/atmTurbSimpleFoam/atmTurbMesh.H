@@ -35,51 +35,59 @@ Description
 namespace Foam
 {
 
-template<class TurbulenceModel, class ThermoModel>
 class atmTurbMesh
   : public fvMesh
 {
 
 protected:
-  // Protected Data
+    // Protected Data
     // Note: Similar to fvMesh that contains all relavant information of the
     // model setup (numerical schemes, solution control, variables etc), this
     // is the starting model that handles the fluid mechanics solver behaviour
 
-    fvMesh& mesh_;
+    IOdictionary atmTurbDict_;
 
-    // Fields
+    // Fields (fields can be loaded from mesh directly)
     volVectorField U_; // Velocity Field
     volScalarField p_; // Perturbation Pressure to continuity
     volScalarField theta_; // Potential Temperature
     volScalarField q_; // specific humidity 
-    uniformDimensionedVectorField f_; // coriolis parameter
-    uniformDimensionedVectorField Ug_; // geostrohpic wind
-    uniformDimensionedScalarField rho_0_; // reference density
+
+    dimensionedVector f_; // coriolis parameter
+    dimensionedVector g_; // gravititational acceleration
+    dimensionedVector Ug_; // geostrohpic wind
+    dimensionedScalar theta0_; // reference potential temperature
+    dimensionedScalar p0_; // reference density
+    dimensionedScalar rho0_; // reference density
 
     surfaceScalarField phi_; // face flux
-    TurbulenceModel& turbulence_;
-    ThermoModel&     thermo_;
+    incompressible::momentumTransportModel& turbulence_;
+    fluidThermo&     thermo_;
 
+  // Protected Static Function
   // Protected Member Function
-    static void createFields(fvMesh&);
+
 
 public:
 
   // constructor
     atmTurbMesh
     (
-      fvMesh& mesh,
-      volVectorField& U,
-      volScalarField& p,
-      volScalarField& theta,
-      volScalarField& q
+        IOobject io
     );
   
-  // member functions
+  // Access Functions
+  volVectorField& U(){return this->U_;}
+  fvVectorMatrix& UEqn();
+  fvScalarMatrix& pEqn();
+  fvScalarMatrix& thetaEqn();
+  fvScalarMatrix& qEqn();
 
-  void solveU();
-  void solveP();
+  // member functions
+  void solve_U();
+  void solve_p();
+  void solve_theta();
+  void solve_q();
 
   tmp<volVectorField> fU_Ug()
   {
@@ -87,6 +95,5 @@ public:
   }
     
 };
-
-} // end of namespace Foam
+}; // end of namespace Foam
 

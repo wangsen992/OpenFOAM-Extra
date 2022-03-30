@@ -38,6 +38,8 @@ evolution equation of water vapor (mixing ratio), and moist air thermodynamics.
 #include "kinematicMomentumTransportModel.H"
 #include "singlePhaseTransportModel.H"
 
+#include "atmTurbMesh.H"
+
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 int main(int argc, char *argv[])
@@ -60,7 +62,7 @@ int main(int argc, char *argv[])
           << runTime.timeName() 
           << nl << Foam::endl;
 
-    fvMesh mesh (
+    atmTurbMesh mesh (
       IOobject
       (
         fvMesh::defaultRegion,
@@ -69,130 +71,23 @@ int main(int argc, char *argv[])
         IOobject::MUST_READ
       )
     );
+    Info << "atmTurbMesh created" << endl;
 
     // create control
-    simpleControl simple(mesh);
+    // simpleControl simple(mesh);
 
     //mesh.setFluxRequired(p.name());
-
-
 
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
     if (args.optionFound("dryRun"))
     {
       Info << "Dry Run: " << nl << endl;
-
-      volScalarField& pRef
-      (
-        mesh.objectRegistry::lookupObjectRef<volScalarField>("p")
-      );
-      Info << "pRef name" << pRef.name() << endl;
+      // fvVectorMatrix& UEqn = mesh.UEqn().ref();
+      Info << mesh.U() << endl;
       return 0;
     }
     
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-    while (simple.loop(runTime))
-    {
-      Info << "Time = " << runTime.timeName() << endl;
-
-      // Solve 
-      // Momentum predictor
-      tmp<fvVectorMatrix> tUEqn
-      (
-          fvm::div(phi, U)
-        + turbulence->divDevSigma(U)
-        + fU_Ug // addition of geostrophic term
-      );
-      fvVectorMatrix& UEqn = tUEqn.ref();
-
-      UEqn.relax();
-
-      Info << "simple.momentumPredictor() = " 
-           << simple.momentumPredictor()
-           << endl;
-      if (simple.momentumPredictor())
-      {
-          solve(UEqn == -fvc::grad(p)) ;
-      }
-      
-      // Pressure Corrector
-      volScalarField rAU(1.0/UEqn.A());
-      volVectorField HbyA(constrainHbyA(rAU*UEqn.H(), U, p));
-      surfaceScalarField phiHbyA("phiHbyA", fvc::flux(HbyA));
-      adjustPhi(phiHbyA, U, p);
-
-      tmp<volScalarField> rAtU(rAU);
-
-      Info  <<  "simple.consistent() = "
-            << simple.consistent() 
-            << endl;
-      if (simple.consistent())
-      {
-          rAtU = 1.0/(1.0/rAU - UEqn.H1());
-          phiHbyA +=
-              fvc::interpolate(rAtU() - rAU)*fvc::snGrad(p)*mesh.magSf();
-          HbyA -= (rAU - rAtU())*fvc::grad(p);
-      }
-
-      tUEqn.clear();
-
-      // Update the pressure BCs to ensure flux consistency
-      // The incompressible form of constrainPressure() used which basically
-      // overloaded the compressible form with rho being one field
-      
-      constrainPressure(p, U, phiHbyA, rAtU());
-
-      // Non-orthogonal pressure corrector loop
-      while (simple.correctNonOrthogonal())
-      {
-          fvScalarMatrix pEqn
-          (
-              fvm::laplacian(rAtU(), p) == fvc::div(phiHbyA)
-          );
-
-          pEqn.setReference
-          (
-              pressureReference.refCell(),
-              pressureReference.refValue()
-          );
-
-          pEqn.solve();
-
-          if (simple.finalNonOrthogonalIter())
-          {
-              phi = phiHbyA - pEqn.flux();
-          }
-      }
-
-      // compute cumulativeContErr
-      volScalarField contErr(fvc::div(phi));
-
-      scalar sumLocalContErr = runTime.deltaTValue()*
-          mag(contErr)().weightedAverage(mesh.V()).value();
-
-      scalar globalContErr = runTime.deltaTValue()*
-          contErr.weightedAverage(mesh.V()).value();
-      cumulativeContErr += globalContErr;
-
-      Info<< "time step continuity errors : sum local = " << sumLocalContErr
-          << ", global = " << globalContErr
-          << ", cumulative = " << cumulativeContErr
-          << endl;
-
-      // Explicitly relax pressure for momentum corrector
-      p.relax();
-
-      // Momentum corrector
-      U = HbyA - rAtU()*fvc::grad(p);
-      U.correctBoundaryConditions();
-
-      // Additional transport equations to solve
-      // Potential temperature
-
-      // Write
-      runTime.write();
-    };
 
     Info<< "End\n" << endl;
 
@@ -203,6 +98,5 @@ int main(int argc, char *argv[])
 
     return 0;
 }
-
 
 // ************************************************************************* //
