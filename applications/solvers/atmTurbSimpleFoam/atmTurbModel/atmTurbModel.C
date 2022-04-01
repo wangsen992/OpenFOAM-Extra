@@ -26,30 +26,31 @@ Description
 \*---------------------------------------------------------------------------*/
 
 #include "IOobject.H"
-#include "atmTurbMesh.H"
+#include "atmTurbModel.H"
 
 // Constructor
-Foam::atmTurbMesh::atmTurbMesh(IOobject io)
+Foam::atmTurbModel::atmTurbModel(IOobject io)
 :
-  fvMesh(io),
+  mesh_(io),
+  pimple_(mesh_),
   atmTurbDict_
   (
     IOobject
     ( "atmTurbulenceProperties",
-      this->time().constant(),
-      *this,
+      mesh_.time().constant(),
+      mesh_,
       IOobject::MUST_READ,
       IOobject::NO_WRITE
     )
   ),
-  thermo_(fluidThermo::New(*this)),
+  thermo_(fluidThermo::New(mesh_)),
   rho_
   (
     IOobject
     (
       "rho",
-      this->time().timeName(),
-      *this,
+      mesh_.time().timeName(),
+      mesh_,
       IOobject::READ_IF_PRESENT,
       IOobject::AUTO_WRITE
     ),
@@ -60,32 +61,32 @@ Foam::atmTurbMesh::atmTurbMesh(IOobject io)
     IOobject
     (
         "p",
-        this->time().timeName(),
-        *this,
+        mesh_.time().timeName(),
+        mesh_,
         IOobject::MUST_READ,
         IOobject::AUTO_WRITE
     ),
-    thermo_->p()
+    mesh_
   ),
   U_
   (
     IOobject
     (
         "U",
-        this->time().timeName(),
-        *this,
+        mesh_.time().timeName(),
+        mesh_,
         IOobject::MUST_READ,
         IOobject::AUTO_WRITE
     ),
-    *this
+    mesh_
   ),
   phi_
   (
     IOobject
     (
       "phi",
-      this->time().timeName(),
-      *this,
+      mesh_.time().timeName(),
+      mesh_,
       IOobject::READ_IF_PRESENT,
       IOobject::AUTO_WRITE
     ),
@@ -96,8 +97,8 @@ Foam::atmTurbMesh::atmTurbMesh(IOobject io)
     IOobject
     (
         "T",
-        this->time().timeName(),
-        *this,
+        mesh_.time().timeName(),
+        mesh_,
         IOobject::NO_READ,
         IOobject::AUTO_WRITE
     ),
@@ -108,33 +109,34 @@ Foam::atmTurbMesh::atmTurbMesh(IOobject io)
     IOobject
     (
         "q",
-        this->time().timeName(),
-        *this,
+        mesh_.time().timeName(),
+        mesh_,
         IOobject::MUST_READ,
         IOobject::AUTO_WRITE
     ),
-    *this
+    mesh_
   ),
+  pressureReference_(p_, pimple_.dict()),
 
   f_
   (
       "f", 
-      this->atmTurbDict_.lookup("f")
+      atmTurbDict_.lookup("f")
   ),
   g_
   (
       "g", 
-      this->atmTurbDict_.lookup("g")
+      atmTurbDict_.lookup("g")
   ),
   Ug_
   (
       "Ug", 
-      this->atmTurbDict_.lookup("Ug")
+      atmTurbDict_.lookup("Ug")
   ),
   p0_
   (
       "p0", 
-      this->atmTurbDict_.lookup("p0")
+      atmTurbDict_.lookup("p0")
   ),
   turbulence_
   (
@@ -145,7 +147,12 @@ Foam::atmTurbMesh::atmTurbMesh(IOobject io)
       phi_,
       thermo_()
     )
-  )
+  ),
+  UEqn_(UEqn()),
+  TEqn_(TEqn()),
+  qEqn_(qEqn())
 {
+  // creating fields
+  mesh_.setFluxRequired(p_.name());
 };
 // Access Functions

@@ -37,7 +37,7 @@ being developed right now.
 #include "kinematicMomentumTransportModel.H"
 #include "singlePhaseTransportModel.H"
 
-#include "atmTurbMesh.H"
+#include "atmTurbModel/atmTurbModel.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -61,7 +61,7 @@ int main(int argc, char *argv[])
           << runTime.timeName() 
           << nl << Foam::endl;
 
-    atmTurbMesh mesh (
+    atmTurbModel atm (
       IOobject
       (
         fvMesh::defaultRegion,
@@ -76,13 +76,37 @@ int main(int argc, char *argv[])
     if (args.optionFound("dryRun"))
     {
       Info << "Dry Run: " << nl << endl;
-      tmp<fvVectorMatrix> tUEqn = mesh.UEqn();
-      Info << tUEqn->D() << endl;
-      Info << mesh.V().size() << endl;
       return 0;
     }
     
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+    while(atm.pimple().run(runTime))
+    {
+      runTime++;
+      Info << "Time = " << runTime.timeName() << endl;
+      while(atm.pimple().loop())
+      {
+        fvVectorMatrix UEqn = atm.UEqn()();
+        while (atm.pimple().correct())
+        {
+          atm.pressureCorrect();
+        }
+
+        if (atm.pimple().turbCorr())
+        {
+          atm.nutCorrect();
+        }
+
+        dimensionedScalar contErr
+        (
+          "contErr", 
+          runTime.deltaT0Value()*mag(fvc::div(atm.U()))().weightedAverage(atm.mesh().V())
+        );
+        Info << "contErr: " << contErr.value() << endl;
+      }
+      Info << "mean(U)= " << average(atm.U().primitiveField()) << endl;
+      runTime.write();
+    }
 
     Info<< "End\n" << endl;
 
@@ -90,7 +114,6 @@ int main(int argc, char *argv[])
         << "  ClockTime = " << runTime.elapsedClockTime() << " s"
         << nl << endl;
     
-
     return 0;
 }
 

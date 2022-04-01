@@ -42,34 +42,34 @@ tmp<fvVectorMatrix> Foam::atmTurbMesh::UEqn()
       -fvc::grad(p_) / rho_
     );
     Info << "UEqn Constructed. " << endl;
+    tUEqn->relax();
+    tUEqn->solve();
     return tUEqn;
 }
 
-void Foam::atmTurbMesh::solve_U()
-{
-    // fvVectorMatrix& UEqn(this->UEqn());
-    // UEqn.relax();
-    // UEqn.solve();
-}
 
 // Pressure corrector to enforce continuity
 // Solution control is ignored here
 tmp<fvScalarMatrix> Foam::atmTurbMesh::pEqn()
 {
-    fvVectorMatrix& UEqn(this->UEqn().ref());
-    volScalarField rAU(1.0/UEqn.A());
+    volScalarField rAU(1.0/UEqn()->A());
     volVectorField HbyA
     (
-      constrainHbyA(rAU*UEqn.H(), this->U_, this->p_)
+      constrainHbyA(rAU*UEqn()->H(), this->U_, this->p_)
     );
     surfaceScalarField phiHbyA("phiHbyA", fvc::flux(HbyA));
-    adjustPhi(phiHbyA, this->U_, this->p_);
+    adjustPhi(phiHbyA, U_, p_);
 
     tmp<volScalarField> rAtU(rAU);
     // Update the pressure BCs to ensure flux consistency
     // The incompressible form of constrainPressure() used which basically
     // overloaded the compressible form with rho being one field
-    constrainPressure(this->p_, this->U_, phiHbyA, rAtU());
+    constrainPressure(p_, U_, phiHbyA, rAtU());
+    if (pimple_.consistent())
+    {
+      rAtU = 1.0/max(1.0/rAU - tUEqn->H1(), 0.1/rAU);
+      phiHbyA += 
+          fvc::interpolate(rAtU() - rAU) * fvc::snGrad(p)*this->magSf();
     tmp<fvScalarMatrix> tpEqn
     (
       fvm::laplacian(rAtU(), this->p_) == fvc::div(phiHbyA)
@@ -77,16 +77,17 @@ tmp<fvScalarMatrix> Foam::atmTurbMesh::pEqn()
 
     return tpEqn; 
 }
-void Foam::atmTurbMesh::solve_p()
+tmp<fvScalarMatrix> Foam::atmTurbMesh::solve_p()
 {
+  tmp<fvScalarMatrix> tpEqn(pEqn());
   Info << "solve_p() not implemented. " << endl;
-  FatalError.exit();
+  return tpEqn;
 }
 
 // Other variables
-tmp<fvScalarMatrix> Foam::atmTurbMesh::thetaEqn()
+tmp<fvScalarMatrix> Foam::atmTurbMesh::TEqn()
 {
-  tmp<fvScalarMatrix> tThetaEqn
+  tmp<fvScalarMatrix> tTEqn
   (
       fvm::ddt(T_)
     + fvm::div(phi_, T_)
@@ -94,7 +95,7 @@ tmp<fvScalarMatrix> Foam::atmTurbMesh::thetaEqn()
       // Warning: nut() is used instead of alphaEff T
       fvc::laplacian(this->turbulence_->nut(), T_)
   );
-  return tThetaEqn.ref();
+  return tTEqn;
 }
     
 void Foam::atmTurbMesh::solve_T()

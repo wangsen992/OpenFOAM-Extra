@@ -1,5 +1,5 @@
-atmTurbMesh/atmTurbMesh.C
-atmTurbMesh/atmTurbMeshSolve.C
+atmTurbModel/atmTurbModel.C
+atmTurbModel/atmTurbModelSolve.C
 
 atmTurbSimpleFoam.C
 
