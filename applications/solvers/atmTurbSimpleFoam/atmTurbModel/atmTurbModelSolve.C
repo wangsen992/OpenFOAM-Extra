@@ -41,6 +41,7 @@ tmp<fvVectorMatrix> Foam::atmTurbModel::UEqn()
         + fU_Ug()
       );
       tUEqn->relax();
+
       if (pimple_.momentumPredictor())
       {
         solve(tUEqn() == -fvc::grad(p_) ); // Geostrohpic Term
