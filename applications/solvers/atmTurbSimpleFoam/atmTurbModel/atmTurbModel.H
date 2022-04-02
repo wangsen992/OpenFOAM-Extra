@@ -67,6 +67,7 @@ protected:
     dimensionedVector g_; // gravititational acceleration
     dimensionedVector Ug_; // geostrohpic wind
     dimensionedScalar p0_; // reference density
+    dimensionedScalar T0_; // reference density
 
     autoPtr<incompressible::momentumTransportModel> turbulence_;
 
@@ -76,6 +77,8 @@ protected:
 
     // Protected Static Function
     // Protected Member Function
+      // exner function
+      volScalarField exner (){ return pow((p_/p0_), thermo_->gamma()())();}
 
 
 public:

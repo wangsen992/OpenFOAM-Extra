@@ -38,7 +38,10 @@ tmp<fvVectorMatrix> Foam::atmTurbModel::UEqn()
           fvm::ddt(U_)
         + fvm::div(phi_, U_)
         + turbulence_->divDevSigma(U_)
-        + fU_Ug()
+        + fU_Ug() 
+        == 
+          g_ * (T_ - T0_) / T0_
+
       );
       tUEqn->relax();
 
@@ -148,6 +151,8 @@ tmp<fvScalarMatrix> Foam::atmTurbModel::TEqn()
         // Warning: nut() is used instead of alphaEff T
         fvc::laplacian(this->turbulence_->nut(), T_)
     );
+    tTEqn->relax();
+    tTEqn->solve();
     return tTEqn;
 }
     

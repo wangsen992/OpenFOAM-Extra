@@ -28,6 +28,8 @@ Description
 #include "IOobject.H"
 #include "atmTurbModel.H"
 
+// Protected Member Function
+
 // Constructor
 Foam::atmTurbModel::atmTurbModel(IOobject io)
 :
@@ -137,6 +139,11 @@ Foam::atmTurbModel::atmTurbModel(IOobject io)
   (
       "p0", 
       atmTurbDict_.lookup("p0")
+  ),
+  T0_
+  (
+      "T0", 
+      atmTurbDict_.lookup("T0")
   ),
   turbulence_
   (
