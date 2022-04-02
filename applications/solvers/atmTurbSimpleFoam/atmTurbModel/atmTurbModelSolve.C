@@ -40,7 +40,7 @@ tmp<fvVectorMatrix> Foam::atmTurbModel::UEqn()
         + turbulence_->divDevSigma(U_)
         + fU_Ug() 
         == 
-          g_ * (T_ - T0_) / T0_
+        - g_ * (T_ - T0_) / T0_
 
       );
       tUEqn->relax();
