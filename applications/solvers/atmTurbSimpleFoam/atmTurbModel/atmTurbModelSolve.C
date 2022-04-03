@@ -41,7 +41,6 @@ tmp<fvVectorMatrix> Foam::atmTurbModel::UEqn()
         + fU_Ug() 
         == 
         - g_ * (T_ - T0_) / T0_
-
       );
       tUEqn->relax();
 

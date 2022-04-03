@@ -98,6 +98,14 @@ int main(int argc, char *argv[])
         }
         atm.TEqn();
 
+
+        dimensionedScalar rangeT
+        (
+          "rangeT",
+          max(atm.T()) - min(atm.T())
+        );
+        Info << "rangeT = " << rangeT.value() << endl;
+
         dimensionedScalar contErr
         (
           "contErr", 

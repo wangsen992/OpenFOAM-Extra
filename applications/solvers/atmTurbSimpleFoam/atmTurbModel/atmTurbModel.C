@@ -104,7 +104,7 @@ Foam::atmTurbModel::atmTurbModel(IOobject io)
         IOobject::NO_READ,
         IOobject::AUTO_WRITE
     ),
-    thermo_->T()
+    mesh_
   ),
   q_
   (
