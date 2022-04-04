@@ -30,6 +30,9 @@ Description
 
 #include "fvCFD.H"
 #include "fluidThermo.H"
+#include "dynamicMomentumTransportModel.H"
+#include "kinematicMomentumTransportModel.H"
+#include "fluidThermophysicalTransportModel.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -47,17 +50,31 @@ int main(int argc, char *argv[])
         IOobject::MUST_READ
       )
     );
+
     Info << fvMesh::defaultRegion << endl;
 
-    autoPtr<fluidThermo> pthermo
+    volVectorField U(IOobject("U", runTime.timeName(), mesh, IOobject::MUST_READ), mesh);
+    surfaceScalarField phi(IOobject("phi", runTime.timeName(), mesh, IOobject::NO_READ), fvc::flux(U));
+
+    autoPtr<fluidThermo> pthermo (fluidThermo::New(mesh));
+    autoPtr<compressible::momentumTransportModel> pturbulence
     (
-      fluidThermo::New(mesh)
+      compressible::momentumTransportModel::New(pthermo->rho(), U, phi, pthermo())
     );
+    autoPtr<fluidThermophysicalTransportModel> ptransport
+    ( 
+      fluidThermophysicalTransportModel::New(pturbulence(), pthermo())
+    );
+    
 
     Info << pthermo->thermoName() << endl;
     Info << pthermo->phaseName() << endl;
     Info << pthermo->typeName_() << endl;
     Info << pthermo->type() << endl;
+    Info << pthermo->he() << endl;
+
+    Info << ptransport->type() << endl;
+    Info << ptransport->dictName() << endl;
     
     
 

@@ -14,7 +14,7 @@ FoamFile
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-simulationType  RAS;
+simulationType  LES;
 
 RAS
 {
@@ -25,5 +25,15 @@ RAS
     printCoeffs     on;
 }
 
+LES
+{
+    model           Smagorinsky;
+
+    delta           cubeRootVol;
+
+    turbulence      on;
+
+    printCoeffs     on;
+}
 
 // ************************************************************************* //
