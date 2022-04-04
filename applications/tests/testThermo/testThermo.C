@@ -29,15 +29,37 @@ Description
 \*---------------------------------------------------------------------------*/
 
 #include "fvCFD.H"
+#include "fluidThermo.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 int main(int argc, char *argv[])
 {
-    #include "setRootCase.H"
-    #include "createTime.H"
-    #include "createMesh.H"
-    #include "createFields.H"
+    argList args(argc, argv);
+    Time runTime(Time::controlDictName, args);
+    fvMesh mesh
+    (
+      IOobject
+      (
+        fvMesh::defaultRegion,
+        runTime.timeName(),
+        runTime,
+        IOobject::MUST_READ
+      )
+    );
+    Info << fvMesh::defaultRegion << endl;
+
+    autoPtr<fluidThermo> pthermo
+    (
+      fluidThermo::New(mesh)
+    );
+
+    Info << pthermo->thermoName() << endl;
+    Info << pthermo->phaseName() << endl;
+    Info << pthermo->typeName_() << endl;
+    Info << pthermo->type() << endl;
+    
+    
 
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
