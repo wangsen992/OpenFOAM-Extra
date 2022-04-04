@@ -90,6 +90,7 @@ int main(int argc, char *argv[])
         while (atm.pimple().correct())
         {
           atm.pressureCorrect();
+          Info << average(atm.p()) << endl;
         }
 
         if (atm.pimple().turbCorr())
@@ -97,7 +98,6 @@ int main(int argc, char *argv[])
           atm.nutCorrect();
         }
         atm.TEqn();
-
 
         dimensionedScalar rangeT
         (
