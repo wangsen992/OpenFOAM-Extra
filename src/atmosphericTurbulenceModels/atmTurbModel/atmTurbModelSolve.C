@@ -33,13 +33,14 @@ tmp<fvVectorMatrix> Foam::atmTurbModel::UEqn()
 {
       Info << "Constructing UEqn_ " << endl;
       // Momentum predictor
+      tmp<volScalarField> rho_ = thermo_->rho();
       volScalarField& p_ = thermo_->p();
       volScalarField& T_ = thermo_->T();
       tmp<fvVectorMatrix> tUEqn
       (
-          fvm::ddt(U_)
+          fvm::ddt(rho_, U_)
         + fvm::div(phi_, U_)
-        + turbulence_->divDevSigma(U_)
+        + fvc::laplacian(turbulence_->nuEff(), U_)
         + fU_Ug() 
         == 
         - g_ * (T_ - T0_) / T0_
@@ -159,7 +160,7 @@ tmp<fvScalarMatrix> Foam::atmTurbModel::TEqn()
       + fvm::div(phi_, T_)
       == 
         // Warning: nut() is used instead of alphaEff T
-        fvc::laplacian(this->turbulence_->nut(), T_)
+        fvc::laplacian(transport_->kappaEff(), T_)
     );
     tTEqn->relax();
     tTEqn->solve();
@@ -176,7 +177,7 @@ tmp<fvScalarMatrix> Foam::atmTurbModel::qEqn()
       + fvm::div(phi_, q_)
       == 
         // Warning: nut() is used instead of alphaEff Q
-        fvc::laplacian(this->turbulence_->nut(), q_)
+        fvc::laplacian(transport_->alphaEff(), q_)
     );
     return tQEqn;
 }

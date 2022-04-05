@@ -30,9 +30,9 @@ Description
 #include "fvCFD.H"
 #include "fluidThermo.H"
 #include "dynamicMomentumTransportModel.H"
-#include "kinematicMomentumTransportModel.H"
 #include "pimpleControl.H"
 #include "pressureReference.H"
+#include "fluidThermophysicalTransportModel.H"
 
 
 namespace Foam
@@ -66,7 +66,8 @@ protected:
     dimensionedScalar p0_; // reference density
     dimensionedScalar T0_; // reference density
 
-    autoPtr<incompressible::momentumTransportModel> turbulence_;
+    autoPtr<compressible::momentumTransportModel> turbulence_;
+    autoPtr<fluidThermophysicalTransportModel> transport_;
 
     tmp<fvVectorMatrix> UEqn_;
     tmp<fvScalarMatrix> TEqn_;
@@ -95,7 +96,7 @@ public:
     volScalarField& T(){return thermo_->T();}
     volScalarField& q(){return q_;}
     autoPtr<fluidThermo> thermo(){return thermo_;}
-    autoPtr<incompressible::momentumTransportModel> turbulence(){return turbulence_;}
+    autoPtr<compressible::momentumTransportModel> turbulence(){return turbulence_;}
 
     // construct prognostic equations
     // Construct momentum equation

@@ -68,7 +68,7 @@ Foam::atmTurbModel::atmTurbModel(IOobject io)
       IOobject::READ_IF_PRESENT,
       IOobject::AUTO_WRITE
     ),
-    fvc::flux(U_)
+    linearInterpolate(thermo_->rho() * U_) & mesh_.Sf()
   ),
   q_
   (
@@ -111,13 +111,17 @@ Foam::atmTurbModel::atmTurbModel(IOobject io)
   ),
   turbulence_
   (
-    incompressible::momentumTransportModel::New
+    compressible::momentumTransportModel::New
     (
-      // rho_,
+      thermo_->rho(),
       U_,
       phi_,
       thermo_()
     )
+  ),
+  transport_
+  (
+    fluidThermophysicalTransportModel::New(turbulence_, thermo_)
   ),
   UEqn_(),
   TEqn_(),
