@@ -33,6 +33,8 @@ tmp<fvVectorMatrix> Foam::atmTurbModel::UEqn()
 {
       Info << "Constructing UEqn_ " << endl;
       // Momentum predictor
+      volScalarField& p_ = thermo_->p();
+      volScalarField& T_ = thermo_->T();
       tmp<fvVectorMatrix> tUEqn
       (
           fvm::ddt(U_)
@@ -59,6 +61,7 @@ void Foam::atmTurbModel::pressureCorrect()
 {
     Info << "Init pEqn." << endl;
     volScalarField rAU("rAU", 1.0/UEqn_->A());
+    volScalarField& p_ = thermo_->p();
     volVectorField HbyA
     (
       constrainHbyA(rAU*UEqn_->H(), U_, p_)
@@ -106,11 +109,17 @@ void Foam::atmTurbModel::pressureCorrect()
       {
         Info << "Correcting phi_ in pEqn()." << endl;
         phi_ = phiHbyA - pEqn.flux();
+        Info << "phi correcting complete." << endl;
       }
     }
 
     // Explicitly relax pressure for UEqn
-    p_.relax();
+    Info << "timeIndex : " << mesh_.time().timeIndex() << endl; 
+    if (mesh_.time().timeIndex() > 1)
+    {
+      Info << "Relaxing p field for U correction." << endl;
+      p_.relax();
+    }
     U_ = HbyA - rAtU * fvc::grad(p_);
     U_.correctBoundaryConditions();
 }
@@ -129,7 +138,7 @@ void Foam::atmTurbModel::phiCorrect()
     (
       phi_, 
       U_, 
-      p_,
+      thermo_->p(),
       dimensionedScalar("rAUf", dimTime, 1),
       geometricZeroField(),
       pressureReference_,
@@ -142,6 +151,8 @@ void Foam::atmTurbModel::phiCorrect()
 tmp<fvScalarMatrix> Foam::atmTurbModel::TEqn()
 {
     Info << "Init TEqn." << endl;
+
+    volScalarField& T_ = thermo_->T();
     tmp<fvScalarMatrix> tTEqn
     (
         fvm::ddt(T_)

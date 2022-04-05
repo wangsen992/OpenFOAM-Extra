@@ -52,13 +52,10 @@ protected:
     pimpleControl pimple_;
     IOdictionary atmTurbDict_;
     autoPtr<fluidThermo>     thermo_;
-    volScalarField rho_; // density
-    volScalarField p_; // Perturbation Pressure to continuity
 
     // Fields (fields can be loaded from mesh directly)
     volVectorField U_; // Velocity Field
     surfaceScalarField phi_; // face flux
-    volScalarField T_; // Potential Temperature
     volScalarField q_; // specific humidity 
 
     pressureReference pressureReference_;
@@ -78,7 +75,7 @@ protected:
     // Protected Static Function
     // Protected Member Function
       // exner function
-      volScalarField exner (){ return pow((p_/p0_), thermo_->gamma()())();}
+      volScalarField exner (){ return pow((thermo_->p()/p0_), thermo_->gamma()())();}
 
 
 public:
@@ -94,8 +91,8 @@ public:
     const Time& runTime(){return mesh_.time();}
     pimpleControl& pimple(){return pimple_;}
     volVectorField& U(){return U_;}
-    volScalarField& p(){return p_;}
-    volScalarField& T(){return T_;}
+    volScalarField& p(){return thermo_->p();}
+    volScalarField& T(){return thermo_->T();}
     volScalarField& q(){return q_;}
     autoPtr<fluidThermo> thermo(){return thermo_;}
     autoPtr<incompressible::momentumTransportModel> turbulence(){return turbulence_;}

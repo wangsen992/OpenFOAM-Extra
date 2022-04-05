@@ -46,30 +46,6 @@ Foam::atmTurbModel::atmTurbModel(IOobject io)
     )
   ),
   thermo_(fluidThermo::New(mesh_)),
-  rho_
-  (
-    IOobject
-    (
-      "rho",
-      mesh_.time().timeName(),
-      mesh_,
-      IOobject::READ_IF_PRESENT,
-      IOobject::AUTO_WRITE
-    ),
-    thermo_->rho()
-  ),
-  p_
-  (
-    IOobject
-    (
-        "p",
-        mesh_.time().timeName(),
-        mesh_,
-        IOobject::MUST_READ,
-        IOobject::AUTO_WRITE
-    ),
-    mesh_
-  ),
   U_
   (
     IOobject
@@ -94,18 +70,6 @@ Foam::atmTurbModel::atmTurbModel(IOobject io)
     ),
     fvc::flux(U_)
   ),
-  T_
-  (
-    IOobject
-    (
-        "T",
-        mesh_.time().timeName(),
-        mesh_,
-        IOobject::NO_READ,
-        IOobject::AUTO_WRITE
-    ),
-    mesh_
-  ),
   q_
   (
     IOobject
@@ -118,7 +82,7 @@ Foam::atmTurbModel::atmTurbModel(IOobject io)
     ),
     mesh_
   ),
-  pressureReference_(p_, pimple_.dict()),
+  pressureReference_(thermo_->p(), pimple_.dict()),
 
   f_
   (
@@ -155,11 +119,11 @@ Foam::atmTurbModel::atmTurbModel(IOobject io)
       thermo_()
     )
   ),
-  UEqn_(UEqn()),
-  TEqn_(TEqn()),
-  qEqn_(qEqn())
+  UEqn_(),
+  TEqn_(),
+  qEqn_()
 {
   // creating fields
-  mesh_.setFluxRequired(p_.name());
+  mesh_.setFluxRequired(thermo_->p().name());
 };
 // Access Functions

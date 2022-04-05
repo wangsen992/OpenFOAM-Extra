@@ -34,6 +34,7 @@
 # clangd compile_commands
 **/compile_commands.json
 **/compile_flags.txt
+**/.clangd
 
 #OpenFOAM Cache
 **/.cache
