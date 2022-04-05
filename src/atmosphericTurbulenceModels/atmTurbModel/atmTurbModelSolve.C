@@ -56,6 +56,41 @@ tmp<fvVectorMatrix> Foam::atmTurbModel::UEqn()
       return UEqn_;
 }
 
+
+// Other variables
+tmp<fvScalarMatrix> Foam::atmTurbModel::TEqn()
+{
+    Info << "Init TEqn." << endl;
+
+    volScalarField& T_ = thermo_->T();
+    tmp<fvScalarMatrix> tTEqn
+    (
+        fvm::ddt(T_)
+      + fvm::div(phi_, T_)
+      == 
+        // Warning: nut() is used instead of alphaEff T
+        fvc::laplacian(transport_->kappaEff(), T_)
+    );
+    tTEqn->relax();
+    tTEqn->solve();
+    return tTEqn;
+}
+    
+
+tmp<fvScalarMatrix> Foam::atmTurbModel::qEqn()
+{
+    Info << "Init qEqn." << endl;
+    tmp<fvScalarMatrix> tQEqn
+    (
+        fvm::ddt(q_)
+      + fvm::div(phi_, q_)
+      == 
+        // Warning: nut() is used instead of alphaEff Q
+        fvc::laplacian(transport_->alphaEff(), q_)
+    );
+    return tQEqn;
+}
+
 // Pressure corrector to enforce continuity
 // Solution control is ignored here
 void Foam::atmTurbModel::pressureCorrect()
@@ -147,38 +182,3 @@ void Foam::atmTurbModel::phiCorrect()
     );
     Info << "CorrectPhi completed" << endl;
 }
-
-// Other variables
-tmp<fvScalarMatrix> Foam::atmTurbModel::TEqn()
-{
-    Info << "Init TEqn." << endl;
-
-    volScalarField& T_ = thermo_->T();
-    tmp<fvScalarMatrix> tTEqn
-    (
-        fvm::ddt(T_)
-      + fvm::div(phi_, T_)
-      == 
-        // Warning: nut() is used instead of alphaEff T
-        fvc::laplacian(transport_->kappaEff(), T_)
-    );
-    tTEqn->relax();
-    tTEqn->solve();
-    return tTEqn;
-}
-    
-
-tmp<fvScalarMatrix> Foam::atmTurbModel::qEqn()
-{
-    Info << "Init qEqn." << endl;
-    tmp<fvScalarMatrix> tQEqn
-    (
-        fvm::ddt(q_)
-      + fvm::div(phi_, q_)
-      == 
-        // Warning: nut() is used instead of alphaEff Q
-        fvc::laplacian(transport_->alphaEff(), q_)
-    );
-    return tQEqn;
-}
-
