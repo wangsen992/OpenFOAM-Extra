@@ -30,13 +30,11 @@ being developed right now.
 
 \*---------------------------------------------------------------------------*/
 
+// OpenFOAM Modules
 #include "IOobject.H"
 #include "fvCFD.H"
-#include "simpleControl.H"
-#include "pressureReference.H"
-#include "kinematicMomentumTransportModel.H"
-#include "singlePhaseTransportModel.H"
 
+// User Module
 #include "atmTurbModel.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
