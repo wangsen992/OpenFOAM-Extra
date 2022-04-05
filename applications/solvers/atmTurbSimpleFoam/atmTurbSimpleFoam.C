@@ -37,7 +37,7 @@ being developed right now.
 #include "kinematicMomentumTransportModel.H"
 #include "singlePhaseTransportModel.H"
 
-#include "atmTurbModel/atmTurbModel.H"
+#include "atmTurbModel.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

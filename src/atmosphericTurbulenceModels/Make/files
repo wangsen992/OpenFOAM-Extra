@@ -1,0 +1,10 @@
+kEpsilonModified/kEpsilonModified.C
+
+# atmThermo/atmThermo.C
+
+atmTurbModel/atmTurbModel.C
+atmTurbModel/atmTurbModelSolve.C
+
+
+LIB = $(FOAM_USER_LIBBIN)/libatmosphericTurbulenceModels
+

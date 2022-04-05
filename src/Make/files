@@ -1,3 +1,0 @@
-geostrophicForce.C
-
-LIB = $(FOAM_USER_LIBBIN)/libopenfoamExtra
