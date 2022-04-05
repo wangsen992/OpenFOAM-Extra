@@ -68,7 +68,7 @@ Foam::atmTurbModel::atmTurbModel(IOobject io)
       IOobject::READ_IF_PRESENT,
       IOobject::AUTO_WRITE
     ),
-    linearInterpolate(thermo_->rho() * U_) & mesh_.Sf()
+    fvc::flux(U_)
   ),
   q_
   (
