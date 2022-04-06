@@ -145,6 +145,7 @@ void Foam::atmTurbModel::pressureCorrect()
       {
         Info << "Correcting phi_ in pEqn()." << endl;
         phi_ = phiHbyA - pEqn.flux();
+        rhophi_ = rho0f_ * phi_;
         Info << "phi correcting complete." << endl;
       }
     }

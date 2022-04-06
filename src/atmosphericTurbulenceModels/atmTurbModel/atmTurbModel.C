@@ -46,6 +46,7 @@ Foam::atmTurbModel::atmTurbModel(IOobject io)
     )
   ),
   thermo_(fluidThermo::New(mesh_)),
+  rho0f_("rho0f", linearInterpolate(thermo_->rho0())),
   U_
   (
     IOobject
@@ -69,6 +70,18 @@ Foam::atmTurbModel::atmTurbModel(IOobject io)
       IOobject::AUTO_WRITE
     ),
     fvc::flux(U_)
+  ),
+  rhophi_
+  (
+    IOobject
+    (
+      "rhophi",
+      mesh_.time().timeName(),
+      mesh_,
+      IOobject::READ_IF_PRESENT,
+      IOobject::AUTO_WRITE
+    ),
+    rho0f_ * phi_
   ),
   q_
   (
@@ -115,7 +128,7 @@ Foam::atmTurbModel::atmTurbModel(IOobject io)
     (
       thermo_->rho(),
       U_,
-      phi_,
+      rhophi_,
       thermo_()
     )
   ),

@@ -52,10 +52,12 @@ protected:
     pimpleControl pimple_;
     IOdictionary atmTurbDict_;
     autoPtr<fluidThermo>     thermo_;
+    surfaceScalarField rho0f_;
 
     // Fields (fields can be loaded from mesh directly)
     volVectorField U_; // Velocity Field
-    surfaceScalarField phi_; // face flux
+    surfaceScalarField phi_; // face velocity flux
+    surfaceScalarField rhophi_; // face mass flux
     volScalarField q_; // specific humidity 
 
     pressureReference pressureReference_;
