@@ -38,7 +38,7 @@ tmp<fvVectorMatrix> Foam::atmTurbModel::UEqn()
       volScalarField& T_ = thermo_->T();
       tmp<fvVectorMatrix> tUEqn
       (
-          fvm::ddt(rho_, U_)
+          fvm::ddt(U_)
         + fvm::div(phi_, U_)
         + fvc::laplacian(turbulence_->nuEff(), U_)
         + fU_Ug() 
@@ -69,7 +69,7 @@ tmp<fvScalarMatrix> Foam::atmTurbModel::TEqn()
       + fvm::div(phi_, T_)
       == 
         // Warning: nut() is used instead of alphaEff T
-        fvc::laplacian(transport_->kappaEff(), T_)
+        fvc::laplacian(transport_->kappaEff()/(thermo_->Cp() * thermo_->rho()), T_)
     );
     tTEqn->relax();
     tTEqn->solve();
