@@ -56,7 +56,6 @@ tmp<fvVectorMatrix> Foam::atmTurbModel::UEqn()
       return UEqn_;
 }
 
-
 // Other variables
 tmp<fvScalarMatrix> Foam::atmTurbModel::TEqn()
 {
@@ -69,7 +68,7 @@ tmp<fvScalarMatrix> Foam::atmTurbModel::TEqn()
       + fvm::div(phi_, T_)
       == 
         // Warning: nut() is used instead of alphaEff T
-        fvc::laplacian(transport_->kappaEff()/(thermo_->Cp() * thermo_->rho()), T_)
+        fvc::laplacian(transport_->alphaEff()/thermo_->rho0(), T_)
     );
     tTEqn->relax();
     tTEqn->solve();
@@ -86,7 +85,7 @@ tmp<fvScalarMatrix> Foam::atmTurbModel::qEqn()
       + fvm::div(phi_, q_)
       == 
         // Warning: nut() is used instead of alphaEff Q
-        fvc::laplacian(transport_->alphaEff(), q_)
+        fvc::laplacian(transport_->alphaEff() / thermo_->rho0(), q_)
     );
     return tQEqn;
 }
@@ -165,6 +164,7 @@ void Foam::atmTurbModel::nutCorrect()
 {
     thermo_->correct();
     turbulence_->correct();
+    transport_->correct();
 }
 
 void Foam::atmTurbModel::phiCorrect()
