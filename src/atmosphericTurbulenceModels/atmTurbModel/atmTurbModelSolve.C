@@ -40,7 +40,7 @@ tmp<fvVectorMatrix> Foam::atmTurbModel::UEqn()
       (
           fvm::ddt(U_)
         + fvm::div(phi_, U_)
-        + fvc::laplacian(turbulence_->nuEff(), U_)
+        + fvm::laplacian(turbulence_->nuEff(), U_)
         + fU_Ug() 
         == 
         - g_ * (T_ - T0_) / T0_
@@ -67,8 +67,7 @@ tmp<fvScalarMatrix> Foam::atmTurbModel::TEqn()
         fvm::ddt(T_)
       + fvm::div(phi_, T_)
       == 
-        // Warning: nut() is used instead of alphaEff T
-        fvc::laplacian(transport_->alphaEff()/thermo_->rho0(), T_)
+        fvm::laplacian(transport_->alphaEff()/thermo_->rho0(), T_)
     );
     tTEqn->relax();
     tTEqn->solve();
@@ -90,96 +89,3 @@ tmp<fvScalarMatrix> Foam::atmTurbModel::qEqn()
     return tQEqn;
 }
 
-// Pressure corrector to enforce continuity
-// Solution control is ignored here
-void Foam::atmTurbModel::pressureCorrect()
-{
-    Info << "Init pEqn." << endl;
-    volScalarField rAU("rAU", 1.0/UEqn_->A());
-    volScalarField& p_ = thermo_->p();
-    volVectorField HbyA
-    (
-      constrainHbyA(rAU*UEqn_->H(), U_, p_)
-    );
-    surfaceScalarField phiHbyA("phiHbyA", fvc::flux(HbyA));
-    if (p_.needReference())
-    {
-        fvc::makeRelative(phiHbyA, U_);
-        adjustPhi(phiHbyA, U_, p_);
-        fvc::makeAbsolute(phiHbyA, U_);
-    }
-
-    tmp<volScalarField> rAtU(rAU);
-    // Update the pressure BCs to ensure flux consistency
-    // The incompressible form of constrainPressure() used which basically
-    // overloaded the compressible form with rho being one field
-    if (pimple_.consistent())
-    {
-      rAtU = 1.0/max(1.0/rAU - UEqn_->H1(), 0.1/rAU);
-      phiHbyA += 
-          fvc::interpolate(rAtU() - rAU) * fvc::snGrad(p_)*mesh_.magSf();
-      HbyA -= (rAU - rAtU()) * fvc::grad(p_);
-    }
-
-    // Update the pressure BCs to ensure flux consistency
-    constrainPressure(p_, U_, phiHbyA, rAtU());
-
-    // Non-orthogonal pressure corrector loop ignored here
-    while (pimple_.correctNonOrthogonal())
-    {
-      // RHS multiplied by rho_ to maintain dimension balance
-      fvScalarMatrix pEqn
-      (
-        fvm::laplacian(rAtU(), p_) == fvc::div(phiHbyA) 
-      );
-      pEqn.setReference
-      (
-        pressureReference_.refCell(), 
-        pressureReference_.refValue()
-      );
-
-      pEqn.solve();
-
-      if (pimple_.finalNonOrthogonalIter())
-      {
-        Info << "Correcting phi_ in pEqn()." << endl;
-        phi_ = phiHbyA - pEqn.flux();
-        rhophi_ = rho0f_ * phi_;
-        Info << "phi correcting complete." << endl;
-      }
-    }
-
-    // Explicitly relax pressure for UEqn
-    Info << "timeIndex : " << mesh_.time().timeIndex() << endl; 
-    if (mesh_.time().timeIndex() > 1)
-    {
-      Info << "Relaxing p field for U correction." << endl;
-      p_.relax();
-    }
-    U_ = HbyA - rAtU * fvc::grad(p_);
-    U_.correctBoundaryConditions();
-}
-
-void Foam::atmTurbModel::nutCorrect()
-{
-    thermo_->correct();
-    turbulence_->correct();
-    transport_->correct();
-}
-
-void Foam::atmTurbModel::phiCorrect()
-{
-    phi_ = fvc::flux(U_);
-    Info << "CorrectPhi" << endl;
-    CorrectPhi
-    (
-      phi_, 
-      U_, 
-      thermo_->p(),
-      dimensionedScalar("rAUf", dimTime, 1),
-      geometricZeroField(),
-      pressureReference_,
-      pimple_
-    );
-    Info << "CorrectPhi completed" << endl;
-}
