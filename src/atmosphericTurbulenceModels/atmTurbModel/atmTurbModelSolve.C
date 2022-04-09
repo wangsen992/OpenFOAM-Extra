@@ -33,8 +33,6 @@ tmp<fvVectorMatrix> Foam::atmTurbModel::UEqn()
 {
       Info << "Constructing UEqn_ " << endl;
       // Momentum predictor
-      volScalarField& p_ = thermo_->p();
-      volScalarField& T_ = thermo_->T();
       tmp<fvVectorMatrix> tUEqn
       (
           fvm::ddt(U_)
@@ -43,35 +41,35 @@ tmp<fvVectorMatrix> Foam::atmTurbModel::UEqn()
         == 
         fvModels_.source(U_)
         - fU_Ug() 
-        - g_ * (T_ - T0_) / T0_
+        - g_ * (theta_ - theta0_) / theta0_
       );
       tUEqn->relax();
 
       if (pimple_.momentumPredictor())
       {
-        solve(tUEqn() == -fvc::grad(p_) ); // Geostrohpic Term
+        solve(tUEqn() == -fvc::grad(p_rgh_) ); // Geostrohpic Term
       }
       Info << "UEqn Constructed. " << endl;
       UEqn_ = tUEqn;
-      return UEqn_;
+      return tUEqn;
 }
 
 // Other variables
-tmp<fvScalarMatrix> Foam::atmTurbModel::TEqn()
+tmp<fvScalarMatrix> Foam::atmTurbModel::thetaEqn()
 {
     Info << "Init TEqn." << endl;
 
-    volScalarField& T_ = thermo_->T();
-    tmp<fvScalarMatrix> tTEqn
+    tmp<fvScalarMatrix> tThetaEqn
     (
-        fvm::ddt(T_)
-      + fvm::div(phi_, T_)
+        fvm::ddt(theta_)
+      + fvm::div(phi_, theta_)
       == 
-        fvm::laplacian(transport_->alphaEff()/thermo_->rho0(), T_)
+        fvm::laplacian(transport_->alphaEff()/thermo_->rho0(), theta_)
     );
-    tTEqn->relax();
-    tTEqn->solve();
-    return tTEqn;
+    tThetaEqn->relax();
+    tThetaEqn->solve();
+    thetaEqn_ = tThetaEqn;
+    return tThetaEqn;
 }
 
 tmp<fvScalarMatrix> Foam::atmTurbModel::qEqn()

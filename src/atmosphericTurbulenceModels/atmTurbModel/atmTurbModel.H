@@ -58,6 +58,8 @@ protected:
 
     // Fields (fields can be loaded from mesh directly)
     volVectorField U_; // Velocity Field
+    volScalarField p_rgh_; // pressure perturbation
+    volScalarField theta_; // potential temperature
     surfaceScalarField phi_; // face velocity flux
     surfaceScalarField rhophi_; // face mass flux
     volScalarField q_; // specific humidity 
@@ -68,7 +70,7 @@ protected:
     dimensionedVector g_; // gravititational acceleration
     dimensionedVector Ug_; // geostrohpic wind
     dimensionedScalar p0_; // reference density
-    dimensionedScalar T0_; // reference density
+    dimensionedScalar theta0_; // reference density
 
     autoPtr<compressible::momentumTransportModel> turbulence_;
     autoPtr<fluidThermophysicalTransportModel> transport_;
@@ -76,7 +78,7 @@ protected:
     fvConstraints& fvConstraints_;
 
     tmp<fvVectorMatrix> UEqn_;
-    tmp<fvScalarMatrix> TEqn_;
+    tmp<fvScalarMatrix> thetaEqn_;
     tmp<fvScalarMatrix> qEqn_;
 
     // Protected Static Function
@@ -107,7 +109,7 @@ public:
     // construct prognostic equations
     // Construct momentum equation
     tmp<fvVectorMatrix> UEqn();
-    tmp<fvScalarMatrix> TEqn();
+    tmp<fvScalarMatrix> thetaEqn();
     tmp<fvScalarMatrix> qEqn();
 
     void pressureCorrect();

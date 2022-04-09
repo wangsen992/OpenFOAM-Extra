@@ -59,6 +59,30 @@ Foam::atmTurbModel::atmTurbModel(IOobject io)
     ),
     mesh_
   ),
+  p_rgh_
+  (
+    IOobject
+    (
+        "p_rgh",
+        mesh_.time().timeName(),
+        mesh_,
+        IOobject::MUST_READ,
+        IOobject::AUTO_WRITE
+    ),
+    mesh_
+  ),
+  theta_
+  (
+    IOobject
+    (
+        "theta",
+        mesh_.time().timeName(),
+        mesh_,
+        IOobject::MUST_READ,
+        IOobject::AUTO_WRITE
+    ),
+    mesh_
+  ),
   phi_
   (
     IOobject
@@ -139,7 +163,7 @@ Foam::atmTurbModel::atmTurbModel(IOobject io)
   fvModels_(fvModels::New(mesh_)),
   fvConstraints_(fvConstraints::New(mesh_)),
   UEqn_(),
-  TEqn_(),
+  thetaEqn_(),
   qEqn_()
 {
   // creating fields
