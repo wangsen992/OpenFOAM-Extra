@@ -40,7 +40,7 @@ tmp<fvVectorMatrix> Foam::atmTurbModel::UEqn()
       (
           fvm::ddt(U_)
         + fvm::div(phi_, U_)
-        + fvm::laplacian(turbulence_->nuEff(), U_)
+        - fvm::laplacian(turbulence_->nuEff(), U_)
         + fU_Ug() 
         == 
         - g_ * (T_ - T0_) / T0_
