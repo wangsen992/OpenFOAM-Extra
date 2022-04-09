@@ -33,6 +33,8 @@ Description
 #include "pimpleControl.H"
 #include "pressureReference.H"
 #include "fluidThermophysicalTransportModel.H"
+#include "fvModels.H"
+#include "fvConstraints.H"
 
 
 namespace Foam
@@ -70,6 +72,8 @@ protected:
 
     autoPtr<compressible::momentumTransportModel> turbulence_;
     autoPtr<fluidThermophysicalTransportModel> transport_;
+    fvModels& fvModels_;
+    fvConstraints& fvConstraints_;
 
     tmp<fvVectorMatrix> UEqn_;
     tmp<fvScalarMatrix> TEqn_;

@@ -136,6 +136,8 @@ Foam::atmTurbModel::atmTurbModel(IOobject io)
   (
     fluidThermophysicalTransportModel::New(turbulence_, thermo_)
   ),
+  fvModels_(fvModels::New(mesh_)),
+  fvConstraints_(fvConstraints::New(mesh_)),
   UEqn_(),
   TEqn_(),
   qEqn_()
