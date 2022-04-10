@@ -21,7 +21,7 @@ solvers
         solver          diagonal;
     }
 
-    p
+    p_rgh
     {
         solver          PBiCGStab;
         preconditioner  DIC;
@@ -29,9 +29,9 @@ solvers
         relTol          1e-2;
     }
 
-    pFinal
+    p_rghFinal
     {
-        $p;
+        $p_rgh;
         relTol          1e-3;
     }
 

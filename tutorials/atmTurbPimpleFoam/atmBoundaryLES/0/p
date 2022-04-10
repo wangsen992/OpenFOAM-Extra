@@ -32,23 +32,19 @@ boundaryField
     }
     inlet
     {
-        type            calculated;
-				value						$internalField;
+        type            cyclic;
     }
     outlet
     {
-        type            calculated;
-				value						$internalField;
+        type            cyclic;
     }
     leftBoundary
     {
-        type            calculated;
-				value						$internalField;
+        type            cyclic;
     }
     rightBoundary
     {
-        type            calculated;
-				value						$internalField;
+        type            cyclic;
     }
 }
 
