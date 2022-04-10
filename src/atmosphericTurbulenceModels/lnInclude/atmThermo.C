@@ -1,1 +1,0 @@
-../atmThermo/atmThermo.C

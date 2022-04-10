@@ -41,6 +41,7 @@
 **/linux64GccDPInt32Opt
 **/polyMesh
 **/run/*
+**/lnInclude
 
 # vim session files
 **/*.vim

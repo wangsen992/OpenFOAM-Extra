@@ -105,10 +105,14 @@ public:
     const Time& runTime(){return mesh_.time();}
     pimpleControl& pimple(){return pimple_;}
     volVectorField& U(){return U_;}
+    volScalarField& q(){return q_;}
+    volScalarField& theta(){return theta_;}
+    volScalarField& p_rgh(){return p_rgh_;}
+
+    autoPtr<fluidThermo> thermo(){return thermo_;}
     volScalarField& p(){return thermo_->p();}
     volScalarField& T(){return thermo_->T();}
-    volScalarField& q(){return q_;}
-    autoPtr<fluidThermo> thermo(){return thermo_;}
+
     autoPtr<compressible::momentumTransportModel> turbulence(){return turbulence_;}
 
     // construct prognostic equations
