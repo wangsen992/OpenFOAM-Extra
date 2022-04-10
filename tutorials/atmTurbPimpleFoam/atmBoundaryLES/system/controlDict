@@ -14,7 +14,7 @@ FoamFile
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-application     atmTurbSimpleFoam;
+application     atmTurbPimpleFoam;
 
 startFrom       latestTime;
 
