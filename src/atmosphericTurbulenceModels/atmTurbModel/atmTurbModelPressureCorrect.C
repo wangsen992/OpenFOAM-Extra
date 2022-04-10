@@ -35,16 +35,15 @@ void Foam::atmTurbModel::pressureCorrect()
 {
     Info << "Init pEqn." << endl;
     volScalarField rAU("rAU", 1.0/UEqn_->A());
-    volScalarField& p_ = thermo_->p();
     volVectorField HbyA
     (
-      constrainHbyA(rAU*UEqn_->H(), U_, p_)
+      constrainHbyA(rAU*UEqn_->H(), U_, p_rgh_)
     );
     surfaceScalarField phiHbyA("phiHbyA", fvc::flux(HbyA));
-    if (p_.needReference())
+    if (p_rgh_.needReference())
     {
         fvc::makeRelative(phiHbyA, U_);
-        adjustPhi(phiHbyA, U_, p_);
+        adjustPhi(phiHbyA, U_, p_rgh_);
         fvc::makeAbsolute(phiHbyA, U_);
     }
 
@@ -56,12 +55,12 @@ void Foam::atmTurbModel::pressureCorrect()
     {
       rAtU = 1.0/max(1.0/rAU - UEqn_->H1(), 0.1/rAU);
       phiHbyA += 
-          fvc::interpolate(rAtU() - rAU) * fvc::snGrad(p_)*mesh_.magSf();
-      HbyA -= (rAU - rAtU()) * fvc::grad(p_);
+          fvc::interpolate(rAtU() - rAU) * fvc::snGrad(p_rgh_)*mesh_.magSf();
+      HbyA -= (rAU - rAtU()) * fvc::grad(p_rgh_);
     }
 
     // Update the pressure BCs to ensure flux consistency
-    constrainPressure(p_, U_, phiHbyA, rAtU());
+    constrainPressure(p_rgh_, U_, phiHbyA, rAtU());
 
     // Non-orthogonal pressure corrector loop ignored here
     while (pimple_.correctNonOrthogonal())
@@ -69,7 +68,7 @@ void Foam::atmTurbModel::pressureCorrect()
       // RHS multiplied by rho_ to maintain dimension balance
       fvScalarMatrix pEqn
       (
-        fvm::laplacian(rAtU(), p_) == fvc::div(phiHbyA) 
+        fvm::laplacian(rAtU(), p_rgh_) == fvc::div(phiHbyA) 
       );
       pEqn.setReference
       (
@@ -93,9 +92,9 @@ void Foam::atmTurbModel::pressureCorrect()
     if (mesh_.time().timeIndex() > 1)
     {
       Info << "Relaxing p field for U correction." << endl;
-      p_.relax();
+      p_rgh_.relax();
     }
-    U_ = HbyA - rAtU * fvc::grad(p_);
+    U_ = HbyA - rAtU * fvc::grad(p_rgh_);
     U_.correctBoundaryConditions();
 }
 

@@ -33,6 +33,8 @@ Description
 #include "pimpleControl.H"
 #include "pressureReference.H"
 #include "fluidThermophysicalTransportModel.H"
+#include "fvModels.H"
+#include "fvConstraints.H"
 
 
 namespace Foam
@@ -51,11 +53,15 @@ protected:
     fvMesh  mesh_;
     pimpleControl pimple_;
     IOdictionary atmTurbDict_;
+
+    // Instantiate for thermodynamics modelling
     autoPtr<fluidThermo>     thermo_;
     surfaceScalarField rho0f_;
 
     // Fields (fields can be loaded from mesh directly)
     volVectorField U_; // Velocity Field
+    volScalarField p_rgh_; // pressure perturbation
+    volScalarField theta_; // potential temperature
     surfaceScalarField phi_; // face velocity flux
     surfaceScalarField rhophi_; // face mass flux
     volScalarField q_; // specific humidity 
@@ -66,13 +72,18 @@ protected:
     dimensionedVector g_; // gravititational acceleration
     dimensionedVector Ug_; // geostrohpic wind
     dimensionedScalar p0_; // reference density
-    dimensionedScalar T0_; // reference density
+    dimensionedScalar theta0_; // reference density
 
+    // Instantiate for turbulence modeling (eddy viscosity)
     autoPtr<compressible::momentumTransportModel> turbulence_;
+    // Instantiate for thermal turbulent modeling & scalar modeling (eddy
+    // diffusivities)
     autoPtr<fluidThermophysicalTransportModel> transport_;
+    fvModels& fvModels_;
+    fvConstraints& fvConstraints_;
 
     tmp<fvVectorMatrix> UEqn_;
-    tmp<fvScalarMatrix> TEqn_;
+    tmp<fvScalarMatrix> thetaEqn_;
     tmp<fvScalarMatrix> qEqn_;
 
     // Protected Static Function
@@ -94,16 +105,20 @@ public:
     const Time& runTime(){return mesh_.time();}
     pimpleControl& pimple(){return pimple_;}
     volVectorField& U(){return U_;}
+    volScalarField& q(){return q_;}
+    volScalarField& theta(){return theta_;}
+    volScalarField& p_rgh(){return p_rgh_;}
+
+    autoPtr<fluidThermo> thermo(){return thermo_;}
     volScalarField& p(){return thermo_->p();}
     volScalarField& T(){return thermo_->T();}
-    volScalarField& q(){return q_;}
-    autoPtr<fluidThermo> thermo(){return thermo_;}
+
     autoPtr<compressible::momentumTransportModel> turbulence(){return turbulence_;}
 
     // construct prognostic equations
     // Construct momentum equation
     tmp<fvVectorMatrix> UEqn();
-    tmp<fvScalarMatrix> TEqn();
+    tmp<fvScalarMatrix> thetaEqn();
     tmp<fvScalarMatrix> qEqn();
 
     void pressureCorrect();

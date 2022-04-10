@@ -59,6 +59,30 @@ Foam::atmTurbModel::atmTurbModel(IOobject io)
     ),
     mesh_
   ),
+  p_rgh_
+  (
+    IOobject
+    (
+        "p_rgh",
+        mesh_.time().timeName(),
+        mesh_,
+        IOobject::MUST_READ,
+        IOobject::AUTO_WRITE
+    ),
+    mesh_
+  ),
+  theta_
+  (
+    IOobject
+    (
+        "theta",
+        mesh_.time().timeName(),
+        mesh_,
+        IOobject::MUST_READ,
+        IOobject::AUTO_WRITE
+    ),
+    mesh_
+  ),
   phi_
   (
     IOobject
@@ -117,10 +141,10 @@ Foam::atmTurbModel::atmTurbModel(IOobject io)
       "p0", 
       atmTurbDict_.lookup("p0")
   ),
-  T0_
+  theta0_
   (
-      "T0", 
-      atmTurbDict_.lookup("T0")
+      "theta0", 
+      atmTurbDict_.lookup("theta0")
   ),
   turbulence_
   (
@@ -136,11 +160,13 @@ Foam::atmTurbModel::atmTurbModel(IOobject io)
   (
     fluidThermophysicalTransportModel::New(turbulence_, thermo_)
   ),
+  fvModels_(fvModels::New(mesh_)),
+  fvConstraints_(fvConstraints::New(mesh_)),
   UEqn_(),
-  TEqn_(),
+  thetaEqn_(),
   qEqn_()
 {
   // creating fields
-  mesh_.setFluxRequired(thermo_->p().name());
+  mesh_.setFluxRequired(p_rgh_.name());
 };
 // Access Functions
