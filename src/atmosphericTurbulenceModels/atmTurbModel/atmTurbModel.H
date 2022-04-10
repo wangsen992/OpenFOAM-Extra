@@ -53,6 +53,8 @@ protected:
     fvMesh  mesh_;
     pimpleControl pimple_;
     IOdictionary atmTurbDict_;
+
+    // Instantiate for thermodynamics modelling
     autoPtr<fluidThermo>     thermo_;
     surfaceScalarField rho0f_;
 
@@ -72,7 +74,10 @@ protected:
     dimensionedScalar p0_; // reference density
     dimensionedScalar theta0_; // reference density
 
+    // Instantiate for turbulence modeling (eddy viscosity)
     autoPtr<compressible::momentumTransportModel> turbulence_;
+    // Instantiate for thermal turbulent modeling & scalar modeling (eddy
+    // diffusivities)
     autoPtr<fluidThermophysicalTransportModel> transport_;
     fvModels& fvModels_;
     fvConstraints& fvConstraints_;

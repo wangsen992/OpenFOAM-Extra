@@ -141,10 +141,10 @@ Foam::atmTurbModel::atmTurbModel(IOobject io)
       "p0", 
       atmTurbDict_.lookup("p0")
   ),
-  T0_
+  theta0_
   (
-      "T0", 
-      atmTurbDict_.lookup("T0")
+      "theta0", 
+      atmTurbDict_.lookup("theta0")
   ),
   turbulence_
   (
@@ -167,6 +167,6 @@ Foam::atmTurbModel::atmTurbModel(IOobject io)
   qEqn_()
 {
   // creating fields
-  mesh_.setFluxRequired(thermo_->p().name());
+  mesh_.setFluxRequired(p_rgh_.name());
 };
 // Access Functions
