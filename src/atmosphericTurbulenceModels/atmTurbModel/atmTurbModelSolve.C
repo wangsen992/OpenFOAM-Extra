@@ -51,7 +51,7 @@ tmp<fvVectorMatrix> Foam::atmTurbModel::UEqn()
       }
       Info << "UEqn Constructed. " << endl;
       UEqn_ = tUEqn;
-      return tUEqn;
+      return UEqn_;
 }
 
 // Other variables
@@ -69,7 +69,7 @@ tmp<fvScalarMatrix> Foam::atmTurbModel::thetaEqn()
     tThetaEqn->relax();
     tThetaEqn->solve();
     thetaEqn_ = tThetaEqn;
-    return tThetaEqn;
+    return thetaEqn_;
 }
 
 tmp<fvScalarMatrix> Foam::atmTurbModel::qEqn()

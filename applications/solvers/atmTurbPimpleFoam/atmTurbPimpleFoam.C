@@ -85,33 +85,17 @@ int main(int argc, char *argv[])
       while(atm.pimple().loop())
       {
         fvVectorMatrix UEqn = atm.UEqn()();
+        Info << "UEqn() compute finished" << endl;
         while (atm.pimple().correct())
         {
           atm.pressureCorrect();
-          Info << average(atm.p()) << endl;
         }
 
         if (atm.pimple().turbCorr())
         {
           atm.nutCorrect();
         }
-        atm.TEqn();
-
-        dimensionedScalar rangeT
-        (
-          "rangeT",
-          max(atm.T()) - min(atm.T())
-        );
-        Info << "rangeT = " << rangeT.value() << endl;
-
-        dimensionedScalar contErr
-        (
-          "contErr", 
-          runTime.deltaT0Value()*mag(fvc::div(atm.U()))().weightedAverage(atm.mesh().V())
-        );
-        Info << "contErr: " << contErr.value() << endl;
-      }
-      Info << "mean(U)= " << average(atm.U().primitiveField()) << endl;
+        atm.thetaEqn();
       runTime.write();
     }
 
