@@ -40,7 +40,7 @@ tmp<fvVectorMatrix> Foam::atmTurbModel::UEqn()
         - fvm::laplacian(turbulence_->nuEff(), U_)
         == 
         fvModels_.source(U_)
-        - fU_Ug() 
+         - fU_Ug() 
         - g_ * (theta_ - theta0_) / theta0_
       );
       tUEqn->relax();
