@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2022 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2020 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -22,117 +22,78 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::atmThermo
+    Foam::heRhoThermo
 
 Description
+    Energy for a mixture based on density
 
 SourceFiles
-    atmThermoI.H
-    atmThermo.C
-    atmThermoIO.C
+    heRhoThermo.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef atmThermo_H
-#define atmThermo_H
+#ifndef heRhoThermo_H
+#define heRhoThermo_H
 
-#include "fluidThermo.H"
+#include "rhoThermo.H"
+#include "heThermo.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
 {
 
-// Forward declaration of classes
-class Istream;
-class Ostream;
-
-// Forward declaration of friend functions and operators
-class atmThermo;
-Istream& operator>>(Istream&, atmThermo&);
-Ostream& operator<<(Ostream&, const atmThermo&);
-
-
 /*---------------------------------------------------------------------------*\
-                          Class atmThermo Declaration
+                         Class heRhoThermo Declaration
 \*---------------------------------------------------------------------------*/
 
-class atmThermo
+template<class BasicRhoThermo, class MixtureType>
+class heRhoThermo
 :
-    public fluidThermo
+    public heThermo<BasicRhoThermo, MixtureType>
 {
-    // Private Data
-
-        //- Description of data_
-        dataType data_;
-
-
     // Private Member Functions
+
+        //- Calculate the thermo variables
+        void calculate();
 
 
 public:
 
-    // Static Data Members
-
-        //- Static data staticData
-        static const dataType staticData;
+    //- Runtime type information
+    TypeName("heRhoThermo");
 
 
     // Constructors
 
-        //- Construct null
-        atmThermo();
-
-        //- Construct from components
-        atmThermo(const dataType& data);
-
-        //- Construct from Istream
-        atmThermo(Istream&);
-
-        //- Copy constructor
-        atmThermo(const atmThermo&);
+        //- Construct from mesh and phase name
+        heRhoThermo
+        (
+            const fvMesh&,
+            const word& phaseName
+        );
 
         //- Disallow default bitwise copy construction
-        atmThermo(const atmThermo&) = delete;
-
-
-    // Selectors
-
-        //- Select null constructed
-        static autoPtr<atmThermo> New();
+        heRhoThermo(const heRhoThermo<BasicRhoThermo, MixtureType>&) = delete;
 
 
     //- Destructor
-    ~atmThermo();
+    virtual ~heRhoThermo();
 
 
     // Member Functions
 
-        // Access
-
-        // Check
-
-        // Edit
-
-        // Write
+        //- Update properties
+        virtual void correct();
 
 
     // Member Operators
 
-        void operator=(const atmThermo&);
-
         //- Disallow default bitwise assignment
-        void operator=(const atmThermo&) = delete;
-
-
-    // Friend Functions
-
-    // Friend Operators
-
-    // IOstream Operators
-
-        friend Istream& operator>>(Istream&, atmThermo&);
-        friend Ostream& operator<<(Ostream&, const atmThermo&);
+        void operator=
+        (
+            const heRhoThermo<BasicRhoThermo, MixtureType>&
+        ) = delete;
 };
 
 
@@ -142,7 +103,9 @@ public:
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-#include "atmThermoI.H"
+#ifdef NoRepository
+    #include "heRhoThermo.C"
+#endif
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
