@@ -3,5 +3,10 @@ atmTurbModel/atmTurbModel.C
 atmTurbModel/atmTurbModelSolve.C
 atmTurbModel/atmTurbModelPressureCorrect.C
 
+thermophysicalModels/fluidAtmThermo/fluidAtmThermo.C
+thermophysicalModels/rhoAtmThermo/rhoAtmThermo.C
+thermophysicalModels/rhoAtmThermo/heRhoAtmThermo.C
+thermophysicalModels/rhoAtmThermo/rhoAtmThermos.C
+
 LIB = $(FOAM_USER_LIBBIN)/libatmosphericTurbulenceModels
 

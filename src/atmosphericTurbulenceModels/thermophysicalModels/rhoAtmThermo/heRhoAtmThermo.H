@@ -22,20 +22,20 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::heRhoThermo
+    Foam::heRhoAtmThermo
 
 Description
-    Energy for a mixture based on density
+    An analytical engine for the thermodynamics of a mixture in atm context
 
 SourceFiles
-    heRhoThermo.C
+    heRhoAtmThermo.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef heRhoThermo_H
-#define heRhoThermo_H
+#ifndef heRhoAtmThermo_H
+#define heRhoAtmThermo_H
 
-#include "rhoThermo.H"
+#include "rhoAtmThermo.H"
 #include "heThermo.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -44,11 +44,11 @@ namespace Foam
 {
 
 /*---------------------------------------------------------------------------*\
-                         Class heRhoThermo Declaration
+                         Class heRhoAtmThermo Declaration
 \*---------------------------------------------------------------------------*/
 
 template<class BasicRhoThermo, class MixtureType>
-class heRhoThermo
+class heRhoAtmThermo
 :
     public heThermo<BasicRhoThermo, MixtureType>
 {
@@ -61,24 +61,24 @@ class heRhoThermo
 public:
 
     //- Runtime type information
-    TypeName("heRhoThermo");
+    TypeName("heRhoAtmThermo");
 
 
     // Constructors
 
         //- Construct from mesh and phase name
-        heRhoThermo
+        heRhoAtmThermo
         (
             const fvMesh&,
             const word& phaseName
         );
 
         //- Disallow default bitwise copy construction
-        heRhoThermo(const heRhoThermo<BasicRhoThermo, MixtureType>&) = delete;
+        heRhoAtmThermo(const heRhoAtmThermo<BasicRhoThermo, MixtureType>&) = delete;
 
 
     //- Destructor
-    virtual ~heRhoThermo();
+    virtual ~heRhoAtmThermo();
 
 
     // Member Functions
@@ -92,7 +92,7 @@ public:
         //- Disallow default bitwise assignment
         void operator=
         (
-            const heRhoThermo<BasicRhoThermo, MixtureType>&
+            const heRhoAtmThermo<BasicRhoThermo, MixtureType>&
         ) = delete;
 };
 
@@ -103,9 +103,9 @@ public:
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-#ifdef NoRepository
-    #include "heRhoThermo.C"
-#endif
+// #ifdef NoRepository
+//     #include "heRhoAtmThermo.C"
+// #endif
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

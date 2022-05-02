@@ -23,12 +23,12 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "heRhoThermo.H"
+#include "heRhoAtmThermo.H"
 
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
 
 template<class BasicRhoThermo, class MixtureType>
-void Foam::heRhoThermo<BasicRhoThermo, MixtureType>::calculate()
+void Foam::heRhoAtmThermo<BasicRhoThermo, MixtureType>::calculate()
 {
     const scalarField& hCells = this->he();
     const scalarField& pCells = this->p_;
@@ -163,7 +163,7 @@ void Foam::heRhoThermo<BasicRhoThermo, MixtureType>::calculate()
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
 template<class BasicRhoThermo, class MixtureType>
-Foam::heRhoThermo<BasicRhoThermo, MixtureType>::heRhoThermo
+Foam::heRhoAtmThermo<BasicRhoThermo, MixtureType>::heRhoAtmThermo
 (
     const fvMesh& mesh,
     const word& phaseName
@@ -178,14 +178,14 @@ Foam::heRhoThermo<BasicRhoThermo, MixtureType>::heRhoThermo
 // * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
 
 template<class BasicRhoThermo, class MixtureType>
-Foam::heRhoThermo<BasicRhoThermo, MixtureType>::~heRhoThermo()
+Foam::heRhoAtmThermo<BasicRhoThermo, MixtureType>::~heRhoAtmThermo()
 {}
 
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
 template<class BasicRhoThermo, class MixtureType>
-void Foam::heRhoThermo<BasicRhoThermo, MixtureType>::correct()
+void Foam::heRhoAtmThermo<BasicRhoThermo, MixtureType>::correct()
 {
     if (debug)
     {
