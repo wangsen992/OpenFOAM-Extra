@@ -32,6 +32,7 @@ Description
 #ifndef fluidAtmThermo_H
 #define fluidAtmThermo_H
 
+#include "fvCFD.H"
 #include "fluidReactionThermo.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -102,6 +103,21 @@ public:
 
             //- Liquid Water Content (LWC) [kg m-3]
             virtual const volScalarField& lwc() const = 0;
+
+            //- Reference Pressure [Pa]
+            virtual const dimensionedScalar p0() const = 0;
+            
+//             //- Virtual Potential Temperature
+//             virtual tmp<volScalarField> theta_v() const = 0;
+//             
+//             //- Mixing Ratio []
+//             virtual tmp<volScalarField> r() const = 0;
+// 
+//             //- Liquid Mixing Ratio
+//             virtual tmp<volScalarField> rl() const = 0;
+
+            //- Molecular Weight of Given Specie
+            virtual scalar Wi(const label speciei) const = 0;
 };
 /*---------------------------------------------------------------------------*\
                      Class fluidReactionThermo Declaration
@@ -124,6 +140,10 @@ protected:
 
             //- Liquid Water Content (LWC) [kg m-3]
             volScalarField& lwc_;
+
+            //- Reference Pressure [Pa]
+            dimensionedScalar   p0_;
+
 public:
 
     // Constructors
@@ -159,11 +179,14 @@ public:
 
             //- Liquid Water Content (LWC) [kg m-3]
             virtual const volScalarField& lwc() const;
+
+            //- Reference Pressure [K]
+            virtual const dimensionedScalar p0() const;
+
+
 };
 
-
-}
-
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
+};
 #endif
+

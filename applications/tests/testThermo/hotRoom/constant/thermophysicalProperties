@@ -14,43 +14,27 @@ FoamFile
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
+// mixtureType       pureMixture;
+mixtureType       multiComponentMixture;
+
 thermoType
 {
     type            heRhoAtmThermo;
-    mixture         pureMixture;
+    mixture         $mixtureType;
     transport       const;
     thermo          hConst;
-    equationOfState Boussinesq;
+    equationOfState perfectGas;
     specie          specie;
     energy          sensibleEnthalpy;
 }
 
+defaultSpecie   dryAir;
+
 pRef            100000;
 
-mixture
-{
-    specie
-    {
-        molWeight       28.9;
-    }
-    thermodynamics
-    {
-        Cp              1000;
-        Hf              0;
-    }
-    transport
-    {
-        mu              1.8e-05;
-        Pr              0.7;
-    }
-    equationOfState
-    {
-        rho0            1;
-        T0              300;
-        beta            0.9;
-        
-    }
-}
+// #include "mixture/mixture.pureMixture"
+#include "mixture/mixture.coefficientMultiComponentMixture"
+
 
 
 // ************************************************************************* //

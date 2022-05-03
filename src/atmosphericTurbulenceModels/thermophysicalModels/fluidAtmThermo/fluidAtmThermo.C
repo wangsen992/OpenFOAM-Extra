@@ -43,7 +43,8 @@ Foam::fluidAtmThermo::implementation::implementation
 :
     theta_(lookupOrConstruct(mesh, "theta")),
     q_(lookupOrConstruct(mesh, "q")),
-    lwc_(lookupOrConstruct(mesh, "lwc"))
+    lwc_(lookupOrConstruct(mesh, "lwc")),
+    p0_("p0", dimPressure, pow(10,5))
 {}
 
 // * * * * * * * * * * * * * * * * Selectors * * * * * * * * * * * * * * * * //
@@ -99,5 +100,10 @@ Foam::volScalarField& Foam::fluidAtmThermo::implementation::lwc()
 const Foam::volScalarField& Foam::fluidAtmThermo::implementation::lwc() const
 {
     return lwc_;
+}
+
+const Foam::dimensionedScalar Foam::fluidAtmThermo::implementation::p0() const
+{
+    return p0_;
 }
 

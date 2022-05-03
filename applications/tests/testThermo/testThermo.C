@@ -59,9 +59,13 @@ int main(int argc, char *argv[])
     Info << pthermo->thermoName() << endl;
     Info << pthermo->phaseName() << endl;
     Info << pthermo->typeName_() << endl;
+
+    pthermo->correct();
     Info << pthermo->type() << endl;
-    Info << pthermo->he() << endl;
-    Info << pthermo->theta() << endl;
+    // Info << pthermo->theta() << endl;
+    // Info << pthermo->theta() * pthermo->rho() * pthermo->Cp() << endl;
+    // Info << pthermo->he() << endl;
+    Info << pthermo->Wi(0) << endl;
 
 
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

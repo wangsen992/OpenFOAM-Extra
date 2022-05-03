@@ -69,11 +69,11 @@ namespace Foam
 {
     forCoeffGases(makeRhoAtmThermos, coefficientMultiComponentMixture);
 
-    forCoeffGases
-    (
-        makeRhoAtmThermos,
-        coefficientWilkeMultiComponentMixture
-    );
+    // forCoeffGases
+    // (
+    //     makeRhoAtmThermos,
+    //     coefficientWilkeMultiComponentMixture
+    // );
 
     forGases(makeRhoAtmThermo, singleComponentMixture);
 

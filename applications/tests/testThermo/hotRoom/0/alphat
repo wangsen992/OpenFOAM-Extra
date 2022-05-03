@@ -20,20 +20,23 @@ internalField   uniform 0;
 
 boundaryField
 {
-    floor
+    fuel
     {
-        type            compressible::alphatWallFunction;
+        type            fixedValue;
         value           uniform 0;
     }
-    ceiling
+    air
     {
-        type            compressible::alphatWallFunction;
+        type            fixedValue;
         value           uniform 0;
     }
-    fixedWalls
+    outlet
     {
-        type            compressible::alphatWallFunction;
-        value           uniform 0;
+        type            zeroGradient;
+    }
+    frontAndBack
+    {
+        type            empty;
     }
 }
 

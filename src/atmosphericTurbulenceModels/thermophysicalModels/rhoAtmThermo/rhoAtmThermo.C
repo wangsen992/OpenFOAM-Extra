@@ -64,5 +64,4 @@ Foam::rhoAtmThermo::~rhoAtmThermo()
 Foam::rhoAtmThermo::implementation::~implementation()
 {}
 
-
 // ************************************************************************* //

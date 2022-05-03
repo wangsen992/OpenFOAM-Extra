@@ -35,7 +35,11 @@ SourceFiles
 #ifndef heRhoAtmThermo_H
 #define heRhoAtmThermo_H
 
+#include "fvCFD.H"
+#include "volFields.H"
+#include "uniformGeometricFields.H"
 #include "rhoAtmThermo.H"
+#include "SpecieMixture.H"
 #include "heThermo.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -82,9 +86,15 @@ public:
 
 
     // Member Functions
-
+        //- Exner Function
+        scalar exner(const scalar, const scalar);
+        
         //- Update properties
         virtual void correct();
+
+        //- Molecular Weight of Given Specie
+        virtual scalar Wi(const label speciei) const;
+
 
 
     // Member Operators

@@ -26,13 +26,36 @@ License
 #include "heRhoAtmThermo.H"
 
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
+template<class BasicRhoThermo, class MixtureType>
+Foam::scalar Foam::heRhoAtmThermo<BasicRhoThermo, MixtureType>::exner
+(
+  const scalar p,
+  const scalar gamma
+)
+{ 
+  return pow((p/this->p0_.value()), gamma);
+}
+
+template<class BasicRhoThermo, class MixtureType>
+Foam::scalar Foam::heRhoAtmThermo<BasicRhoThermo, MixtureType>::Wi
+(
+  const label speciei
+) const
+{
+    return this->MixtureType::Wi(speciei);
+}
 
 template<class BasicRhoThermo, class MixtureType>
 void Foam::heRhoAtmThermo<BasicRhoThermo, MixtureType>::calculate()
 {
-    const scalarField& hCells = this->he();
-    const scalarField& pCells = this->p_;
 
+    Info << "Running calculate() ..." << endl;
+    scalar gamma;
+    // Initiate Initial value loading (those two should be updated) 
+    const scalarField& pCells = this->p_;
+    const scalarField& thetaCells = this->theta_;
+
+    scalarField& hCells = this->he();
     scalarField& TCells = this->T_.primitiveFieldRef();
     scalarField& CpCells = this->Cp_.primitiveFieldRef();
     scalarField& CvCells = this->Cv_.primitiveFieldRef();
@@ -41,6 +64,8 @@ void Foam::heRhoAtmThermo<BasicRhoThermo, MixtureType>::calculate()
     scalarField& muCells = this->mu_.primitiveFieldRef();
     scalarField& alphaCells = this->alpha_.primitiveFieldRef();
 
+    Info << "Data loading completed" << endl;
+    // Update internal cell values
     forAll(TCells, celli)
     {
         const typename MixtureType::thermoMixtureType& thermoMixture =
@@ -49,9 +74,14 @@ void Foam::heRhoAtmThermo<BasicRhoThermo, MixtureType>::calculate()
         const typename MixtureType::transportMixtureType& transportMixture =
             this->cellTransportMixture(celli, thermoMixture);
 
-        TCells[celli] = thermoMixture.THE
+        // [To-Do] This can be updated for more general method, including all
+        // the gamma below
+        // [To-Do] Gamma, Cp, Cv and T are iterative. Solve this
+        gamma = 1.4;
+
+        TCells[celli] = thetaCells[celli] / exner(pCells[celli], gamma);
+        hCells[celli] = thermoMixture.HE
         (
-            hCells[celli],
             pCells[celli],
             TCells[celli]
         );
@@ -67,8 +97,12 @@ void Foam::heRhoAtmThermo<BasicRhoThermo, MixtureType>::calculate()
            /thermoMixture.Cp(pCells[celli], TCells[celli]);
     }
 
+    // Init reference of boundaryField
     volScalarField::Boundary& pBf =
         this->p_.boundaryFieldRef();
+
+    volScalarField::Boundary& thetaBf =
+        this->theta_.boundaryFieldRef();
 
     volScalarField::Boundary& TBf =
         this->T_.boundaryFieldRef();
@@ -94,9 +128,11 @@ void Foam::heRhoAtmThermo<BasicRhoThermo, MixtureType>::calculate()
     volScalarField::Boundary& alphaBf =
         this->alpha_.boundaryFieldRef();
 
-    forAll(this->T_.boundaryField(), patchi)
+    // Update boundaryField values
+    forAll(this->theta_.boundaryField(), patchi)
     {
         fvPatchScalarField& pp = pBf[patchi];
+        fvPatchScalarField& ptheta = thetaBf[patchi];
         fvPatchScalarField& pT = TBf[patchi];
         fvPatchScalarField& pCp = CpBf[patchi];
         fvPatchScalarField& pCv = CvBf[patchi];
@@ -106,9 +142,10 @@ void Foam::heRhoAtmThermo<BasicRhoThermo, MixtureType>::calculate()
         fvPatchScalarField& pmu = muBf[patchi];
         fvPatchScalarField& palpha = alphaBf[patchi];
 
-        if (pT.fixesValue())
+        // Update if T is fixes boundary
+        if (ptheta.fixesValue())
         {
-            forAll(pT, facei)
+            forAll(ptheta, facei)
             {
                 const typename MixtureType::thermoMixtureType& thermoMixture =
                     this->patchFaceThermoMixture(patchi, facei);
@@ -131,9 +168,11 @@ void Foam::heRhoAtmThermo<BasicRhoThermo, MixtureType>::calculate()
                    /thermoMixture.Cp(pp[facei], pT[facei]);
             }
         }
+
+        // Update if theta is not fixing value
         else
         {
-            forAll(pT, facei)
+            forAll(ptheta, facei)
             {
                 const typename MixtureType::thermoMixtureType& thermoMixture =
                     this->patchFaceThermoMixture(patchi, facei);
@@ -143,7 +182,12 @@ void Foam::heRhoAtmThermo<BasicRhoThermo, MixtureType>::calculate()
                     this->patchFaceTransportMixture
                     (patchi, facei, thermoMixture);
 
-                pT[facei] = thermoMixture.THE(phe[facei], pp[facei], pT[facei]);
+                // pT[facei] = thermoMixture.THE(phe[facei], pp[facei], pT[facei]);
+
+                // gamma = pCp[facei] / pCv[facei];
+                gamma = 1.4;
+                pT[facei] = ptheta[facei] / exner(pp[facei], gamma);
+                phe[facei] = thermoMixture.HE(pp[facei], pT[facei]);
 
                 pCp[facei] = thermoMixture.Cp(pp[facei], pT[facei]);
                 pCv[facei] = thermoMixture.Cv(pp[facei], pT[facei]);
@@ -183,7 +227,6 @@ Foam::heRhoAtmThermo<BasicRhoThermo, MixtureType>::~heRhoAtmThermo()
 
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
-
 template<class BasicRhoThermo, class MixtureType>
 void Foam::heRhoAtmThermo<BasicRhoThermo, MixtureType>::correct()
 {
@@ -192,6 +235,9 @@ void Foam::heRhoAtmThermo<BasicRhoThermo, MixtureType>::correct()
         InfoInFunction << endl;
     }
 
+    Info << "Running correct in heRhoAtmThermo.." << endl;
+
+    // Now run calculate
     calculate();
 
     if (debug)
