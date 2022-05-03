@@ -89,7 +89,6 @@ protected:
     // Protected Static Function
     // Protected Member Function
       // exner function
-      volScalarField exner (){ return pow((thermo_->p()/p0_), thermo_->gamma()())();}
 
 
 public:

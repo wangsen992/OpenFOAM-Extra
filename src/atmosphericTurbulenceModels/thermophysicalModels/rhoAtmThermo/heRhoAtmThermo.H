@@ -58,6 +58,10 @@ class heRhoAtmThermo
 {
     // Private Member Functions
 
+        // Validate basic mixture species
+        // Species should include at least dryAir and H2O (moisture)
+        void validate_mixture();
+
         //- Calculate the thermo variables
         void calculate();
 
@@ -88,14 +92,34 @@ public:
     // Member Functions
         //- Exner Function
         scalar exner(const scalar, const scalar);
+
+
+        // Access to thermodynamic state variables
         
-        //- Update properties
-        virtual void correct();
+            //- Virtual Potential Temperature
+            virtual tmp<volScalarField> theta_v() const;
+            
+            //- Mixing Ratio []
+            virtual tmp<volScalarField> r() const;
 
-        //- Molecular Weight of Given Specie
-        virtual scalar Wi(const label speciei) const;
+            //- Liquid Mixing Ratio
+            virtual tmp<volScalarField> rl() const;
+        // Access to Mixture Specie Information
+        
+            //- Return the table of species
+            virtual const speciesTable& species() const;
 
+            //- Molecular Weight of Given Specie
+            virtual scalar Wi(const label speciei) const;
+            
+            //- Return the const mass-fraction field for a specie given by index
+            virtual const volScalarField& Y(const label speciei) const;
+            
+            //- Return the const mass-fraction field for a specie given by name
+            virtual const volScalarField& Y(const word& specieName) const;
 
+            //- Update properties
+            virtual void correct();
 
     // Member Operators
 

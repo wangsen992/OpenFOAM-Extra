@@ -34,6 +34,7 @@ Description
 
 #include "fvCFD.H"
 #include "fluidReactionThermo.H"
+#include "speciesTable.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -107,17 +108,28 @@ public:
             //- Reference Pressure [Pa]
             virtual const dimensionedScalar p0() const = 0;
             
-//             //- Virtual Potential Temperature
-//             virtual tmp<volScalarField> theta_v() const = 0;
-//             
-//             //- Mixing Ratio []
-//             virtual tmp<volScalarField> r() const = 0;
-// 
-//             //- Liquid Mixing Ratio
-//             virtual tmp<volScalarField> rl() const = 0;
+             //- Virtual Potential Temperature
+             virtual tmp<volScalarField> theta_v() const = 0;
+             
+             //- Mixing Ratio []
+             virtual tmp<volScalarField> r() const = 0;
+ 
+             //- Liquid Mixing Ratio
+             virtual tmp<volScalarField> rl() const = 0;
+
+        // Access to Mixture Specie Information
+
+            //- Return the table of species
+            virtual const speciesTable& species() const = 0;
 
             //- Molecular Weight of Given Specie
             virtual scalar Wi(const label speciei) const = 0;
+
+            //- Return the const mass-fraction field for a specie given by index
+            virtual const volScalarField& Y(const label specie) const = 0;
+            
+            //- Return the const mass-fraction field for a specie given by name
+            virtual const volScalarField& Y(const word& specieName) const = 0;
 };
 /*---------------------------------------------------------------------------*\
                      Class fluidReactionThermo Declaration

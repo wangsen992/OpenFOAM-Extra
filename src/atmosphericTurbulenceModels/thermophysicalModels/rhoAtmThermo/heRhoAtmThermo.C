@@ -23,27 +23,35 @@ License
 
 \*---------------------------------------------------------------------------*/
 
+#include "Ostream.H"
+#include "dimensionSet.H"
 #include "heRhoAtmThermo.H"
+#include "speciesTable.H"
 
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
 template<class BasicRhoThermo, class MixtureType>
-Foam::scalar Foam::heRhoAtmThermo<BasicRhoThermo, MixtureType>::exner
-(
-  const scalar p,
-  const scalar gamma
-)
-{ 
-  return pow((p/this->p0_.value()), gamma);
+void Foam::heRhoAtmThermo<BasicRhoThermo, MixtureType>::validate_mixture()
+{
+    wordList basicSpecie{"dryAir", "H2O"};
+    Info << "Validating mixture species elements" << endl;
+    const speciesTable& species(this->MixtureType::species());
+    Info << species << endl;
+    forAll(basicSpecie, i)
+    {
+      Info << basicSpecie[i] << endl;
+      if (! species.found(basicSpecie[i]))
+      {
+          Foam::FatalError << "Basic species requirement" 
+                           << basicSpecie 
+                           << " not met." << endl
+                           << basicSpecie[i]
+                           << " is missing."
+                           << Foam::exit(Foam::FatalError);
+      }
+    }
+    
 }
 
-template<class BasicRhoThermo, class MixtureType>
-Foam::scalar Foam::heRhoAtmThermo<BasicRhoThermo, MixtureType>::Wi
-(
-  const label speciei
-) const
-{
-    return this->MixtureType::Wi(speciei);
-}
 
 template<class BasicRhoThermo, class MixtureType>
 void Foam::heRhoAtmThermo<BasicRhoThermo, MixtureType>::calculate()
@@ -215,6 +223,7 @@ Foam::heRhoAtmThermo<BasicRhoThermo, MixtureType>::heRhoAtmThermo
 :
     heThermo<BasicRhoThermo, MixtureType>(mesh, phaseName)
 {
+    validate_mixture();
     calculate();
 }
 
@@ -227,6 +236,70 @@ Foam::heRhoAtmThermo<BasicRhoThermo, MixtureType>::~heRhoAtmThermo()
 
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
+template<class BasicRhoThermo, class MixtureType>
+Foam::scalar Foam::heRhoAtmThermo<BasicRhoThermo, MixtureType>::exner
+(
+  const scalar p,
+  const scalar gamma
+)
+{ 
+  return pow((p/this->p0_.value()), gamma);
+}
+
+template<class BasicRhoThermo, class MixtureType>
+Foam::tmp<Foam::volScalarField> Foam::heRhoAtmThermo<BasicRhoThermo, MixtureType>::theta_v() const
+{
+    Info << "Returning theta for testing theta_v()" << endl;
+    return this->theta_;
+}
+
+
+template<class BasicRhoThermo, class MixtureType>
+Foam::tmp<Foam::volScalarField> Foam::heRhoAtmThermo<BasicRhoThermo, MixtureType>::r() const
+{
+    return this->theta_;
+}
+
+template<class BasicRhoThermo, class MixtureType>
+Foam::tmp<Foam::volScalarField> Foam::heRhoAtmThermo<BasicRhoThermo, MixtureType>::rl() const
+{
+    Info << "Returning theta for testing rl()" << endl;
+    return this->theta_;
+}
+
+template<class BasicRhoThermo, class MixtureType>
+const Foam::speciesTable& Foam::heRhoAtmThermo<BasicRhoThermo, MixtureType>::species() const
+{
+    return this->MixtureType::species();
+}
+
+template<class BasicRhoThermo, class MixtureType>
+Foam::scalar Foam::heRhoAtmThermo<BasicRhoThermo, MixtureType>::Wi
+(
+  const label speciei
+) const
+{
+    return this->MixtureType::Wi(speciei);
+}
+
+template<class BasicRhoThermo, class MixtureType>
+const Foam::volScalarField& Foam::heRhoAtmThermo<BasicRhoThermo, MixtureType>::Y
+(
+  const label speciei
+) const
+{
+    return this->MixtureType::Y(speciei);
+}
+
+template<class BasicRhoThermo, class MixtureType>
+const Foam::volScalarField& Foam::heRhoAtmThermo<BasicRhoThermo, MixtureType>::Y
+(
+  const word& specieName
+) const
+{
+    return this->MixtureType::Y(specieName);
+}
+
 template<class BasicRhoThermo, class MixtureType>
 void Foam::heRhoAtmThermo<BasicRhoThermo, MixtureType>::correct()
 {

@@ -66,6 +66,10 @@ int main(int argc, char *argv[])
     // Info << pthermo->theta() * pthermo->rho() * pthermo->Cp() << endl;
     // Info << pthermo->he() << endl;
     Info << pthermo->Wi(0) << endl;
+    Info << pthermo->species() << endl;
+    Info << pthermo->Y(0) << endl;
+    Info << pthermo->Y("dryAir") << endl;
+    Info << pthermo->Y("H2O") / pthermo->Y("dryAir") << endl;
 
 
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
