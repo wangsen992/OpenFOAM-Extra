@@ -45,7 +45,7 @@ Foam::atmTurbModel::atmTurbModel(IOobject io)
       IOobject::NO_WRITE
     )
   ),
-  thermo_(fluidThermo::New(mesh_)),
+  thermo_(fluidAtmThermo::New(mesh_)),
   rho0f_("rho0f", linearInterpolate(thermo_->rho0())),
   U_
   (
@@ -73,15 +73,7 @@ Foam::atmTurbModel::atmTurbModel(IOobject io)
   ),
   theta_
   (
-    IOobject
-    (
-        "theta",
-        mesh_.time().timeName(),
-        mesh_,
-        IOobject::MUST_READ,
-        IOobject::AUTO_WRITE
-    ),
-    mesh_
+    thermo_->theta()
   ),
   phi_
   (
@@ -109,15 +101,11 @@ Foam::atmTurbModel::atmTurbModel(IOobject io)
   ),
   q_
   (
-    IOobject
-    (
-        "q",
-        mesh_.time().timeName(),
-        mesh_,
-        IOobject::MUST_READ,
-        IOobject::AUTO_WRITE
-    ),
-    mesh_
+    thermo_->q()
+  ),
+  lwc_
+  (
+    thermo_->lwc()
   ),
   pressureReference_(thermo_->p(), pimple_.dict()),
 
@@ -135,11 +123,6 @@ Foam::atmTurbModel::atmTurbModel(IOobject io)
   (
       "Ug", 
       atmTurbDict_.lookup("Ug")
-  ),
-  p0_
-  (
-      "p0", 
-      atmTurbDict_.lookup("p0")
   ),
   theta0_
   (

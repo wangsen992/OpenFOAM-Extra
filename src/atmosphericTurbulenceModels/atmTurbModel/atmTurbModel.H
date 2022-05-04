@@ -28,7 +28,7 @@ Description
 \*---------------------------------------------------------------------------*/
 
 #include "fvCFD.H"
-#include "fluidThermo.H"
+#include "fluidAtmThermo.H"
 #include "dynamicMomentumTransportModel.H"
 #include "pimpleControl.H"
 #include "pressureReference.H"
@@ -55,16 +55,17 @@ protected:
     IOdictionary atmTurbDict_;
 
     // Instantiate for thermodynamics modelling
-    autoPtr<fluidThermo>     thermo_;
+    autoPtr<fluidAtmThermo>     thermo_;
     surfaceScalarField rho0f_;
 
     // Fields (fields can be loaded from mesh directly)
     volVectorField U_; // Velocity Field
     volScalarField p_rgh_; // pressure perturbation
-    volScalarField theta_; // potential temperature
+    volScalarField& theta_; // potential temperature
     surfaceScalarField phi_; // face velocity flux
     surfaceScalarField rhophi_; // face mass flux
-    volScalarField q_; // specific humidity 
+    volScalarField& q_; // specific humidity 
+    volScalarField& lwc_; // specific humidity 
 
     pressureReference pressureReference_;
 

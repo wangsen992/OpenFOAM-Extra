@@ -249,15 +249,31 @@ Foam::scalar Foam::heRhoAtmThermo<BasicRhoThermo, MixtureType>::exner
 template<class BasicRhoThermo, class MixtureType>
 Foam::tmp<Foam::volScalarField> Foam::heRhoAtmThermo<BasicRhoThermo, MixtureType>::theta_v() const
 {
-    Info << "Returning theta for testing theta_v()" << endl;
-    return this->theta_;
+    
+    Foam::tmp<Foam::volScalarField> ttheta_v
+    (
+        Foam::volScalarField::New
+        (
+            "theta_v",
+            this->theta_ * (1 + 0.608 * this->r())
+        )
+    );
+    return ttheta_v;
 }
 
 
 template<class BasicRhoThermo, class MixtureType>
 Foam::tmp<Foam::volScalarField> Foam::heRhoAtmThermo<BasicRhoThermo, MixtureType>::r() const
 {
-    return this->theta_;
+    Foam::tmp<Foam::volScalarField> tr
+    (
+        Foam::volScalarField::New
+        (
+            "r",
+            this->Y("H2O") / this->Y("dryAir")
+        )
+    );
+    return tr;
 }
 
 template<class BasicRhoThermo, class MixtureType>
