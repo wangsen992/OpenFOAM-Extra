@@ -96,6 +96,8 @@ int main(int argc, char *argv[])
           atm.nutCorrect();
         }
         atm.thetaEqn();
+        atm.qEqn();
+        atm.lwcEqn();
       }
       runTime.write();
     }

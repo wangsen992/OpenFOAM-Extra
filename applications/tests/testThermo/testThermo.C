@@ -71,6 +71,7 @@ int main(int argc, char *argv[])
     Info << pthermo->Y("dryAir") << endl;
     Info << pthermo->Y("H2O") / pthermo->Y("dryAir") << endl;
     Info << pthermo->r() << endl;
+    Info << pthermo->q() << endl;
     Info << pthermo->theta_v() << endl;
 
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

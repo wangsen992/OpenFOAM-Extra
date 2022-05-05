@@ -261,6 +261,17 @@ Foam::tmp<Foam::volScalarField> Foam::heRhoAtmThermo<BasicRhoThermo, MixtureType
     return ttheta_v;
 }
 
+template<class BasicRhoThermo, class MixtureType>
+Foam::volScalarField& Foam::heRhoAtmThermo<BasicRhoThermo, MixtureType>::q()
+{
+    return this->MixtureType::Y("H2O");
+}
+
+template<class BasicRhoThermo, class MixtureType>
+const Foam::volScalarField& Foam::heRhoAtmThermo<BasicRhoThermo, MixtureType>::q() const
+{
+    return this->MixtureType::Y("H2O");
+}
 
 template<class BasicRhoThermo, class MixtureType>
 Foam::tmp<Foam::volScalarField> Foam::heRhoAtmThermo<BasicRhoThermo, MixtureType>::r() const

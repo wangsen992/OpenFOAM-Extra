@@ -64,7 +64,7 @@ tmp<fvScalarMatrix> Foam::atmTurbModel::thetaEqn()
         fvm::ddt(theta_)
       + fvm::div(phi_, theta_)
       == 
-        fvm::laplacian(transport_->alphaEff()/thermo_->rho0(), theta_)
+        fvm::laplacian(transport_->alphaEff()/thermo_->rho(), theta_)
     );
     tThetaEqn->relax();
     tThetaEqn->solve();
@@ -81,8 +81,27 @@ tmp<fvScalarMatrix> Foam::atmTurbModel::qEqn()
       + fvm::div(phi_, q_)
       == 
         // Warning: nut() is used instead of alphaEff Q
-        fvc::laplacian(transport_->alphaEff() / thermo_->rho0(), q_)
+        fvc::laplacian(transport_->alphaEff() / thermo_->rho(), q_)
     );
-    return tQEqn;
+    tQEqn->relax();
+    tQEqn->solve();
+    qEqn_ = tQEqn;
+    return qEqn_;
 }
 
+tmp<fvScalarMatrix> Foam::atmTurbModel::lwcEqn()
+{
+    Info << "Init lwcEqn." << endl;
+    tmp<fvScalarMatrix> tlwcEqn
+    (
+        fvm::ddt(lwc_)
+      + fvm::div(phi_, lwc_)
+      == 
+        // Warning: nut() is used instead of alphaEff Q
+        fvc::laplacian(transport_->alphaEff() / thermo_->rho(), lwc_)
+    );
+    tlwcEqn->relax();
+    tlwcEqn->solve();
+    lwcEqn_ = tlwcEqn;
+    return lwcEqn_;
+}

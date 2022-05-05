@@ -147,7 +147,8 @@ Foam::atmTurbModel::atmTurbModel(IOobject io)
   fvConstraints_(fvConstraints::New(mesh_)),
   UEqn_(),
   thetaEqn_(),
-  qEqn_()
+  qEqn_(),
+  lwcEqn_()
 {
   // creating fields
   mesh_.setFluxRequired(p_rgh_.name());

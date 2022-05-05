@@ -72,7 +72,6 @@ protected:
     dimensionedVector f_; // coriolis parameter
     dimensionedVector g_; // gravititational acceleration
     dimensionedVector Ug_; // geostrohpic wind
-    dimensionedScalar p0_; // reference density
     dimensionedScalar theta0_; // reference density
 
     // Instantiate for turbulence modeling (eddy viscosity)
@@ -86,6 +85,7 @@ protected:
     tmp<fvVectorMatrix> UEqn_;
     tmp<fvScalarMatrix> thetaEqn_;
     tmp<fvScalarMatrix> qEqn_;
+    tmp<fvScalarMatrix> lwcEqn_;
 
     // Protected Static Function
     // Protected Member Function
@@ -106,10 +106,11 @@ public:
     pimpleControl& pimple(){return pimple_;}
     volVectorField& U(){return U_;}
     volScalarField& q(){return q_;}
+    volScalarField& lwc(){return lwc_;}
     volScalarField& theta(){return theta_;}
     volScalarField& p_rgh(){return p_rgh_;}
 
-    autoPtr<fluidThermo> thermo(){return thermo_;}
+    autoPtr<fluidAtmThermo> thermo(){return thermo_;}
     volScalarField& p(){return thermo_->p();}
     volScalarField& T(){return thermo_->T();}
 
@@ -120,6 +121,7 @@ public:
     tmp<fvVectorMatrix> UEqn();
     tmp<fvScalarMatrix> thetaEqn();
     tmp<fvScalarMatrix> qEqn();
+    tmp<fvScalarMatrix> lwcEqn();
 
     void pressureCorrect();
     void nutCorrect();

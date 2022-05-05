@@ -3,6 +3,8 @@ EXE_INC = \
     -I$(LIB_SRC)/MomentumTransportModels/incompressible/lnInclude \
     -I$(LIB_SRC)/MomentumTransportModels/compressible/lnInclude \
     -I$(LIB_SRC)/thermophysicalModels/basic/lnInclude \
+    -I$(LIB_SRC)/thermophysicalModels/specie/lnInclude \
+    -I$(LIB_SRC)/thermophysicalModels/reactionThermo/lnInclude \
     -I$(LIB_SRC)/transportModels/lnInclude \
     -I$(LIB_SRC)/ThermophysicalTransportModels/lnInclude \
     -I$(LIB_SRC)/finiteVolume/lnInclude \
@@ -23,4 +25,6 @@ EXE_LIBS = \
     -lfvModels \
     -lfvConstraints \
     -lsampling \
+    -lreactionThermophysicalModels \
+    -lspecie \
     -latmosphericTurbulenceModels

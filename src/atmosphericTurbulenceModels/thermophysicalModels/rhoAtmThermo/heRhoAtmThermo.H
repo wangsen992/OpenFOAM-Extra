@@ -99,6 +99,13 @@ public:
             //- Virtual Potential Temperature
             virtual tmp<volScalarField> theta_v() const;
             
+            //- Moisture (specific humidity) [kg m-3]
+            //  Non-const access allowed for transport equations
+            virtual volScalarField& q();
+
+            //- Moisture (specific humidity) [kg m-3]
+            virtual const volScalarField& q() const;
+            
             //- Mixing Ratio []
             virtual tmp<volScalarField> r() const;
 

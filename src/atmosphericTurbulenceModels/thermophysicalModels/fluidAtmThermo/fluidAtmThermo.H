@@ -91,11 +91,12 @@ public:
             //- Potential Temperature [K]
             virtual const volScalarField& theta() const = 0;
             
-            //- Moisture (specific humidity) [kg m-3]
+            //- Specific Humidity [kg m-3]
             //  Non-const access allowed for transport equations
             virtual volScalarField& q() = 0;
 
-            //- Moisture (specific humidity) [kg m-3]
+            //- Specific Humidity [kg m-3]
+            // Const access allowed for transport equations
             virtual const volScalarField& q() const = 0;
             
             //- Liquid Water Content (LWC) [kg m-3]
@@ -148,7 +149,8 @@ protected:
             volScalarField& theta_;
 
             //- Moisture (specific humidity) [kg m-3]
-            volScalarField& q_;
+            // Replaced with Y("H2O")
+            // volScalarField& q_;
 
             //- Liquid Water Content (LWC) [kg m-3]
             volScalarField& lwc_;
@@ -177,13 +179,6 @@ public:
 
             //- Potential Temperature [K]
             virtual const volScalarField& theta() const;
-            
-            //- Moisture (specific humidity) [kg m-3]
-            //  Non-const access allowed for transport equations
-            virtual volScalarField& q();
-
-            //- Moisture (specific humidity) [kg m-3]
-            virtual const volScalarField& q() const;
             
             //- Liquid Water Content (LWC) [kg m-3]
             //  Non-const access allowed for transport equations

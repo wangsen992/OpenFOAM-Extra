@@ -100,6 +100,12 @@ void Foam::atmTurbModel::pressureCorrect()
 
 void Foam::atmTurbModel::nutCorrect()
 {
+    // Update p before correct thermo 
+    Foam::volScalarField& p = thermo_->p();
+    p = thermo_->rho() * (p_rgh_ + ( g_ &  mesh_.C()) )
+      + dimensionedScalar(dimPressure, pow(10,5));
+
+    // Perform corrections
     thermo_->correct();
     turbulence_->correct();
     transport_->correct();
