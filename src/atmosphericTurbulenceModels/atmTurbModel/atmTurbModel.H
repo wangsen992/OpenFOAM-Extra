@@ -88,6 +88,18 @@ protected:
     tmp<fvScalarMatrix> lwcEqn_;
 
     // Protected Static Function
+    static volScalarField& lookupOrConstructScalar
+    (
+        const fvMesh& mesh,
+        const char* name
+    );
+
+    static volVectorField& lookupOrConstructVector
+    (
+        const fvMesh& mesh,
+        const char* name
+    );
+
     // Protected Member Function
       // exner function
 

@@ -27,8 +27,70 @@ Description
 
 #include "IOobject.H"
 #include "atmTurbModel.H"
+#include "volFieldsFwd.H"
 
 // Protected Member Function
+Foam::volScalarField& Foam::atmTurbModel::lookupOrConstructScalar
+(
+    const fvMesh& mesh,
+    const char* name
+)
+{
+    if (! mesh.objectRegistry::foundObject<volScalarField>(name))
+    {
+        volScalarField* fPtr
+        (
+            new volScalarField
+            (
+                IOobject
+                (
+                    name,
+                    mesh.time().timeName(),
+                    mesh,
+                    IOobject::MUST_READ,
+                    IOobject::AUTO_WRITE
+                ),
+                mesh
+            )
+        );
+
+        // Transfer ownership of this object to the objectRegistry
+        fPtr->store(fPtr);
+    }
+
+    return mesh.objectRegistry::lookupObjectRef<volScalarField>(name);
+}
+Foam::volVectorField& Foam::atmTurbModel::lookupOrConstructVector
+(
+    const fvMesh& mesh,
+    const char* name
+)
+{
+    if (! mesh.objectRegistry::foundObject<volVectorField>(name))
+    {
+        volVectorField* fPtr
+        (
+            new volVectorField
+            (
+                IOobject
+                (
+                    name,
+                    mesh.time().timeName(),
+                    mesh,
+                    IOobject::MUST_READ,
+                    IOobject::AUTO_WRITE
+                ),
+                mesh
+            )
+        );
+
+        // Transfer ownership of this object to the objectRegistry
+        fPtr->store(fPtr);
+    }
+
+    return mesh.objectRegistry::lookupObjectRef<volVectorField>(name);
+}
+
 
 // Constructor
 Foam::atmTurbModel::atmTurbModel(IOobject io)
@@ -49,27 +111,11 @@ Foam::atmTurbModel::atmTurbModel(IOobject io)
   rho0f_("rho0f", linearInterpolate(thermo_->rho0())),
   U_
   (
-    IOobject
-    (
-        "U",
-        mesh_.time().timeName(),
-        mesh_,
-        IOobject::MUST_READ,
-        IOobject::AUTO_WRITE
-    ),
-    mesh_
+      lookupOrConstructVector(mesh_, "U")  
   ),
   p_rgh_
   (
-    IOobject
-    (
-        "p_rgh",
-        mesh_.time().timeName(),
-        mesh_,
-        IOobject::MUST_READ,
-        IOobject::AUTO_WRITE
-    ),
-    mesh_
+      lookupOrConstructScalar(mesh_, "p_rgh")
   ),
   theta_
   (
@@ -150,6 +196,8 @@ Foam::atmTurbModel::atmTurbModel(IOobject io)
   qEqn_(),
   lwcEqn_()
 {
+  U_.store();
+  p_rgh_.store();
   // creating fields
   mesh_.setFluxRequired(p_rgh_.name());
 };
