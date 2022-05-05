@@ -44,12 +44,14 @@ tmp<fvVectorMatrix> Foam::atmTurbModel::UEqn()
         - g_ * (thermo_->theta_v() - theta0_) / theta0_
       );
       tUEqn->relax();
+      fvConstraints_.constrain(tUEqn.ref());
 
       if (pimple_.momentumPredictor())
       {
         solve(tUEqn() == -fvc::grad(p_rgh_) ); // Geostrohpic Term
       }
       Info << "UEqn Constructed. " << endl;
+      fvConstraints_.constrain(U_);
       UEqn_ = tUEqn;
       return UEqn_;
 }
@@ -65,9 +67,12 @@ tmp<fvScalarMatrix> Foam::atmTurbModel::thetaEqn()
       + fvm::div(phi_, theta_)
       == 
         fvm::laplacian(transport_->alphaEff()/thermo_->rho(), theta_)
+      + fvModels_.source(theta_)
     );
     tThetaEqn->relax();
+    fvConstraints_.constrain(tThetaEqn.ref());
     tThetaEqn->solve();
+    fvConstraints_.constrain(theta_);
     thetaEqn_ = tThetaEqn;
     return thetaEqn_;
 }
@@ -82,9 +87,12 @@ tmp<fvScalarMatrix> Foam::atmTurbModel::qEqn()
       == 
         // Warning: nut() is used instead of alphaEff Q
         fvc::laplacian(transport_->alphaEff() / thermo_->rho(), q_)
+      + fvModels_.source(q_)
     );
+    fvConstraints_.constrain(tQEqn.ref());
     tQEqn->relax();
     tQEqn->solve();
+    fvConstraints_.constrain(q_);
     qEqn_ = tQEqn;
     return qEqn_;
 }
@@ -99,9 +107,12 @@ tmp<fvScalarMatrix> Foam::atmTurbModel::lwcEqn()
       == 
         // Warning: nut() is used instead of alphaEff Q
         fvc::laplacian(transport_->alphaEff() / thermo_->rho(), lwc_)
+      + fvModels_.source(lwc_)
     );
     tlwcEqn->relax();
+    fvConstraints_.constrain(tlwcEqn.ref());
     tlwcEqn->solve();
+    fvConstraints_.constrain(lwc_);
     lwcEqn_ = tlwcEqn;
     return lwcEqn_;
 }

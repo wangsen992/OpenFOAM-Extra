@@ -121,6 +121,9 @@ public:
     tmp<fvVectorMatrix> UEqn();
     tmp<fvScalarMatrix> thetaEqn();
     tmp<fvScalarMatrix> qEqn();
+
+    // Note: The implementation of liquid water content may be abstracted since
+    // there are multiple approaches to this variable
     tmp<fvScalarMatrix> lwcEqn();
 
     void pressureCorrect();
