@@ -59,8 +59,8 @@ protected:
     surfaceScalarField rho0f_;
 
     // Fields (fields can be loaded from mesh directly)
-    volVectorField U_; // Velocity Field
-    volScalarField p_rgh_; // pressure perturbation
+    volVectorField& U_; // Velocity Field
+    volScalarField& p_rgh_; // pressure perturbation
     volScalarField& theta_; // potential temperature
     surfaceScalarField phi_; // face velocity flux
     surfaceScalarField rhophi_; // face mass flux
