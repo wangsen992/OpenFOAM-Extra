@@ -60,6 +60,7 @@ Foam::volScalarField& Foam::atmTurbModel::lookupOrConstructScalar
 
     return mesh.objectRegistry::lookupObjectRef<volScalarField>(name);
 }
+
 Foam::volVectorField& Foam::atmTurbModel::lookupOrConstructVector
 (
     const fvMesh& mesh,
@@ -196,8 +197,6 @@ Foam::atmTurbModel::atmTurbModel(IOobject io)
   qEqn_(),
   lwcEqn_()
 {
-  U_.store();
-  p_rgh_.store();
   // creating fields
   mesh_.setFluxRequired(p_rgh_.name());
 };

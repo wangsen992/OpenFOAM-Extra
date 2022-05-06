@@ -53,7 +53,7 @@ void Foam::fv::geostrophicForce::readCoeffs()
     UName_ =
         coeffs().lookupOrDefault<word>
         (
-            "U",
+            "UName",
             IOobject::groupName("U", phaseName_)
         );
 }
@@ -70,7 +70,14 @@ Foam::fv::geostrophicForce::geostrophicForce
 :
     fvModel(name, modelType, dict, mesh),
     phaseName_(word::null),
-    UName_(word::null),
+    UName_
+    (
+        coeffs().lookupOrDefault<word>
+        (
+            "UName",
+            IOobject::groupName("U", phaseName_)
+        )
+    ),
     U_
     (
       this->mesh().lookupObjectRef<volVectorField>(UName_)
@@ -105,7 +112,7 @@ void Foam::fv::geostrophicForce::addSup
     const word& fieldName
 ) const
 {
-    eqn += f_ ^ (U_ - Ug_);
+    eqn += f_ ^ (Ug_ - U_);
 }
 
 
@@ -116,7 +123,7 @@ void Foam::fv::geostrophicForce::addSup
     const word& fieldName
 ) const
 {
-    eqn += rho*g_;
+    eqn += rho*f_ ^ (Ug_ - U_);
 }
 
 
@@ -128,7 +135,7 @@ void Foam::fv::geostrophicForce::addSup
     const word& fieldName
 ) const
 {
-    eqn += alpha*rho*g_;
+    eqn += alpha*rho*f_ ^ (Ug_ - U_);
 }
 
 
@@ -144,6 +151,5 @@ bool Foam::fv::geostrophicForce::read(const dictionary& dict)
         return false;
     }
 }
-
 
 // ************************************************************************* //

@@ -89,11 +89,11 @@ void Foam::atmTurbModel::pressureCorrect()
 
     // Explicitly relax pressure for UEqn
     Info << "timeIndex : " << mesh_.time().timeIndex() << endl; 
-    if (mesh_.time().timeIndex() > 1)
-    {
-      Info << "Relaxing p field for U correction." << endl;
-      p_rgh_.relax();
-    }
+    // if (mesh_.time().timeIndex() > 1)
+    // {
+    //   Info << "Relaxing p field for U correction." << endl;
+    //   p_rgh_.relax();
+    // }
     U_ = HbyA - rAtU * fvc::grad(p_rgh_);
     U_.correctBoundaryConditions();
 }
