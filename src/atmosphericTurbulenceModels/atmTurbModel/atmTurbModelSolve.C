@@ -40,15 +40,13 @@ tmp<fvVectorMatrix> Foam::atmTurbModel::UEqn()
         - fvm::laplacian(turbulence_->nuEff(), U_)
         == 
         fvModels_.source(U_)
-//        - fU_Ug() // This is now replaced with fvModels
-        - g_ * (thermo_->theta_v() - theta0_) / theta0_
       );
       tUEqn->relax();
       fvConstraints_.constrain(tUEqn.ref());
 
       if (pimple_.momentumPredictor())
       {
-        solve(tUEqn() == -fvc::grad(p_rgh_) ); // Geostrohpic Term
+        solve(tUEqn() == -fvc::grad(p_rgh_) ); 
       }
       Info << "UEqn Constructed. " << endl;
       fvConstraints_.constrain(U_);

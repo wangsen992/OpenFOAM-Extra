@@ -155,26 +155,17 @@ Foam::atmTurbModel::atmTurbModel(IOobject io)
     thermo_->lwc()
   ),
   pressureReference_(thermo_->p(), pimple_.dict()),
-
-  f_
-  (
-      "f", 
-      atmTurbDict_.lookup("f")
-  ),
   g_
   (
-      "g", 
-      atmTurbDict_.lookup("g")
-  ),
-  Ug_
-  (
-      "Ug", 
-      atmTurbDict_.lookup("Ug")
-  ),
-  theta0_
-  (
-      "theta0", 
-      atmTurbDict_.lookup("theta0")
+    IOobject
+    (
+      "g",
+      mesh_.time().timeName(),
+      mesh_,
+      IOobject::NO_READ,
+      IOobject::NO_WRITE
+    ),
+    dimensionedVector("g", atmTurbDict_.lookup("g"))
   ),
   turbulence_
   (

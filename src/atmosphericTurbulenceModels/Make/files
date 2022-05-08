@@ -9,6 +9,7 @@ thermophysicalModels/rhoAtmThermo/heRhoAtmThermo.C
 thermophysicalModels/rhoAtmThermo/rhoAtmThermos.C
 
 fvModels/geostrophicForce/geostrophicForce.C
+fvModels/boussinesqBuoyancyForce/boussinesqBuoyancyForce.C
 
 LIB = $(FOAM_USER_LIBBIN)/libatmosphericTurbulenceModels
 

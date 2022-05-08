@@ -96,6 +96,7 @@ void Foam::atmTurbModel::pressureCorrect()
     // }
     U_ = HbyA - rAtU * fvc::grad(p_rgh_);
     U_.correctBoundaryConditions();
+    Info << "U Correct Boundary Complete." << endl;
 }
 
 void Foam::atmTurbModel::nutCorrect()

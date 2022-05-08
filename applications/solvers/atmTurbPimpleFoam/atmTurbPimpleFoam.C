@@ -93,7 +93,9 @@ int main(int argc, char *argv[])
 
         if (atm.pimple().turbCorr())
         {
+          Info << "Nut Correcting" << endl;
           atm.nutCorrect();
+          Info << "Nut Corrected" << endl;
         }
         atm.thetaEqn();
         atm.qEqn();

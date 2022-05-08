@@ -69,10 +69,7 @@ protected:
 
     pressureReference pressureReference_;
 
-    dimensionedVector f_; // coriolis parameter
-    dimensionedVector g_; // gravititational acceleration
-    dimensionedVector Ug_; // geostrohpic wind
-    dimensionedScalar theta0_; // reference density
+    uniformDimensionedVectorField g_; // gravititational acceleration
 
     // Instantiate for turbulence modeling (eddy viscosity)
     autoPtr<compressible::momentumTransportModel> turbulence_;
@@ -142,7 +139,5 @@ public:
     void nutCorrect();
     void phiCorrect();
 
-
-    tmp<volVectorField> fU_Ug() {return f_ ^ (U_ - Ug_);}
 };
 }; // end of namespace Foam

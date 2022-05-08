@@ -23,7 +23,7 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "geostrophicForce.H"
+#include "boussinesqBuoyancyForce.H"
 #include "fvMatrices.H"
 #include "addToRunTimeSelectionTable.H"
 
@@ -33,12 +33,12 @@ namespace Foam
 {
 namespace fv
 {
-    defineTypeNameAndDebug(geostrophicForce, 0);
+    defineTypeNameAndDebug(boussinesqBuoyancyForce, 0);
 
     addToRunTimeSelectionTable
     (
         fvModel,
-        geostrophicForce,
+        boussinesqBuoyancyForce,
         dictionary
     );
 }
@@ -46,7 +46,7 @@ namespace fv
 
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
 
-void Foam::fv::geostrophicForce::readCoeffs()
+void Foam::fv::boussinesqBuoyancyForce::readCoeffs()
 {
     phaseName_ = coeffs().lookupOrDefault<word>("phase", word::null);
 
@@ -60,7 +60,7 @@ void Foam::fv::geostrophicForce::readCoeffs()
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-Foam::fv::geostrophicForce::geostrophicForce
+Foam::fv::boussinesqBuoyancyForce::boussinesqBuoyancyForce
 (
     const word& name,
     const word& modelType,
@@ -82,17 +82,19 @@ Foam::fv::geostrophicForce::geostrophicForce
     (
       mesh.lookupObjectRef<volVectorField>(UName_)
     ),
-    Ug_
+    theta0_
     (
-      "Ug",
-      dimVelocity,
-      vector(coeffs().lookup<vector>("Ug"))
+        "theta0", 
+        dimTemperature, 
+        scalar(coeffs().lookup<scalar>("theta0"))
     ),
-    f_
+    g_
     (
-      "f",
-      dimTime / dimTime / dimTime,
-      vector(coeffs().lookup<vector>("f"))
+        mesh.lookupObjectRef<uniformDimensionedVectorField>("g")
+    ),
+    pthermo_
+    (
+      fluidAtmThermo::New(mesh)
     )
 {
     readCoeffs();
@@ -100,34 +102,34 @@ Foam::fv::geostrophicForce::geostrophicForce
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-Foam::wordList Foam::fv::geostrophicForce::addSupFields() const
+Foam::wordList Foam::fv::boussinesqBuoyancyForce::addSupFields() const
 {
     return wordList(1, UName_);
 }
 
 
-void Foam::fv::geostrophicForce::addSup
+void Foam::fv::boussinesqBuoyancyForce::addSup
 (
     fvMatrix<vector>& eqn,
     const word& fieldName
 ) const
 {
-    eqn += f_ ^ (Ug_ - U_);
+    eqn -= g_ * (pthermo_->theta_v() - theta0_) / theta0_;
 }
 
 
-void Foam::fv::geostrophicForce::addSup
+void Foam::fv::boussinesqBuoyancyForce::addSup
 (
     const volScalarField& rho,
     fvMatrix<vector>& eqn,
     const word& fieldName
 ) const
 {
-    eqn += rho*f_ ^ (Ug_ - U_);
+    eqn -= rho * g_ * (pthermo_->theta_v() - theta0_) / theta0_;
 }
 
 
-void Foam::fv::geostrophicForce::addSup
+void Foam::fv::boussinesqBuoyancyForce::addSup
 (
     const volScalarField& alpha,
     const volScalarField& rho,
@@ -135,11 +137,11 @@ void Foam::fv::geostrophicForce::addSup
     const word& fieldName
 ) const
 {
-    eqn += alpha*rho*f_ ^ (Ug_ - U_);
+    eqn -= alpha*rho * g_ * (pthermo_->theta_v() - theta0_) / theta0_;
 }
 
 
-bool Foam::fv::geostrophicForce::read(const dictionary& dict)
+bool Foam::fv::boussinesqBuoyancyForce::read(const dictionary& dict)
 {
     if (fvModel::read(dict))
     {
