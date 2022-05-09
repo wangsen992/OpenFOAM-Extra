@@ -131,6 +131,14 @@ public:
             
             //- Return the const mass-fraction field for a specie given by name
             virtual const volScalarField& Y(const word& specieName) const = 0;
+
+            //- Return the partial pressure for a specie given by index
+            virtual tmp<volScalarField> pp(const label specie) const = 0;
+
+            //- Return the partial pressure for a specie given by name
+            virtual tmp<volScalarField> pp(const word& specieName) const = 0;
+            //- Return the saturation vapor pressure
+            virtual tmp<volScalarField> es() const = 0;
 };
 /*---------------------------------------------------------------------------*\
                      Class fluidReactionThermo Declaration
@@ -147,10 +155,6 @@ protected:
 
             //- Potential Temperature [K]
             volScalarField& theta_;
-
-            //- Moisture (specific humidity) [kg m-3]
-            // Replaced with Y("H2O")
-            // volScalarField& q_;
 
             //- Liquid Water Content (LWC) [kg m-3]
             volScalarField& lwc_;

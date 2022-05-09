@@ -24,9 +24,11 @@ License
 \*---------------------------------------------------------------------------*/
 
 #include "Ostream.H"
+#include "autoPtr.H"
 #include "dimensionSet.H"
 #include "heRhoAtmThermo.H"
 #include "speciesTable.H"
+#include "thermodynamicConstants.H"
 
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
 template<class BasicRhoThermo, class MixtureType>
@@ -255,7 +257,8 @@ Foam::tmp<Foam::volScalarField> Foam::heRhoAtmThermo<BasicRhoThermo, MixtureType
         Foam::volScalarField::New
         (
             "theta_v",
-            this->theta_ * (1 + 0.608 * this->r())
+            this->theta_ 
+            * (1 + 0.608 * this->q() - this->lwc_)
         )
     );
     return ttheta_v;
@@ -325,6 +328,51 @@ const Foam::volScalarField& Foam::heRhoAtmThermo<BasicRhoThermo, MixtureType>::Y
 ) const
 {
     return this->MixtureType::Y(specieName);
+}
+
+template<class BasicRhoThermo, class MixtureType>
+Foam::tmp<Foam::volScalarField> Foam::heRhoAtmThermo<BasicRhoThermo, MixtureType>::pp
+(
+  const label speciei
+) const
+{
+    return 
+    ( 
+      this->MixtureType::Y(speciei) 
+    * this->rho_ // rho_i
+    * constant::thermodynamic::RR * Wi(speciei) // R 
+    * this->T_
+    );
+}
+
+template<class BasicRhoThermo, class MixtureType>
+Foam::tmp<Foam::volScalarField> Foam::heRhoAtmThermo<BasicRhoThermo, MixtureType>::pp
+(
+  const word& specieName
+) const
+{
+  const speciesTable& speciesTbl(this->species());
+  label speciei(speciesTbl[specieName]);
+  return this->pp(speciei);
+}
+
+template<class BasicRhoThermo, class MixtureType>
+Foam::tmp<Foam::volScalarField> Foam::heRhoAtmThermo<BasicRhoThermo, MixtureType>::es () const
+{
+    Foam::tmp<Foam::volScalarField> Tcelsius
+    (
+        this->T_ - dimensionedScalar(dimTemperature, 273.15)
+    );
+
+    Foam::tmp<Foam::volScalarField> tes
+    (
+        6.112 * 
+        exp( 
+             (17.67 * Tcelsius) 
+           / (Tcelsius + dimensionedScalar(dimTemperature, 243.5)                    )
+           )
+    );
+    return tes * dimensionedScalar(dimPressure, 1);
 }
 
 template<class BasicRhoThermo, class MixtureType>
