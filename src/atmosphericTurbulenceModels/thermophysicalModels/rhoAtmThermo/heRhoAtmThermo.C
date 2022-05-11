@@ -70,7 +70,7 @@ void Foam::heRhoAtmThermo<BasicRhoThermo, MixtureType>::calculate()
     scalarField& CpCells = this->Cp_.primitiveFieldRef();
     scalarField& CvCells = this->Cv_.primitiveFieldRef();
     scalarField& psiCells = this->psi_.primitiveFieldRef();
-    scalarField& rhoCells = this->rho_.primitiveFieldRef();
+    // scalarField& rhoCells = this->rho_.primitiveFieldRef();
     scalarField& muCells = this->mu_.primitiveFieldRef();
     scalarField& alphaCells = this->alpha_.primitiveFieldRef();
 
@@ -99,7 +99,7 @@ void Foam::heRhoAtmThermo<BasicRhoThermo, MixtureType>::calculate()
         CpCells[celli] = thermoMixture.Cp(pCells[celli], TCells[celli]);
         CvCells[celli] = thermoMixture.Cv(pCells[celli], TCells[celli]);
         psiCells[celli] = thermoMixture.psi(pCells[celli], TCells[celli]);
-        rhoCells[celli] = thermoMixture.rho(pCells[celli], TCells[celli]);
+        // rhoCells[celli] = thermoMixture.rho(pCells[celli], TCells[celli]);
 
         muCells[celli] = transportMixture.mu(pCells[celli], TCells[celli]);
         alphaCells[celli] =
@@ -170,7 +170,7 @@ void Foam::heRhoAtmThermo<BasicRhoThermo, MixtureType>::calculate()
                 pCp[facei] = thermoMixture.Cp(pp[facei], pT[facei]);
                 pCv[facei] = thermoMixture.Cv(pp[facei], pT[facei]);
                 ppsi[facei] = thermoMixture.psi(pp[facei], pT[facei]);
-                prho[facei] = thermoMixture.rho(pp[facei], pT[facei]);
+                // prho[facei] = thermoMixture.rho(pp[facei], pT[facei]);
 
                 pmu[facei] = transportMixture.mu(pp[facei], pT[facei]);
                 palpha[facei] =
@@ -202,7 +202,7 @@ void Foam::heRhoAtmThermo<BasicRhoThermo, MixtureType>::calculate()
                 pCp[facei] = thermoMixture.Cp(pp[facei], pT[facei]);
                 pCv[facei] = thermoMixture.Cv(pp[facei], pT[facei]);
                 ppsi[facei] = thermoMixture.psi(pp[facei], pT[facei]);
-                prho[facei] = thermoMixture.rho(pp[facei], pT[facei]);
+                // prho[facei] = thermoMixture.rho(pp[facei], pT[facei]);
 
                 pmu[facei] = transportMixture.mu(pp[facei], pT[facei]);
                 palpha[facei] =
