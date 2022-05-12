@@ -258,7 +258,11 @@ Foam::tmp<Foam::volScalarField> Foam::heRhoAtmThermo<BasicRhoThermo, MixtureType
         (
             "theta_v",
             this->theta_ 
-            * (1 + 0.608 * this->q() - this->lwc_)
+            * (
+                1 + 0.608 * this->q()
+              //  - this->lwc_ // This is currently disabled, need to be
+              //  careful when implementing
+              )
         )
     );
     return ttheta_v;
