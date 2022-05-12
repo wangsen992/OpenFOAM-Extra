@@ -8,6 +8,8 @@ thermophysicalModels/rhoAtmThermo/rhoAtmThermo.C
 thermophysicalModels/rhoAtmThermo/heRhoAtmThermo.C
 thermophysicalModels/rhoAtmThermo/rhoAtmThermos.C
 
+ThermophysicalTransportModels/fluidAtmThermo/fluidAtmThermophysicalTransportModels.C
+
 fvModels/geostrophicForce/geostrophicForce.C
 fvModels/boussinesqBuoyancyForce/boussinesqBuoyancyForce.C
 

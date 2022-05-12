@@ -36,7 +36,7 @@ License
 #include "rhoAtmThermo.H"
 #include "heRhoAtmThermo.H"
 
-#include "forGases.H"
+#include "forAtmGases.H"
 #include "forLiquids.H"
 #include "forTabulated.H"
 #include "makeAtmThermo.H"

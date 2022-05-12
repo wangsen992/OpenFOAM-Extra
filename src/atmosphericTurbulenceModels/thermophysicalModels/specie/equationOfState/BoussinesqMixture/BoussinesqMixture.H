@@ -22,18 +22,17 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::Boussinesq
+    Foam::BoussinesqMixture
 
 Description
-    Incompressible gas equation of state using the Boussinesq approximation for
+    Incompressible gas equation of state using the BoussinesqMixture approximation for
     the density as a function of temperature only:
 
     \verbatim
         rho = rho0*(1 - beta*(T - T0))
     \endverbatim
 
-    Coefficient mixing is very inaccurate and not supported,
-    so this equation of state is not applicable to mixtures.
+    Coefficient mixing is currently being updated for mixture.
 
 Usage
     \table
@@ -43,7 +42,7 @@ Usage
         beta         | Coefficient of thermal expansion
     \endtable
 
-    Example specification of the Boussinesq equation of state:
+    Example specification of the BoussinesqMixture equation of state:
     \verbatim
     equationOfState
     {
@@ -54,13 +53,13 @@ Usage
     \endverbatim
 
 SourceFiles
-    BoussinesqI.H
-    Boussinesq.C
+    BoussinesqMixtureI.H
+    BoussinesqMixture.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef Boussinesq_H
-#define Boussinesq_H
+#ifndef BoussinesqMixture_H
+#define BoussinesqMixture_H
 
 #include "autoPtr.H"
 
@@ -71,43 +70,43 @@ namespace Foam
 
 // Forward declaration of friend functions and operators
 
-template<class Specie> class Boussinesq;
+template<class Specie> class BoussinesqMixture;
 
 template<class Specie>
-inline Boussinesq<Specie> operator+
+inline BoussinesqMixture<Specie> operator+
 (
-    const Boussinesq<Specie>&,
-    const Boussinesq<Specie>&
+    const BoussinesqMixture<Specie>&,
+    const BoussinesqMixture<Specie>&
 );
 
 template<class Specie>
-inline Boussinesq<Specie> operator*
+inline BoussinesqMixture<Specie> operator*
 (
     const scalar,
-    const Boussinesq<Specie>&
+    const BoussinesqMixture<Specie>&
 );
 
 template<class Specie>
-inline Boussinesq<Specie> operator==
+inline BoussinesqMixture<Specie> operator==
 (
-    const Boussinesq<Specie>&,
-    const Boussinesq<Specie>&
+    const BoussinesqMixture<Specie>&,
+    const BoussinesqMixture<Specie>&
 );
 
 template<class Specie>
 Ostream& operator<<
 (
     Ostream&,
-    const Boussinesq<Specie>&
+    const BoussinesqMixture<Specie>&
 );
 
 
 /*---------------------------------------------------------------------------*\
-                         Class Boussinesq Declaration
+                         Class BoussinesqMixture Declaration
 \*---------------------------------------------------------------------------*/
 
 template<class Specie>
-class Boussinesq
+class BoussinesqMixture
 :
     public Specie
 {
@@ -128,7 +127,7 @@ public:
     // Constructors
 
         //- Construct from components
-        inline Boussinesq
+        inline BoussinesqMixture
         (
             const Specie& sp,
             const scalar rho0,
@@ -137,20 +136,20 @@ public:
         );
 
         //- Construct from dictionary
-        Boussinesq(const dictionary& dict);
+        BoussinesqMixture(const dictionary& dict);
 
         //- Construct as named copy
-        inline Boussinesq
+        inline BoussinesqMixture
         (
             const word& name,
-            const Boussinesq&
+            const BoussinesqMixture&
         );
 
         //- Construct and return a clone
-        inline autoPtr<Boussinesq> clone() const;
+        inline autoPtr<BoussinesqMixture> clone() const;
 
         // Selector from dictionary
-        inline static autoPtr<Boussinesq> New
+        inline static autoPtr<BoussinesqMixture> New
         (
             const dictionary& dict
         );
@@ -162,7 +161,7 @@ public:
         static word typeName()
         {
             return
-                "Boussinesq<"
+                "BoussinesqMixture<"
               + word(Specie::typeName_()) + '>';
         }
 
@@ -214,28 +213,28 @@ public:
 
     // Member Operators
 
-        inline void operator+=(const Boussinesq&);
+        inline void operator+=(const BoussinesqMixture&);
         inline void operator*=(const scalar);
 
 
     // Friend operators
 
-        friend Boussinesq operator+ <Specie>
+        friend BoussinesqMixture operator+ <Specie>
         (
-            const Boussinesq&,
-            const Boussinesq&
+            const BoussinesqMixture&,
+            const BoussinesqMixture&
         );
 
-        friend Boussinesq operator* <Specie>
+        friend BoussinesqMixture operator* <Specie>
         (
             const scalar s,
-            const Boussinesq&
+            const BoussinesqMixture&
         );
 
-        friend Boussinesq operator== <Specie>
+        friend BoussinesqMixture operator== <Specie>
         (
-            const Boussinesq&,
-            const Boussinesq&
+            const BoussinesqMixture&,
+            const BoussinesqMixture&
         );
 
 
@@ -244,7 +243,7 @@ public:
         friend Ostream& operator<< <Specie>
         (
             Ostream&,
-            const Boussinesq&
+            const BoussinesqMixture&
         );
 };
 
@@ -255,10 +254,10 @@ public:
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-#include "BoussinesqI.H"
+#include "BoussinesqMixtureI.H"
 
 #ifdef NoRepository
-    #include "Boussinesq.C"
+    #include "BoussinesqMixture.C"
 #endif
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

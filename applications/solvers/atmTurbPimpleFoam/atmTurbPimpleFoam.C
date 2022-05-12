@@ -31,7 +31,6 @@ being developed right now.
 \*---------------------------------------------------------------------------*/
 
 // OpenFOAM Modules
-#include "IOobject.H"
 #include "fvCFD.H"
 
 // User Module

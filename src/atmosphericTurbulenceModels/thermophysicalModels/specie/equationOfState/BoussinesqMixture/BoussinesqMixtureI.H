@@ -23,13 +23,13 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "Boussinesq.H"
+#include "BoussinesqMixture.H"
 
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
 template<class Specie>
-inline Foam::Boussinesq<Specie>::Boussinesq
+inline Foam::BoussinesqMixture<Specie>::BoussinesqMixture
 (
     const Specie& sp, const scalar rho0, const scalar T0, const scalar beta
 )
@@ -42,10 +42,10 @@ inline Foam::Boussinesq<Specie>::Boussinesq
 
 
 template<class Specie>
-inline Foam::Boussinesq<Specie>::Boussinesq
+inline Foam::BoussinesqMixture<Specie>::BoussinesqMixture
 (
     const word& name,
-    const Boussinesq<Specie>& b
+    const BoussinesqMixture<Specie>& b
 )
 :
     Specie(name, b),
@@ -56,26 +56,26 @@ inline Foam::Boussinesq<Specie>::Boussinesq
 
 
 template<class Specie>
-inline Foam::autoPtr<Foam::Boussinesq<Specie>>
-Foam::Boussinesq<Specie>::clone() const
+inline Foam::autoPtr<Foam::BoussinesqMixture<Specie>>
+Foam::BoussinesqMixture<Specie>::clone() const
 {
-    return autoPtr<Boussinesq<Specie>>
+    return autoPtr<BoussinesqMixture<Specie>>
     (
-        new Boussinesq<Specie>(*this)
+        new BoussinesqMixture<Specie>(*this)
     );
 }
 
 
 template<class Specie>
-inline Foam::autoPtr<Foam::Boussinesq<Specie>>
-Foam::Boussinesq<Specie>::New
+inline Foam::autoPtr<Foam::BoussinesqMixture<Specie>>
+Foam::BoussinesqMixture<Specie>::New
 (
     const dictionary& dict
 )
 {
-    return autoPtr<Boussinesq<Specie>>
+    return autoPtr<BoussinesqMixture<Specie>>
     (
-        new Boussinesq<Specie>(dict)
+        new BoussinesqMixture<Specie>(dict)
     );
 }
 
@@ -83,7 +83,7 @@ Foam::Boussinesq<Specie>::New
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
 template<class Specie>
-inline Foam::scalar Foam::Boussinesq<Specie>::rho
+inline Foam::scalar Foam::BoussinesqMixture<Specie>::rho
 (
     scalar p,
     scalar T
@@ -94,35 +94,35 @@ inline Foam::scalar Foam::Boussinesq<Specie>::rho
 
 
 template<class Specie>
-inline Foam::scalar Foam::Boussinesq<Specie>::H(scalar p, scalar T) const
+inline Foam::scalar Foam::BoussinesqMixture<Specie>::H(scalar p, scalar T) const
 {
     return p/this->rho(p, T);
 }
 
 
 template<class Specie>
-inline Foam::scalar Foam::Boussinesq<Specie>::Cp(scalar p, scalar T) const
+inline Foam::scalar Foam::BoussinesqMixture<Specie>::Cp(scalar p, scalar T) const
 {
     return 0;
 }
 
 
 template<class Specie>
-inline Foam::scalar Foam::Boussinesq<Specie>::E(scalar p, scalar T) const
+inline Foam::scalar Foam::BoussinesqMixture<Specie>::E(scalar p, scalar T) const
 {
     return 0;
 }
 
 
 template<class Specie>
-inline Foam::scalar Foam::Boussinesq<Specie>::Cv(scalar p, scalar T) const
+inline Foam::scalar Foam::BoussinesqMixture<Specie>::Cv(scalar p, scalar T) const
 {
     return 0;
 }
 
 
 template<class Specie>
-inline Foam::scalar Foam::Boussinesq<Specie>::Sp
+inline Foam::scalar Foam::BoussinesqMixture<Specie>::Sp
 (
     scalar p,
     scalar T
@@ -133,7 +133,7 @@ inline Foam::scalar Foam::Boussinesq<Specie>::Sp
 
 
 template<class Specie>
-inline Foam::scalar Foam::Boussinesq<Specie>::Sv
+inline Foam::scalar Foam::BoussinesqMixture<Specie>::Sv
 (
     scalar p,
     scalar T
@@ -145,7 +145,7 @@ inline Foam::scalar Foam::Boussinesq<Specie>::Sv
 
 
 template<class Specie>
-inline Foam::scalar Foam::Boussinesq<Specie>::psi
+inline Foam::scalar Foam::BoussinesqMixture<Specie>::psi
 (
     scalar p,
     scalar T
@@ -156,7 +156,7 @@ inline Foam::scalar Foam::Boussinesq<Specie>::psi
 
 
 template<class Specie>
-inline Foam::scalar Foam::Boussinesq<Specie>::Z
+inline Foam::scalar Foam::BoussinesqMixture<Specie>::Z
 (
     scalar p,
     scalar T
@@ -167,7 +167,7 @@ inline Foam::scalar Foam::Boussinesq<Specie>::Z
 
 
 template<class Specie>
-inline Foam::scalar Foam::Boussinesq<Specie>::CpMCv
+inline Foam::scalar Foam::BoussinesqMixture<Specie>::CpMCv
 (
     scalar p,
     scalar T
@@ -180,17 +180,17 @@ inline Foam::scalar Foam::Boussinesq<Specie>::CpMCv
 // * * * * * * * * * * * * * * * Member Operators  * * * * * * * * * * * * * //
 
 template<class Specie>
-inline void Foam::Boussinesq<Specie>::operator+=
+inline void Foam::BoussinesqMixture<Specie>::operator+=
 (
-    const Boussinesq<Specie>& b
+    const BoussinesqMixture<Specie>& b
 )
 {
-    noCoefficientMixing(Boussinesq);
+    Specie::operator+=(b);
 }
 
 
 template<class Specie>
-inline void Foam::Boussinesq<Specie>::operator*=(const scalar s)
+inline void Foam::BoussinesqMixture<Specie>::operator*=(const scalar s)
 {
     Specie::operator*=(s);
 }
@@ -199,25 +199,27 @@ inline void Foam::Boussinesq<Specie>::operator*=(const scalar s)
 // * * * * * * * * * * * * * * * Friend Operators  * * * * * * * * * * * * * //
 
 template<class Specie>
-inline Foam::Boussinesq<Specie> Foam::operator+
+inline Foam::BoussinesqMixture<Specie> Foam::operator+
 (
-    const Boussinesq<Specie>& b1,
-    const Boussinesq<Specie>& b2
+    const BoussinesqMixture<Specie>& b1,
+    const BoussinesqMixture<Specie>& b2
 )
 {
-    noCoefficientMixing(Boussinesq);
-    return b1;
+    return BoussinesqMixture<Specie>
+    (
+        static_cast<const Specie&>(b1) + static_cast<const Specie&>(b2)
+    );
 }
 
 
 template<class Specie>
-inline Foam::Boussinesq<Specie> Foam::operator*
+inline Foam::BoussinesqMixture<Specie> Foam::operator*
 (
     const scalar s,
-    const Boussinesq<Specie>& b
+    const BoussinesqMixture<Specie>& b
 )
 {
-    return Boussinesq<Specie>
+    return BoussinesqMixture<Specie>
     (
         s*static_cast<const Specie&>(b),
         b.rho0_,
@@ -228,14 +230,16 @@ inline Foam::Boussinesq<Specie> Foam::operator*
 
 
 template<class Specie>
-inline Foam::Boussinesq<Specie> Foam::operator==
+inline Foam::BoussinesqMixture<Specie> Foam::operator==
 (
-    const Boussinesq<Specie>& b1,
-    const Boussinesq<Specie>& b2
+    const BoussinesqMixture<Specie>& b1,
+    const BoussinesqMixture<Specie>& b2
 )
 {
-    noCoefficientMixing(Boussinesq);
-    return b1;
+    return BoussinesqMixture<Specie>
+    (
+        static_cast<const Specie&>(b1) == static_cast<const Specie&>(b2)
+    );
 }
 
 

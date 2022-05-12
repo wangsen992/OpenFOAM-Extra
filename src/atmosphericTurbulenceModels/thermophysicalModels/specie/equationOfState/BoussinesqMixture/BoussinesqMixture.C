@@ -23,13 +23,13 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "Boussinesq.H"
+#include "BoussinesqMixture.H"
 #include "IOstreams.H"
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
 template<class Specie>
-Foam::Boussinesq<Specie>::Boussinesq
+Foam::BoussinesqMixture<Specie>::BoussinesqMixture
 (
     const dictionary& dict
 )
@@ -44,7 +44,7 @@ Foam::Boussinesq<Specie>::Boussinesq
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
 template<class Specie>
-void Foam::Boussinesq<Specie>::write(Ostream& os) const
+void Foam::BoussinesqMixture<Specie>::write(Ostream& os) const
 {
     Specie::write(os);
     dictionary dict("equationOfState");
@@ -62,7 +62,7 @@ template<class Specie>
 Foam::Ostream& Foam::operator<<
 (
     Ostream& os,
-    const Boussinesq<Specie>& b
+    const BoussinesqMixture<Specie>& b
 )
 {
     b.write(os);
