@@ -67,18 +67,16 @@ tmp<fvScalarMatrix> Foam::atmTurbModel::thetaEqn()
     volScalarField& Exner = tExner.ref();
         
     dimensionedScalar rhoCp = average(thermo_->rho() * thermo_->Cp());
-    tmp<fvScalarMatrix> radSourceT
+    tmp<volScalarField> tRadSourceT
     (
-        radiation_->Ru() / rhoCp
-      - fvm::Sp(radiation_->Rp() * pow3(theta_/Exner) / rhoCp, (theta_/Exner).ref())
+      - (radiation_->Rp() * pow4(theta_/Exner) / rhoCp)
     );
 
-    Info << "radSourceT generated: " << radSourceT->psi().name() << endl;
+    volScalarField& radSourceT = tRadSourceT.ref();
+    radSourceT.primitiveFieldRef() += radiation_->Rp() / rhoCp;
 
-    tmp<fvScalarMatrix> radSourceTheta(radSourceT / Exner);
+    tmp<volScalarField> radSourceTheta(radSourceT / Exner);
 
-    Info << "radSourceTheta generated: " << radSourceTheta->psi().name() << endl;
-      
     tmp<fvScalarMatrix> tThetaEqn
     (
         fvm::ddt(theta_)

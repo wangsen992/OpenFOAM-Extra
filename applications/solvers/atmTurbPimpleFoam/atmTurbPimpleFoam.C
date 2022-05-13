@@ -99,6 +99,7 @@ int main(int argc, char *argv[])
         atm.thetaEqn();
         atm.qEqn();
         atm.lwcEqn();
+        atm.radiationCorrect();
       }
       runTime.write();
     }

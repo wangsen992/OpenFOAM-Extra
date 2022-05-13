@@ -14,10 +14,15 @@ FoamFile
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-radiation
+boussinesqBuoyancyForce
 {
-    type    radiation;
-    libs    ("libradiationModels.so");
+		type						boussinesqBuoyancyForce;
+
+		selectionMode		all;
+
+		UName						U;
+		theta0					300;
+		g								(0 0 -10);
 }
 
 // ************************************************************************* //
