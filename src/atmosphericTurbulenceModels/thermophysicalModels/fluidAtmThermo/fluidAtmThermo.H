@@ -79,6 +79,21 @@ public:
 
     //- Destructor
     virtual ~fluidAtmThermo();
+
+    // Static Function
+    static scalar exner
+    (
+        const scalar p, 
+        const scalar p0, 
+        const scalar gamma
+    );
+
+    static tmp<volScalarField> exner
+    (
+        const volScalarField& p, 
+        const dimensionedScalar& p0,
+        const volScalarField& gamma
+    );
     
     // Member Functions
 

@@ -91,7 +91,7 @@ public:
 
     // Member Functions
         //- Exner Function
-        scalar exner(const scalar, const scalar);
+        //scalar exner(const scalar, const scalar);
 
 
         // Access to thermodynamic state variables
@@ -151,9 +151,9 @@ public:
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-// #ifdef NoRepository
-//     #include "heRhoAtmThermo.C"
-// #endif
+#ifdef NoRepository
+    #include "heRhoAtmThermo.C"
+#endif
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

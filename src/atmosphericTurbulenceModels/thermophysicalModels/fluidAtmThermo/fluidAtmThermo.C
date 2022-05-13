@@ -66,7 +66,26 @@ Foam::fluidAtmThermo::~fluidAtmThermo()
 Foam::fluidAtmThermo::implementation::~implementation()
 {}
 
+// * * * * * * * * * * * * * * * Static Functions  * * * * * * * * * * * * * //
+Foam::scalar Foam::fluidAtmThermo::exner
+(
+    const scalar p,
+    const scalar p0,
+    const scalar gamma
+)
+{
+    return Foam::pow((p/p0), gamma);
+}
 
+Foam::tmp<Foam::volScalarField> Foam::fluidAtmThermo::exner
+(
+    const volScalarField& p, 
+    const dimensionedScalar& p0,
+    const volScalarField& gamma
+)
+{
+    return Foam::pow((p/p0), gamma);
+}
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 Foam::volScalarField& Foam::fluidAtmThermo::implementation::theta()
 {

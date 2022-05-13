@@ -59,6 +59,26 @@ tmp<fvScalarMatrix> Foam::atmTurbModel::thetaEqn()
 {
     Info << "Init TEqn." << endl;
 
+    // Explicit coding of radiation term 
+    tmp<volScalarField> tExner
+    (
+        thermo_->exner(thermo_->p(), thermo_->p0(), thermo_->gamma())
+    );
+    volScalarField& Exner = tExner.ref();
+        
+    dimensionedScalar rhoCp = average(thermo_->rho() * thermo_->Cp());
+    tmp<fvScalarMatrix> radSourceT
+    (
+        radiation_->Ru() / rhoCp
+      - fvm::Sp(radiation_->Rp() * pow3(theta_/Exner) / rhoCp, (theta_/Exner).ref())
+    );
+
+    Info << "radSourceT generated: " << radSourceT->psi().name() << endl;
+
+    tmp<fvScalarMatrix> radSourceTheta(radSourceT / Exner);
+
+    Info << "radSourceTheta generated: " << radSourceTheta->psi().name() << endl;
+      
     tmp<fvScalarMatrix> tThetaEqn
     (
         fvm::ddt(theta_)
@@ -66,6 +86,7 @@ tmp<fvScalarMatrix> Foam::atmTurbModel::thetaEqn()
       == 
         fvm::laplacian(transport_->alphaEff()/thermo_->rho(), theta_)
       + fvModels_.source(theta_)
+      + radSourceTheta
     );
     tThetaEqn->relax();
     fvConstraints_.constrain(tThetaEqn.ref());

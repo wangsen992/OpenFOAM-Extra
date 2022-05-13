@@ -41,7 +41,7 @@ License
 #include "forTabulated.H"
 #include "makeAtmThermo.H"
 
-#include "heRhoAtmThermo.C"
+#include "heRhoAtmThermo.H"
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 #define makeRhoAtmThermos(Mixture, ThermoPhysics)                         \

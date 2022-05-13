@@ -5,7 +5,6 @@ atmTurbModel/atmTurbModelPressureCorrect.C
 
 thermophysicalModels/fluidAtmThermo/fluidAtmThermo.C
 thermophysicalModels/rhoAtmThermo/rhoAtmThermo.C
-thermophysicalModels/rhoAtmThermo/heRhoAtmThermo.C
 thermophysicalModels/rhoAtmThermo/rhoAtmThermos.C
 
 ThermophysicalTransportModels/fluidAtmThermo/fluidAtmThermophysicalTransportModels.C

@@ -35,6 +35,7 @@ Description
 #include "fluidThermophysicalTransportModel.H"
 #include "fvModels.H"
 #include "fvConstraints.H"
+#include "radiationModel.H"
 
 
 namespace Foam
@@ -76,6 +77,7 @@ protected:
     // Instantiate for thermal turbulent modeling & scalar modeling (eddy
     // diffusivities)
     autoPtr<fluidThermophysicalTransportModel> transport_;
+    autoPtr<radiationModel> radiation_;
     fvModels& fvModels_;
     fvConstraints& fvConstraints_;
 
@@ -138,6 +140,7 @@ public:
     void pressureCorrect();
     void nutCorrect();
     void phiCorrect();
+    void radiationCorrect();
 
 };
 }; // end of namespace Foam

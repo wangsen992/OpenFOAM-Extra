@@ -128,3 +128,11 @@ void Foam::atmTurbModel::phiCorrect()
     );
     Info << "CorrectPhi completed" << endl;
 }
+
+void Foam::atmTurbModel::radiationCorrect()
+{
+    Info << "radiationCorrect.." << endl;
+    radiation_->correct();
+    Info << "radiationCorrect completed." << endl;
+    
+}

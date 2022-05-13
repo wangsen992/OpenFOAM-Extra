@@ -181,6 +181,10 @@ Foam::atmTurbModel::atmTurbModel(IOobject io)
   (
     fluidThermophysicalTransportModel::New(turbulence_, thermo_)
   ),
+  radiation_
+  (
+    radiationModel::New(thermo_->T()) // Absolute T is used for Radiation
+  ),
   fvModels_(fvModels::New(mesh_)),
   fvConstraints_(fvConstraints::New(mesh_)),
   UEqn_(),

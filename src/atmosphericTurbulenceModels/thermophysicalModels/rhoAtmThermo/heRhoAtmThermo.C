@@ -61,6 +61,7 @@ void Foam::heRhoAtmThermo<BasicRhoThermo, MixtureType>::calculate()
 
     Info << "Running calculate() ..." << endl;
     scalar gamma;
+    scalar p0 = this->p0_.value();
     // Initiate Initial value loading (those two should be updated) 
     const scalarField& pCells = this->p_;
     const scalarField& thetaCells = this->theta_;
@@ -89,7 +90,8 @@ void Foam::heRhoAtmThermo<BasicRhoThermo, MixtureType>::calculate()
         // [To-Do] Gamma, Cp, Cv and T are iterative. Solve this
         gamma = 1.4;
 
-        TCells[celli] = thetaCells[celli] / exner(pCells[celli], gamma);
+        TCells[celli] = thetaCells[celli] 
+                  / this->BasicRhoThermo::exner(pCells[celli], p0, gamma);
         hCells[celli] = thermoMixture.HE
         (
             pCells[celli],
@@ -196,7 +198,7 @@ void Foam::heRhoAtmThermo<BasicRhoThermo, MixtureType>::calculate()
 
                 // gamma = pCp[facei] / pCv[facei];
                 gamma = 1.4;
-                pT[facei] = ptheta[facei] / exner(pp[facei], gamma);
+                pT[facei] = ptheta[facei] / this->BasicRhoThermo::exner(pp[facei], p0, gamma);
                 phe[facei] = thermoMixture.HE(pp[facei], pT[facei]);
 
                 pCp[facei] = thermoMixture.Cp(pp[facei], pT[facei]);
@@ -238,15 +240,15 @@ Foam::heRhoAtmThermo<BasicRhoThermo, MixtureType>::~heRhoAtmThermo()
 
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
-template<class BasicRhoThermo, class MixtureType>
-Foam::scalar Foam::heRhoAtmThermo<BasicRhoThermo, MixtureType>::exner
-(
-  const scalar p,
-  const scalar gamma
-)
-{ 
-  return pow((p/this->p0_.value()), gamma);
-}
+// template<class BasicRhoThermo, class MixtureType>
+// Foam::scalar Foam::heRhoAtmThermo<BasicRhoThermo, MixtureType>::exner
+// (
+//   const scalar p,
+//   const scalar gamma
+// )
+// { 
+//   return pow((p/this->p0_.value()), gamma);
+// }
 
 template<class BasicRhoThermo, class MixtureType>
 Foam::tmp<Foam::volScalarField> Foam::heRhoAtmThermo<BasicRhoThermo, MixtureType>::theta_v() const
