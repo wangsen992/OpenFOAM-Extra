@@ -77,6 +77,7 @@ tmp<fvScalarMatrix> Foam::atmTurbModel::thetaEqn()
 
     tmp<volScalarField> radSourceTheta(radSourceT / Exner);
 
+    // Solve theta equation
     tmp<fvScalarMatrix> tThetaEqn
     (
         fvm::ddt(theta_)
