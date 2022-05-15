@@ -82,6 +82,7 @@ SourceFiles
 
 #include "RASModel.H"
 #include "ReynoldsStress.H"
+#include "fluidAtmThermo.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -105,30 +106,22 @@ protected:
 
         // Model coefficients
 
-            dimensionedScalar Cmu_;
-
+            dimensionedScalar A1_;
+            dimensionedScalar A2_;
+            dimensionedScalar B1_;
+            dimensionedScalar B2_;
             dimensionedScalar C1_;
-            dimensionedScalar C2_;
-
-            dimensionedScalar Ceps1_;
-            dimensionedScalar Ceps2_;
-            dimensionedScalar Cs_;
-            dimensionedScalar Ceps_;
-
-
-        // Wall-refection coefficients
-
-            Switch wallReflection_;
-            dimensionedScalar kappa_;
-            dimensionedScalar Cref1_;
-            dimensionedScalar Cref2_;
-
 
         // Fields
-
+            
             volScalarField k_;
             volScalarField epsilon_;
-
+            volScalarField& theta_;
+            // volVectorField& uTheta_; // potential temperature fluxes
+            // volScalarField& thetaVar_; // potential temperature variance
+        
+        // thermo model 
+            autoPtr<fluidAtmThermo> thermo_;
 
     // Protected Member Functions
 

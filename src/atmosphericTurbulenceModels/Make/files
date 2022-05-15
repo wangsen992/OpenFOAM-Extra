@@ -1,4 +1,6 @@
 # atmThermo/atmThermo.C
+utils/utils.C
+
 atmTurbModel/atmTurbModel.C
 atmTurbModel/atmTurbModelSolve.C
 atmTurbModel/atmTurbModelPressureCorrect.C
@@ -8,6 +10,8 @@ thermophysicalModels/rhoAtmThermo/rhoAtmThermo.C
 thermophysicalModels/rhoAtmThermo/rhoAtmThermos.C
 
 ThermophysicalTransportModels/fluidAtmThermo/fluidAtmThermophysicalTransportModels.C
+
+MomentumTransportModels/RAS/MY25/MY25s.C
 
 fvModels/geostrophicForce/geostrophicForce.C
 fvModels/boussinesqBuoyancyForce/boussinesqBuoyancyForce.C
