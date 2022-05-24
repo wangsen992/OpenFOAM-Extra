@@ -1,0 +1,2 @@
+immersedBoundary/immersedBoundary.C
+LIB = $(FOAM_USER_LIBBIN)/libimmersedBoundaryModels
