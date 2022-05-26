@@ -135,6 +135,7 @@ void Foam::fv::geostrophicForce::addSup
     const word& fieldName
 ) const
 {
+    
     eqn += alpha*rho*f_ ^ (Ug_ - U_);
 }
 

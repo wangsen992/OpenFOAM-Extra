@@ -296,7 +296,6 @@ int main(int argc, char *argv[])
     runTime++;
     runTime.write();
 
-    Info<< "End\n" << endl;
-  
+    Info<< "End\n" << endl; 
   return 0;
 }
