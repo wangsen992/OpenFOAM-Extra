@@ -38,10 +38,7 @@ SourceFiles
     canopyModel.C
 \*---------------------------------------------------------------------------*/
 
-#include "fvCFD.H"
-#include "fvCellSet.H"
-#include "triSurfaceMesh.H"
-#include "runTimeSelectionTables.H"
+#include "canopyModel.H"
 
 namespace Foam
 {
@@ -49,58 +46,9 @@ namespace Foam
 namespace fv
 {
 
-class canopyModel
+class dragCanopyModel
+  : virtual public canopyModel
 {
-    
+
     // Private Member Data
 
-        //- Model name
-        word      modelName_;
-
-public:
-     
-    //- Runtime type information
-    TypeName("canopyModel");
-    
-    // Constructors
-        //- Construct with model name
-        canopyModel
-        (
-            word    modelName_
-        );
-
-    // Destructor
-        virtual ~canopyModel(){};
-
-    // Member Functions
-        
-        // Access
-            //- fvCellSet
-            inline const word modelName(){return modelName_;}
-
-        // Source terms
-            //- Source term to the momentum equation
-            //- Aerodynamic Drag of Tree Canopy (should be implemented as a
-            //model) 
-            virtual Field<vector> fU() const = 0;
-
-            //- Source term to the TKE equation
-            virtual Field<scalar> fk() const = 0;
-
-            //- Source term to the TKE Dissipation equation
-            virtual Field<scalar> feps() const = 0;
-            
-            //- Source term to the Reynolds Stress equation
-            virtual Field<tensor> fR() const = 0;
-
-            //- Source term to the T/theta equation
-            virtual Field<scalar> fT() const = 0;
-
-            //- Source term to the specific humidity equation 
-            virtual Field<scalar> fq() const = 0;
-
-};
-
-}
-}
-    
