@@ -47,6 +47,9 @@ void Foam::fv::treeModel::readCoeffs()
     UName_ = coeffs().lookupOrDefault<word>("UName_", "U");
     TName_ = coeffs().lookupOrDefault<word>("TName_", "T");
     qName_ = coeffs().lookupOrDefault<word>("qName_", "q");
+    treeModelDict_ = coeffs().lookup<dictionary>("treeModel");
+    Info << "treeModelDict_: " << nl
+         << treeModelDict_ << endl;
 }
 
 void Foam::fv::treeModel::update()
@@ -63,11 +66,20 @@ Foam::fv::treeModel::treeModel
     fvModel(name, modelType, dict, mesh),
     UName_(word::null),
     TName_(word::null),
-    qName_(word::null)
+    qName_(word::null),
+    treeModelDict_()
 {
     readCoeffs();
 }
     
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
+void Foam::fv::treeModel::addSup
+(
+    fvScalarMatrix& eqn,
+    const word& fieldName
+) const
+{
+     
+};
 // ************************************************************************* //

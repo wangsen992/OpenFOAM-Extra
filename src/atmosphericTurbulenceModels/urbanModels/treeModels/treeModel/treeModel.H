@@ -35,6 +35,8 @@ SourceFiles
 #include "fvCFD.H"
 #include "fvCellSet.H"
 #include "fvModel.H"
+#include "trunkModel.H"
+#include "canopyModel.H"
 
 namespace Foam
 {
@@ -48,8 +50,11 @@ class treeModel
 {
     
     // Private Member Data
-        //- The set of cells of leaves model applies to
-        fvCellSet leavesSet_;
+        //- The set of cells of leaves/canopy model applies to
+        canopyModel canopy_;
+
+        //- The stems and branches (the solid part) 
+        trunkModel trunk_;
 
         //- Name of the velocity field
         word UName_;
@@ -60,6 +65,9 @@ class treeModel
 
         //- Name of the moisture field
         word qName_;
+
+        //- Dictionary of the tree model
+        dictionary    treeModelDict_;
 
     // Private Member Functions
     
