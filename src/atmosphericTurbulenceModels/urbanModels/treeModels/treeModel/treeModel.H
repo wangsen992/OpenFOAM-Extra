@@ -34,46 +34,24 @@ SourceFiles
 
 #include "fvCFD.H"
 #include "fvCellSet.H"
-#include "fvModel.H"
-#include "trunkModel.H"
 #include "canopyModel.H"
+#include "trunkModel.H"
 
 namespace Foam
 {
 
-namespace fv
-{
 
 class treeModel
-:
-    virtual public fvModel
 {
     
     // Private Member Data
-        //- The set of cells of leaves/canopy model applies to
-        canopyModel canopy_;
-
-        //- The stems and branches (the solid part) 
-        trunkModel trunk_;
-
-        //- Name of the velocity field
-        word UName_;
-
-        //- Name of the temperature field
-        // Note: If TName_ == "theta", apply the exner function
-        word TName_;
-
-        //- Name of the moisture field
-        word qName_;
-
-        //- Dictionary of the tree model
-        dictionary    treeModelDict_;
+    
+        //- Reference to components of trees
+        canopyModel& canopy_;
+        trunkModel& trunk_;
 
     // Private Member Functions
     
-        //- Non-virtual read
-        void readCoeffs();
-
         //- Update the model
         virtual void update();
 
@@ -99,46 +77,6 @@ public:
 
     // Member Functions
 
-        // Checks
-
-            //- Return the list of fields for which the fvModel adds source
-            //term to the transport equation
-            virtual wordList addSupFields() const;
-
-        // Add explicit and implicit contributions
-
-            //- Add explicit contribution to temperature and moisture equation
-            virtual void addSup
-            (
-                fvScalarMatrix& eqn,
-                const word& fieldName
-            ) const;
-
-            //- Add impplicit contribution to momentum equation
-            virtual void addSup
-            (
-                fvVectorMatrix& eqn,
-                const word& fieldName
-            ) const;
-
-        // Add explicit and implicit contributions to compressible equations
-
-            //- Add explicit contribution to temperature and moisture equation
-            virtual void addSup
-            (
-                const volScalarField& rho,
-                fvScalarMatrix& eqn,
-                const word& fieldName
-            ) const;
-
-            //- Add impplicit contribution to momentum equation
-            virtual void addSup
-            (
-                const volScalarField& rho,
-                fvVectorMatrix& eqn,
-                const word& fieldName
-            ) const;
-
         // Mesh motion
 
             //- Update for mesh changes
@@ -151,5 +89,4 @@ public:
 
 };
 
-}
 }

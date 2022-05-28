@@ -21,7 +21,7 @@ License
     You should have received a copy of the GNU General Public License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 Class
-    Foam::canopyModel
+    Foam::canopyPhysicsModel
 
 Description
     Base class for the handling the evapotranspiration of leaves & canopies, 
@@ -33,22 +33,75 @@ Description
     potential large number of instances, there could be many surface files, or 
     many dictionaries. So this selection should provide multiple methods and 
     potentially easier interface to set up the vegetation coverage. 
+
+Description
+    Base class for tree/plant canopy model based on bulk parametrization of the tree canopy with aerodynamic drag force. 
     
 SourceFiles
-    canopyModel.C
+    dragCanopyPhysicsModel.C
 \*---------------------------------------------------------------------------*/
 
-#include "canopyModel.H"
+#include "canopyPhysicsModel.H"
 
 namespace Foam
 {
 
-namespace fv
+class dragCanopyPhysicsModel
+  : virtual public canopyPhysicsModel
 {
-
-class dragCanopyModel
-  : virtual public canopyModel
-{
-
     // Private Member Data
+        //- Spatially variable drag coefficient
+        Field<scalar>   Cd_;
 
+        //- Leaf area density (projected)
+        Field<vector>   LAD_;
+
+    // Private Member Functions
+    
+public:
+  
+    //- Runtime type information
+    TypeName("dragCanopyPhysicsModel");
+
+    // Constructors
+        //- Construct with model name
+        dragCanopyPhysicsModel
+        (
+            word    modelName,
+            fvCellSet   set,
+            fluidAtmThermophysicalTransportModel& transport,
+            radiationModel& radiation
+        );
+
+    // Destructor
+        virtual ~dragCanopyPhysicsModel(){};
+
+    // Member Functions
+
+        // Source terms
+            //- Source term to the momentum equation
+            //model) 
+            virtual Field<vector> fU() const;
+
+            //- Source term to the TKE equation
+            virtual Field<scalar> fk() const;
+
+            //- Source term to the TKE Dissipation equation
+            virtual Field<scalar> feps() const;
+
+            //- Source term to the Reynolds Stress equation
+            virtual Field<tensor> fR() const;
+
+            //- Source term to the T/theta equation
+            virtual Field<scalar> fT() const;
+
+            //- Source term to the specific humidity equation 
+            virtual Field<scalar> fq() const;
+        
+        //- Correct underlying model
+        virtual void correct();
+
+
+};
+
+}

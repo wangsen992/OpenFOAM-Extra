@@ -21,10 +21,10 @@ License
     You should have received a copy of the GNU General Public License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 Class
-    Foam::canopyModel
+    Foam::canopyPhysicsModel
 
 Description
-    Base class for the handling the evapotranspiration of leaves & canopies, 
+    Base class for the handling the physics & evapotranspiration of leaves & canopies, 
     which provides source terms to the treeModel that ultimately interacts with 
     the solver. Only to be called by the treeModel. 
 
@@ -39,17 +39,15 @@ SourceFiles
 \*---------------------------------------------------------------------------*/
 
 #include "fvCFD.H"
-#include "fvCellSet.H"
+#include "canopySurfaceModel.H"
 #include "triSurfaceMesh.H"
 #include "runTimeSelectionTables.H"
+#include "fluidAtmThermophysicalTransportModel.H"
+#include "radiationModel.H"
 
 namespace Foam
 {
-
-namespace fv
-{
-
-class canopyModel
+class canopyPhysicsModel
 {
     
     // Private Member Data
@@ -57,16 +55,29 @@ class canopyModel
         //- Model name
         word      modelName_;
 
+        //- Cells where source terms are added to
+        canopySurfaceModel   canopySurface_;
+
+        //- Reference that provide access to transport
+        fluidAtmThermophysicalTransportModel&   transport_;
+
+        radiationModel& radiation_;
+
+    // Private Member Function
+
 public:
      
     //- Runtime type information
     TypeName("canopyModel");
     
     // Constructors
-        //- Construct with model name
-        canopyModel
+        //- Construct with components
+        canopyPhysicsModel
         (
-            word    modelName_
+            word    modelName,
+            fvCellSet   set,
+            fluidAtmThermophysicalTransportModel& transport,
+            radiationModel& radiation
         );
 
     // Destructor
@@ -75,8 +86,17 @@ public:
     // Member Functions
         
         // Access
-            //- fvCellSet
+            //- Model Name
             inline const word modelName(){return modelName_;}
+
+            //- fvCellSet
+            inline const fvCellSet& set(){return canopyCells_;}
+
+            //- thermophysical model 
+            inline const fluidAtmThermophysicalTransportModel& transport(){return transport_;}
+
+            //- radiation model
+            inline const radiationModel& radiation(){return radiation_;}
 
         // Source terms
             //- Source term to the momentum equation
@@ -89,6 +109,9 @@ public:
 
             //- Source term to the TKE Dissipation equation
             virtual Field<scalar> feps() const = 0;
+
+            //- Source term to the specific TKE dissipation equation
+            virtual Field<scalar> fomega() const = 0;
             
             //- Source term to the Reynolds Stress equation
             virtual Field<tensor> fR() const = 0;
@@ -98,9 +121,10 @@ public:
 
             //- Source term to the specific humidity equation 
             virtual Field<scalar> fq() const = 0;
-
+        
+        //- Correct underlying model
+        virtual void correct();
 };
 
-}
 }
     

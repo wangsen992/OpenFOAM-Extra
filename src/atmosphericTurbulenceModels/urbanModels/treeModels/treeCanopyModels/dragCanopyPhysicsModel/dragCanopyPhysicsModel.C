@@ -20,20 +20,26 @@ License
 
     You should have received a copy of the GNU General Public License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
+Class
+    Foam::canopyPhysicsModel
 
 \*---------------------------------------------------------------------------*/
 
-#include "canopyModel.H"
+#include "dragCanopyPhysicsModel.H"
 
 namespace Foam
 {
-namespace fv
-{
 
-canopyModel::canopyModel(word modelName)
+dragCanopyPhysicsModel::dragCanopyPhysicsModel
+(
+    word    modelName,
+    fvCellSet   set,
+    fluidAtmThermophysicalTransportModel& transport,
+    radiationModel& radiation
+)
 :
-  modelName_(modelName)
-  {}
+canopyPhysicsModel(modelName, set, transport, radiation)
+{
+};
 
-}
 }
