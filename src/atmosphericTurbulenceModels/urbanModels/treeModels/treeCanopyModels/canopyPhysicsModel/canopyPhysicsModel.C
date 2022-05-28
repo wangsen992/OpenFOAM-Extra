@@ -20,38 +20,27 @@ License
 
     You should have received a copy of the GNU General Public License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
-Class
-    Foam::trunkModel
 
-Description
-    Base class for the handling the solid trunks and branches of treeModel, providing the momentum & turbulence modification of the system. 
-    
-SourceFiles
-    trunkModel.C
 \*---------------------------------------------------------------------------*/
 
-#include "fvCFD.H"
-#include "fvCellSet.H"
+#include "canopyPhysicsModel.H"
+
 namespace Foam
 {
 
-namespace fv
+canopyPhysicsModel::canopyPhysicsModel
+(
+    word modelName,
+    fvCellSet set,
+    fluidAtmThermophysicalTransportModel& transport,
+    radiationModel& radiation
+)
+:
+    modelName_(modelName),
+    canopyCells_(set),
+    transport_(transport),
+    radiation_(radiation)
 {
-
-class trunkModel
-{
-public:
-
-    virtual ~trunkModel(){};
-    
-    //- Member Functions
-    virtual Field<vector> USource();
-
-    virtual Field<scalar> kSource();
-
-    virtual Field<scalar> epsilonSource();
-
-};
-
 }
+
 }

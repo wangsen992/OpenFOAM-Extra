@@ -28,21 +28,18 @@ License
 // * * * * * * * * * * * * * Static Member Functions * * * * * * * * * * * * //
 namespace Foam
 {
-namespace fv
-{
     defineTypeNameAndDebug(treeModel, 0);
     addToRunTimeSelectionTable(fvModel, treeModel, dictionary);
 }
-}
 
-Foam::wordList Foam::fv::treeModel::addSupFields() const
+Foam::wordList Foam::treeModel::addSupFields() const
 {
     return wordList({UName_, TName_, qName_});
 }
 
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
 
-void Foam::fv::treeModel::readCoeffs()
+void Foam::treeModel::readCoeffs()
 {
     UName_ = coeffs().lookupOrDefault<word>("UName_", "U");
     TName_ = coeffs().lookupOrDefault<word>("TName_", "T");
@@ -52,10 +49,10 @@ void Foam::fv::treeModel::readCoeffs()
          << treeModelDict_ << endl;
 }
 
-void Foam::fv::treeModel::update()
+void Foam::treeModel::update()
 {}
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
-Foam::fv::treeModel::treeModel
+Foam::treeModel::treeModel
 (
     const word& name,
     const word& modelType,
@@ -74,12 +71,4 @@ Foam::fv::treeModel::treeModel
     
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
-void Foam::fv::treeModel::addSup
-(
-    fvScalarMatrix& eqn,
-    const word& fieldName
-) const
-{
-     
-};
 // ************************************************************************* //
