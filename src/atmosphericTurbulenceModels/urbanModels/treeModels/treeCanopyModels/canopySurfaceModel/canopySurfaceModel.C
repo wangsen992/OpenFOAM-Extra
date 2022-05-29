@@ -40,24 +40,24 @@ labelHashSet canopySurfaceModel::findSurfaceCutCells
     triSurfaceMesh& surface
 )
 {
-    
-    pointField outsidePoints(1);
-    outsidePoints[0] = mesh.points()[0]; // Highly unlikely this is inside
-    meshSearch queryMesh(mesh);
-    triSurfaceSearch querySurf(surface.surface());
-    cellClassification cellType(mesh, queryMesh, querySurf, outsidePoints);
-    
+    Info << "running findSurfaceCutCells" << endl; 
     DynamicList<label> dynList(0);
-    forAll(cellType, celli)
-    {
-        if (cellType[celli] == cellClassification::CUT)
-        {
-            dynList.append(celli);
-        }
-    }
-    labelHashSet cutCellsIndex(dynList);
 
-    return cutCellsIndex;
+    // Compute the total area of leaves within a mesh cell
+    const pointField& surfacePoints = surface.points();
+    const faceList& faces = surface.surface().faces();
+
+    label celli;
+    point faceCenter;
+    forAll(faces, i)
+    {
+        
+        faceCenter = faces[i].centre(surfacePoints);
+        celli = mesh.findCell(faceCenter);
+        dynList.append(celli);
+    } 
+
+    return labelHashSet(dynList);
 }
 
 HashTable<dimensionedScalar, label> canopySurfaceModel::calcLAD
@@ -68,21 +68,28 @@ HashTable<dimensionedScalar, label> canopySurfaceModel::calcLAD
 )
 {
     // Compute the total area of leaves within a mesh cell
-    const pointField& meshPoints = mesh.points();
+    const pointField& surfacePoints = surface.points();
     const faceList& faces = surface.surface().faces();
     HashTable<scalar, label> cellLeafArea(cellsIndex.size());
 
     forAll(cellsIndex, celli)
     {
-        cellLeafArea.set(cellsIndex[celli], 0);
+        // Info << "cellIndex[celli] = " << cellsIndex.toc()[celli] << endl;
+        cellLeafArea.set(cellsIndex.toc()[celli], 0);
     }
 
+    Info << "calculating cellLeafArea..." << endl;
     label celli;
+    point faceCenter;
     forAll(faces, i)
     {
-        celli = mesh.findCell(meshPoints[faces[i][0]]);
+        
+        faceCenter = faces[i].centre(surfacePoints);
+        celli = mesh.findCell(faceCenter);
         cellLeafArea[celli] += mag(surface.surface().faceAreas()[i]);
     } 
+    
+    Info << "Computing leafAreaDensity..." << endl;
 
     HashTable<dimensionedScalar, label> leafAreaDensity(cellsIndex.size());
 
@@ -94,18 +101,10 @@ HashTable<dimensionedScalar, label> canopySurfaceModel::calcLAD
           cellList[i], 
           dimensionedScalar
           (
-            dimArea, 
-            cellLeafArea[cellList[i]] 
+            dimArea/dimVolume, 
+            cellLeafArea[cellList[i]] / mesh.cellVolumes()[cellList[i]]
           )
         );
-        leafAreaDensity[cellList[i]] 
-          = leafAreaDensity[cellList[i]] / 
-                 dimensionedScalar
-                 (
-                    dimVolume,
-                    mesh.cellVolumes()[cellList[i]]
-                 );
-
     }
 
     return leafAreaDensity;
