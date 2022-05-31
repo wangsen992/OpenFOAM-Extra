@@ -48,15 +48,12 @@ vectorField dragCanopyPhysicsModel::fU() const
 {
   const canopySurfaceModel& surface(canopyPhysicsModel::canopySurface());
   labelList cells = surface.canopyCells().sortedToc();
-  Info << "init fieldU" << endl;
   vectorField vecU
   (
       cells.size()
   );
-  Info << "init vecU complete" << endl;
 
   const vectorField& U(transport().momentumTransport().U().primitiveField());
-  Info << "assigning values" << endl;
   forAll(cells, celli)
   {
     vecU[celli] = Cd_ * surface.lad()[cells[celli]].value() 
