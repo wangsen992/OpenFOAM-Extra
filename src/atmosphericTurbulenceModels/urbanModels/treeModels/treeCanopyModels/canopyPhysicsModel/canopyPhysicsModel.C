@@ -31,13 +31,13 @@ namespace Foam
 canopyPhysicsModel::canopyPhysicsModel
 (
     word modelName,
-    fvCellSet set,
+    canopySurfaceModel canopySurface,
     fluidAtmThermophysicalTransportModel& transport,
     radiationModel& radiation
 )
 :
     modelName_(modelName),
-    canopyCells_(set),
+    canopySurface_(canopySurface),
     transport_(transport),
     radiation_(radiation)
 {
