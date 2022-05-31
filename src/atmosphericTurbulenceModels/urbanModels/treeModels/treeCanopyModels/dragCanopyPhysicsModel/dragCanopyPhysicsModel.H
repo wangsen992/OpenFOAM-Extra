@@ -41,6 +41,9 @@ SourceFiles
     dragCanopyPhysicsModel.C
 \*---------------------------------------------------------------------------*/
 
+#ifndef dragCanopyPhysicsModel_H
+#define dragCanopyPhysicsModel_H
+
 #include "canopyPhysicsModel.H"
 
 namespace Foam
@@ -51,26 +54,24 @@ class dragCanopyPhysicsModel
 {
     // Private Member Data
         //- Spatially variable drag coefficient
-        Field<scalar>   Cd_;
-
-        //- Leaf area density (projected)
-        Field<vector>   LAD_;
+        scalar  Cd_;
 
     // Private Member Functions
     
 public:
   
     //- Runtime type information
-    TypeName("dragCanopyPhysicsModel");
+    // TypeName("dragCanopyPhysicsModel");
 
     // Constructors
         //- Construct with model name
         dragCanopyPhysicsModel
         (
             word    modelName,
-            fvCellSet   set,
+            canopySurfaceModel& canopySurface,
             fluidAtmThermophysicalTransportModel& transport,
-            radiationModel& radiation
+            radiationModel& radiation,
+            scalar  Cd
         );
 
     // Destructor
@@ -81,27 +82,22 @@ public:
         // Source terms
             //- Source term to the momentum equation
             //model) 
-            virtual Field<vector> fU() const;
+            virtual vectorField fU() const;
 
             //- Source term to the TKE equation
-            virtual Field<scalar> fk() const;
+            virtual scalarField fk() const;
 
             //- Source term to the TKE Dissipation equation
-            virtual Field<scalar> feps() const;
-
-            //- Source term to the Reynolds Stress equation
-            virtual Field<tensor> fR() const;
+            virtual scalarField feps() const;
 
             //- Source term to the T/theta equation
-            virtual Field<scalar> fT() const;
+            virtual scalarField fT() const;
 
             //- Source term to the specific humidity equation 
-            virtual Field<scalar> fq() const;
-        
-        //- Correct underlying model
-        virtual void correct();
-
+            virtual scalarField fq() const;
 
 };
 
 }
+
+#endif

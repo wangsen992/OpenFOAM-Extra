@@ -32,6 +32,9 @@ SourceFiles
     canopyGeometryModel.C
 \*---------------------------------------------------------------------------*/
 
+#ifndef canopySurfaceModel_H
+#define canopySurfaceModel_H
+
 #include "fvCFD.H"
 #include "polyMesh.H"
 #include "triSurfaceMesh.H"
@@ -87,15 +90,14 @@ public:
         // Access
 
             //- reference to canopy cells
-            labelHashSet& canopyCells(){return canopyCellsIndex_;};
+            const labelHashSet& canopyCells() const {return canopyCellsIndex_;};
 
         // Parameters for all types of analysis
 
             //- reference to leaf area density
-            HashTable<dimensionedScalar, label> lad(){return lad_;};
+            const HashTable<dimensionedScalar, label> lad() const {return lad_;};
 
 };
 }
 
-
-    
+#endif 

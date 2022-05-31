@@ -35,6 +35,7 @@ Description
 #include "fluidAtmThermophysicalTransportModel.H"
 
 #include "canopySurfaceModel.H"
+#include "dragCanopyPhysicsModel.H"
 #include "cellSet.H"
 #include "cellZoneSet.H"
 
@@ -56,48 +57,53 @@ int main(int argc, char *argv[])
             IOobject::AUTO_WRITE
         )
     );
-    // autoPtr<fluidAtmThermo> tThermo
-    // (
-    //     fluidAtmThermo::New(mesh)
-    // );
-    // volVectorField U
-    // (
-    //   IOobject
-    //   (
-    //     "U", 
-    //     runTime.timeName(), 
-    //     mesh,
-    //     IOobject::MUST_READ,
-    //     IOobject::AUTO_WRITE
-    //   ),
-    //   mesh
-    // );
-    // surfaceScalarField phi
-    // (
-    //   IOobject
-    //   (
-    //     "phi", 
-    //     runTime.timeName(), 
-    //     mesh,
-    //     IOobject::MUST_READ,
-    //     IOobject::AUTO_WRITE
-    //   ),
-    //   fvc::flux(U* tThermo->rho()) 
-    // );
-    // autoPtr<compressible::momentumTransportModel> tTurbulence
-    // (
-    //   compressible::momentumTransportModel::New
-    //   (
-    //     tThermo->rho(), U, phi, tThermo
-    //   )
-    // );
-    // autoPtr<fluidAtmThermophysicalTransportModel> tTransport
-    // (
-    //   fluidAtmThermophysicalTransportModel::New
-    //   (
-    //     tTurbulence, tThermo
-    //   )
-    // );
+    autoPtr<fluidAtmThermo> tThermo
+    (
+        fluidAtmThermo::New(mesh)
+    );
+    volVectorField U
+    (
+      IOobject
+      (
+        "U", 
+        runTime.timeName(), 
+        mesh,
+        IOobject::MUST_READ,
+        IOobject::AUTO_WRITE
+      ),
+      mesh
+    );
+    surfaceScalarField phi
+    (
+      IOobject
+      (
+        "phi", 
+        runTime.timeName(), 
+        mesh,
+        IOobject::MUST_READ,
+        IOobject::AUTO_WRITE
+      ),
+      fvc::flux(U* tThermo->rho()) 
+    );
+    autoPtr<compressible::momentumTransportModel> tTurbulence
+    (
+      compressible::momentumTransportModel::New
+      (
+        tThermo->rho(), U, phi, tThermo
+      )
+    );
+    autoPtr<fluidAtmThermophysicalTransportModel> tTransport
+    (
+      fluidAtmThermophysicalTransportModel::New
+      (
+        tTurbulence, tThermo
+      )
+    );
+
+    autoPtr<radiationModel> tRad
+    (
+      radiationModel::New(tThermo->T())
+    );
 
     // Initiate the tree canopy model
     triSurfaceMesh canopySurf
@@ -133,6 +139,18 @@ int main(int argc, char *argv[])
     }
 
 
+    dragCanopyPhysicsModel dragTree
+    ("dragModel", canopy1, tTransport(), tRad(), 0.5);
+
+    
+    vectorField fieldU(dragTree.fU());
+    Info << "starting printing information" << endl;
+    forAll(fieldU, i)
+    {
+        Info << i << endl;
+        Info << fieldU[i] << endl;
+    }
+    
     runTime++;
     runTime.write();
 

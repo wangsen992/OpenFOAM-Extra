@@ -15,7 +15,8 @@ MomentumTransportModels/LES/dynamicMomentumTransportModels.C
 
 ThermophysicalTransportModels/fluidAtmThermo/fluidAtmThermophysicalTransportModels.C
 
-# urbanModels/treeModels/treeCanopyModels/canopyPhysicsModel/canopyPhysicsModel.C
+urbanModels/treeModels/treeCanopyModels/canopyPhysicsModel/canopyPhysicsModel.C
+urbanModels/treeModels/treeCanopyModels/dragCanopyPhysicsModel/dragCanopyPhysicsModel.C
 urbanModels/treeModels/treeCanopyModels/canopySurfaceModel/canopySurfaceModel.C
 
 LIB = $(FOAM_USER_LIBBIN)/libatmosphericTurbulenceModels

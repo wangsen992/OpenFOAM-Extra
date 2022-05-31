@@ -33,13 +33,59 @@ namespace Foam
 dragCanopyPhysicsModel::dragCanopyPhysicsModel
 (
     word    modelName,
-    fvCellSet   set,
+    canopySurfaceModel& canopySurface,
     fluidAtmThermophysicalTransportModel& transport,
-    radiationModel& radiation
+    radiationModel& radiation,
+    scalar Cd
 )
 :
-canopyPhysicsModel(modelName, set, transport, radiation)
+canopyPhysicsModel(modelName, canopySurface, transport, radiation),
+Cd_(Cd)
 {
+};
+
+vectorField dragCanopyPhysicsModel::fU() const
+{
+  const canopySurfaceModel& surface(canopyPhysicsModel::canopySurface());
+  labelList cells = surface.canopyCells().sortedToc();
+  Info << "init fieldU" << endl;
+  vectorField vecU
+  (
+      cells.size()
+  );
+  Info << "init vecU complete" << endl;
+
+  const vectorField& U(transport().momentumTransport().U().primitiveField());
+  Info << "assigning values" << endl;
+  forAll(cells, celli)
+  {
+    vecU[celli] = Cd_ * surface.lad()[cells[celli]].value() 
+              * mag(U[cells[celli]]) * U[cells[celli]];
+  };
+  
+  return vecU;
+};
+
+scalarField dragCanopyPhysicsModel::fk() const
+{
+  NotImplemented;
+  return scalarField();
+};
+
+scalarField dragCanopyPhysicsModel::feps() const
+{
+  NotImplemented;
+  return scalarField();
+};
+scalarField dragCanopyPhysicsModel::fT() const
+{
+  NotImplemented;
+  return scalarField();
+};
+scalarField dragCanopyPhysicsModel::fq() const
+{
+  NotImplemented;
+  return scalarField();
 };
 
 }

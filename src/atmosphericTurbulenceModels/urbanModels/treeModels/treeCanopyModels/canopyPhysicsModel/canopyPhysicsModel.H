@@ -38,12 +38,17 @@ SourceFiles
     canopyModel.C
 \*---------------------------------------------------------------------------*/
 
+#ifndef canopyPhysicsModel_H
+#define canopyPhysicsModel_H
+
 #include "fvCFD.H"
 #include "canopySurfaceModel.H"
 #include "triSurfaceMesh.H"
 #include "runTimeSelectionTables.H"
 #include "fluidAtmThermophysicalTransportModel.H"
 #include "radiationModel.H"
+
+#include "canopySurfaceModel.H"
 
 namespace Foam
 {
@@ -55,9 +60,9 @@ class canopyPhysicsModel
         //- Model name
         word      modelName_;
 
-        //- Cells where source terms are added to
+        //- canopy surface model
         canopySurfaceModel   canopySurface_;
-
+        
         //- Reference that provide access to transport
         fluidAtmThermophysicalTransportModel&   transport_;
 
@@ -68,63 +73,69 @@ class canopyPhysicsModel
 public:
      
     //- Runtime type information
-    TypeName("canopyModel");
+    // TypeName("canopyModel");
     
     // Constructors
         //- Construct with components
         canopyPhysicsModel
         (
             word    modelName,
-            fvCellSet   set,
+            canopySurfaceModel canopySurface,
             fluidAtmThermophysicalTransportModel& transport,
             radiationModel& radiation
         );
 
     // Destructor
-        virtual ~canopyModel(){};
+        virtual ~canopyPhysicsModel(){};
 
     // Member Functions
         
         // Access
             //- Model Name
-            inline const word modelName(){return modelName_;}
+            inline const word modelName() const{return modelName_;}
 
-            //- fvCellSet
-            inline const fvCellSet& set(){return canopyCells_;}
+            //- canopy surface model acess
+            inline const canopySurfaceModel& canopySurface() const 
+            {return canopySurface_;}
+
+            //- cellLabels
+            inline labelList cells()
+            {return canopySurface_.canopyCells().toc();};
 
             //- thermophysical model 
-            inline const fluidAtmThermophysicalTransportModel& transport(){return transport_;}
+            inline const fluidAtmThermophysicalTransportModel& transport() const {return transport_;}
 
             //- radiation model
-            inline const radiationModel& radiation(){return radiation_;}
+            inline const radiationModel& radiation() const {return radiation_;}
 
         // Source terms
             //- Source term to the momentum equation
             //- Aerodynamic Drag of Tree Canopy (should be implemented as a
             //model) 
-            virtual Field<vector> fU() const = 0;
+            virtual vectorField fU() const = 0;
 
             //- Source term to the TKE equation
-            virtual Field<scalar> fk() const = 0;
+            virtual scalarField fk() const = 0;
 
             //- Source term to the TKE Dissipation equation
-            virtual Field<scalar> feps() const = 0;
+            virtual scalarField feps() const = 0;
 
             //- Source term to the specific TKE dissipation equation
-            virtual Field<scalar> fomega() const = 0;
+            virtual scalarField fomega() const {return scalarField();};
             
             //- Source term to the Reynolds Stress equation
-            virtual Field<tensor> fR() const = 0;
+            virtual tensorField fR() const {return tensorField();} ;
 
             //- Source term to the T/theta equation
-            virtual Field<scalar> fT() const = 0;
+            virtual scalarField fT() const = 0;
 
             //- Source term to the specific humidity equation 
-            virtual Field<scalar> fq() const = 0;
+            virtual scalarField fq() const = 0;
         
         //- Correct underlying model
-        virtual void correct();
+        virtual void correct(){};
 };
 
 }
     
+#endif
