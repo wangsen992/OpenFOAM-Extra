@@ -27,31 +27,21 @@ Description
     Base class for the handling the solid trunks and branches of treeModel, providing the momentum & turbulence modification of the system. 
     
 SourceFiles
-    trunkModel.C
+    trunkPhysicsModel.C
 \*---------------------------------------------------------------------------*/
 
-#include "fvCFD.H"
-#include "fvCellSet.H"
+#include "trunkPhysicsModel.H"
+
 namespace Foam
 {
 
-namespace fv
-{
+trunkPhysicsModel::trunkPhysicsModel()
+:
+fU_(0),
+fk_(0),
+feps_(0),
+fomega_(0),
+fR_(0)
+{}
 
-class trunkModel
-{
-public:
-
-    virtual ~trunkModel(){};
-    
-    //- Member Functions
-    virtual Field<vector> USource();
-
-    virtual Field<scalar> kSource();
-
-    virtual Field<scalar> epsilonSource();
-
-};
-
-}
 }

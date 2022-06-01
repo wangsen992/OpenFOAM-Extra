@@ -35,7 +35,7 @@ Description
     potentially easier interface to set up the vegetation coverage. 
 
 Description
-    Base class for tree/plant canopy model based on bulk parametrization of the tree canopy with aerodynamic drag force. 
+    Base class for tree/plant canopy model based on bulk parametrization of the tree canopy with aerodynamic drag force. No turbulent property update here. For LES use only. 
     
 SourceFiles
     dragCanopyPhysicsModel.C
@@ -56,7 +56,14 @@ class dragCanopyPhysicsModel
         //- Spatially variable drag coefficient
         scalar  Cd_;
 
+        //- Leaf area density reference 
+        const HashTable<dimensionedScalar, label>& lad_;
+
+        //- cell list to perform operation on
+        labelList cells_;
+
     // Private Member Functions
+        //- 
     
 public:
   
@@ -78,23 +85,12 @@ public:
         virtual ~dragCanopyPhysicsModel(){};
 
     // Member Functions
+        
+        void correctU();
 
-        // Source terms
-            //- Source term to the momentum equation
-            //model) 
-            virtual vectorField fU() const;
+        virtual void correctTurb(){};
 
-            //- Source term to the TKE equation
-            virtual scalarField fk() const;
-
-            //- Source term to the TKE Dissipation equation
-            virtual scalarField feps() const;
-
-            //- Source term to the T/theta equation
-            virtual scalarField fT() const;
-
-            //- Source term to the specific humidity equation 
-            virtual scalarField fq() const;
+        virtual void correct();
 
 };
 

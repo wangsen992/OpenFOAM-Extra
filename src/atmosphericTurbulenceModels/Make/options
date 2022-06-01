@@ -11,7 +11,9 @@ EXE_INC = \
     -I$(LIB_SRC)/ThermophysicalTransportModels/lnInclude \
     -I$(LIB_SRC)/transportModels/lnInclude \
     -I$(LIB_SRC)/radiationModels/lnInclude \
-    -I$(LIB_SRC)/triSurface/lnInclude
+    -I$(LIB_SRC)/triSurface/lnInclude \
+    -I$(USER_LIB_SRC)/surfaceMeshTools/lnInclude \
+    -L$(FOAM_USER_LIBBIN)
 
 LIB_LIBS = \
     -lOpenFOAM \
@@ -28,4 +30,5 @@ LIB_LIBS = \
     -lfvModels \
     -lfvConstraints \
     -lradiationModels \
-    -ltriSurface
+    -ltriSurface \
+    -lsurfaceMeshTools

@@ -40,49 +40,36 @@ dragCanopyPhysicsModel::dragCanopyPhysicsModel
 )
 :
 canopyPhysicsModel(modelName, canopySurface, transport, radiation),
-Cd_(Cd)
+Cd_(Cd),
+lad_(this->canopySurface().lad()),
+cells_(this->canopySurface().canopyCells().sortedToc())
 {
 };
 
-vectorField dragCanopyPhysicsModel::fU() const
+void dragCanopyPhysicsModel::correctU()
 {
-  const canopySurfaceModel& surface(canopyPhysicsModel::canopySurface());
-  labelList cells = surface.canopyCells().sortedToc();
-  vectorField vecU
-  (
-      cells.size()
-  );
+    // Collect references for use in correct
+    const vectorField& U(transport().momentumTransport().U().primitiveField());
 
-  const vectorField& U(transport().momentumTransport().U().primitiveField());
-  forAll(cells, celli)
-  {
-    vecU[celli] = Cd_ * surface.lad()[cells[celli]].value() 
-              * mag(U[cells[celli]]) * U[cells[celli]];
-  };
-  
-  return vecU;
+    // tmp variables for iteration
+    vector Ui;
+    scalar magUi;
+    scalar ladi;
+    
+    forAll(cells_, celli)
+    {
+        Ui = U[cells_[celli]];
+        magUi = mag(Ui);
+        ladi = lad_[cells_[celli]].value();
+
+        fU()[celli] = Cd_ * ladi * cmptMultiply(cmptSqr(Ui), Ui);
+    };
+}
+void dragCanopyPhysicsModel::correct()
+{
+    correctU();
+    correctTurb();
 };
 
-scalarField dragCanopyPhysicsModel::fk() const
-{
-  NotImplemented;
-  return scalarField();
-};
-
-scalarField dragCanopyPhysicsModel::feps() const
-{
-  NotImplemented;
-  return scalarField();
-};
-scalarField dragCanopyPhysicsModel::fT() const
-{
-  NotImplemented;
-  return scalarField();
-};
-scalarField dragCanopyPhysicsModel::fq() const
-{
-  NotImplemented;
-  return scalarField();
-};
 
 }

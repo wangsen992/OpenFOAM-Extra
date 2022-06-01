@@ -59,7 +59,7 @@ class canopySurfaceModel
         //- Leaf area density
         HashTable<dimensionedScalar, label> lad_;
          
-    // Private member functions
+    // Private Member Functions
         
         static labelHashSet findSurfaceCutCells
         (
@@ -88,6 +88,11 @@ public:
     // Member Functions
 
         // Access
+            //- reference to mesh
+            const polyMesh& mesh(){return mesh_;};
+
+            //- reference to surfaceMesh
+            const triSurfaceMesh& surface(){return surface_;};
 
             //- reference to canopy cells
             const labelHashSet& canopyCells() const {return canopyCellsIndex_;};
@@ -95,7 +100,7 @@ public:
         // Parameters for all types of analysis
 
             //- reference to leaf area density
-            const HashTable<dimensionedScalar, label> lad() const {return lad_;};
+            const HashTable<dimensionedScalar, label>& lad() const {return lad_;};
 
 };
 }

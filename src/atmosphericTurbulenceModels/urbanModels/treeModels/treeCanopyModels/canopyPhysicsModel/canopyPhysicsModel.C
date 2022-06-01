@@ -39,8 +39,24 @@ canopyPhysicsModel::canopyPhysicsModel
     modelName_(modelName),
     canopySurface_(canopySurface),
     transport_(transport),
-    radiation_(radiation)
+    radiation_(radiation),
+    fU_(canopySurface_.canopyCells().size()),
+    fT_(canopySurface_.canopyCells().size()),
+    fq_(canopySurface_.canopyCells().size()),
+
+    // Initiated with zero size
+    fk_(0),
+    feps_(0),
+    fomega_(0),
+    fR_(0)
 {
+}
+
+void canopyPhysicsModel::correct()
+{
+    this->correctU();
+    this->correctTurb();
+    this->correctThermo();
 }
 
 }

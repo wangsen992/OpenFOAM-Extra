@@ -21,66 +21,62 @@ License
     You should have received a copy of the GNU General Public License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 Class
-    Foam::treeModel
+    Foam::trunkSurfaceModel
 
 Description
-    A base class for vegetation related models based on fvModel, such that 
-    IO and interface with the equations can be handled through fvModels in 
-    a centralized manner
+    Base class for the handling the tree trunk surface geometry information
     
 SourceFiles
-    treeModel.C
+    trunkSurfaceModel.C
 \*---------------------------------------------------------------------------*/
 
+#ifndef trunkSurfaceModel_H
+#define trunkSurfaceModel_H
+
 #include "fvCFD.H"
-#include "fvCellSet.H"
-#include "canopyPhysicsModel.H"
-#include "trunkPhysicsModel.H"
+#include "polyMesh.H"
+#include "triSurfaceMesh.H"
 
 namespace Foam
 {
 
-
-class treeModel
+class trunkSurfaceModel
 {
-    
     // Private Member Data
     
-        //- Reference to components of trees
-        canopyPhysicsModel& canopy_;
-        trunkPhysicsModel& trunk_;
+        //- Base mesh reference
+        polyMesh&   mesh_;
 
+        //- Surface file representing the canopy
+        triSurfaceMesh&   surface_;
+
+        //- cell list influenced by the canopy
+        labelHashSet     canopyCellsIndex_;
     // Private Member Functions
-    
-        //- Update the model
-        virtual void update();
 
-
-public: 
-    
-    //- Runtime type information
-    TypeName("treeModel");
-
-    // Constructors
-    
-        //- Constructor from components
-        treeModel
-        (
-            canopyPhysicsModel& canopy,
-            trunkPhysicsModel&   trunk
-        );
+        //- Compute cells that are cut by the surface
         
+public:
+    
+    // Constructors
+        
+        //- Construct from component
+        trunkSurfaceModel
+        (
+          polyMesh& mesh,
+          triSurfaceMesh& surface
+        );
 
-    //- Destructor
-    virtual ~treeModel(){}
+    // Destructor
+    
 
     // Member Functions
-        
-        //- Access
-        canopyPhysicsModel& canopy(){return canopy_;};
+        // Access
 
-        trunkPhysicsModel& trunk(){return trunk_;};
+        // Parameters
 
 };
 
 }
+
+#endif
