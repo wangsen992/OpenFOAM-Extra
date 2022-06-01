@@ -21,66 +21,48 @@ License
     You should have received a copy of the GNU General Public License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 Class
-    Foam::treeModel
+    Foam::trunkModel
 
 Description
-    A base class for vegetation related models based on fvModel, such that 
-    IO and interface with the equations can be handled through fvModels in 
-    a centralized manner
+    Base class for the handling the solid trunks and branches of treeModel, providing the momentum & turbulence modification of the system. 
     
 SourceFiles
-    treeModel.C
+    trunkPhysicsModel.C
 \*---------------------------------------------------------------------------*/
 
-#include "fvCFD.H"
-#include "fvCellSet.H"
-#include "canopyPhysicsModel.H"
-#include "trunkPhysicsModel.H"
+#ifndef trunkPhysicsModel_H
+#define trunkPhysicsModel_H
 
+#include "fvCFD.H"
 namespace Foam
 {
 
-
-class treeModel
+class trunkPhysicsModel
 {
-    
     // Private Member Data
-    
-        //- Reference to components of trees
-        canopyPhysicsModel& canopy_;
-        trunkPhysicsModel& trunk_;
-
-    // Private Member Functions
-    
-        //- Update the model
-        virtual void update();
-
-
-public: 
-    
-    //- Runtime type information
-    TypeName("treeModel");
-
-    // Constructors
-    
-        //- Constructor from components
-        treeModel
-        (
-            canopyPhysicsModel& canopy,
-            trunkPhysicsModel&   trunk
-        );
         
+        //- Trunk Surface Model
 
-    //- Destructor
-    virtual ~treeModel(){}
+        //- Internal source terms
+        vectorField fU_;
+        scalarField fk_;
+        scalarField feps_;
+        scalarField fomega_;
+        tensorField fR_;
 
-    // Member Functions
+public:
+    trunkPhysicsModel();
         
-        //- Access
-        canopyPhysicsModel& canopy(){return canopy_;};
-
-        trunkPhysicsModel& trunk(){return trunk_;};
+    virtual ~trunkPhysicsModel(){};
+    
+    //- Member Functions
+    vectorField& fU(){return fU_;};
+    scalarField& fk(){return fk_;};
+    scalarField& feps(){return feps_;};
+    tensorField& fR(){return fR_;};
 
 };
 
 }
+
+#endif

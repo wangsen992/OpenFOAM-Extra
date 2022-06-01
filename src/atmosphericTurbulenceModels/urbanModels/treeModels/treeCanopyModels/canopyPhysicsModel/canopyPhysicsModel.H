@@ -68,7 +68,22 @@ class canopyPhysicsModel
 
         radiationModel& radiation_;
 
+        //- internal source terms 
+        vectorField fU_;
+        scalarField fT_;
+        scalarField fq_;
+
+        scalarField fk_;
+        scalarField feps_;
+        scalarField fomega_;
+        tensorField fR_;
+
     // Private Member Function
+    
+        //- Correct underlying model
+        virtual void correctU() = 0;
+        virtual void correctTurb() = 0;
+        virtual void correctThermo() = 0;
 
 public:
      
@@ -112,28 +127,28 @@ public:
             //- Source term to the momentum equation
             //- Aerodynamic Drag of Tree Canopy (should be implemented as a
             //model) 
-            virtual vectorField fU() const = 0;
+            vectorField& fU(){return fU_;};
 
             //- Source term to the TKE equation
-            virtual scalarField fk() const = 0;
+            scalarField& fk(){return fk_;};
 
             //- Source term to the TKE Dissipation equation
-            virtual scalarField feps() const = 0;
+            scalarField& feps(){return feps_;};
 
             //- Source term to the specific TKE dissipation equation
-            virtual scalarField fomega() const {return scalarField();};
+            scalarField& fomega(){return fomega_;};
             
             //- Source term to the Reynolds Stress equation
-            virtual tensorField fR() const {return tensorField();} ;
+            tensorField& fR(){return fR_;} ;
 
             //- Source term to the T/theta equation
-            virtual scalarField fT() const = 0;
+            scalarField& fT(){return fT_;};
 
             //- Source term to the specific humidity equation 
-            virtual scalarField fq() const = 0;
+            scalarField& fq(){return fq_;};
         
-        //- Correct underlying model
-        virtual void correct(){};
+        
+        virtual void correct();
 };
 
 }
