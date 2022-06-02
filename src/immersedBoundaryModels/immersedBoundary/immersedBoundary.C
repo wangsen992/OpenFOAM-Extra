@@ -29,37 +29,10 @@ Class
 #include "immersedBoundary.H"
 #include "cellClassification.H"
 #include "interpolationCellPoint.H"
+#include "surfaceMeshTools.H"
+#include "dimensionSet.H"
+
 // * * * * * * * * * * * * Static Member Functions  * * * * * * * * * * * * * //
-Foam::labelHashSet Foam::immersedBoundary::calcForcingCells
-(
-  const polyMesh& mesh,
-  const triSurfaceMesh& surf
-)
-{
-    pointField outsidePoints(1);
-    outsidePoints[0] = mesh.points()[0];
-    meshSearch queryMesh(mesh);
-    triSurfaceSearch querySurf(surf.surface());
-    cellClassification cellType(mesh, queryMesh, querySurf, outsidePoints);
-    
-    DynamicList<label> dynList(0);
-    forAll(cellType, celli)
-    {
-        if (cellType[celli] == cellClassification::CUT)
-        {
-            dynList.append(celli);
-        }
-    }
-    // Obtain the cells that intersects with the surface to prepare for
-    // immersed boundary method implementation
-    labelHashSet forcingCellsHashSet(dynList.size());
-    forAll(dynList, i)
-    {
-         forcingCellsHashSet.insert(dynList[i]);
-    }
-    
-    return forcingCellsHashSet;
-}
 
 
 // * * * * * * * * * * * * Protected Member Functions  * * * * * * * * * * * * * //
@@ -67,9 +40,9 @@ void Foam::immersedBoundary::calcForcingPointAndNormal
 (
   const polyMesh& mesh, 
   const triSurface& surf, 
-  const labelHashSet& forcingCells,
-  pointField& forcingPoints,
-  vectorField& forcingPointNormals
+  const cellSet& forcingCells,
+  vectorCellSet& forcingPoints,
+  vectorCellSet& forcingPointNormals
 )
 {
   // Create a pointField to store points
@@ -81,10 +54,11 @@ void Foam::immersedBoundary::calcForcingPointAndNormal
   label celli;
   face faceHit;
   PointIndexHit<point> pointHit;
+  labelList forcingCellList(forcingCells.sortedToc());
 
-  forAll(forcingCells.toc(), i)
+  forAll(forcingCellList, i)
   {
-    celli = forcingCells.toc()[i];
+    celli = forcingCellList[i];
     // Forcing point here is computed using a crude averaging method
     // over the projection of cell vertices onto the surface instead 
     // of the actual center of gravity
@@ -99,17 +73,28 @@ void Foam::immersedBoundary::calcForcingPointAndNormal
         plist[hiti] = pointHits[hiti].hitPoint();
     }
     pointHit = querySurf.nearest(average(plist), vector(1,1,1));
-    forcingPoints[i] = pointHit.hitPoint();
+    forcingPoints[celli] = pointHit.hitPoint();
     faceHit = surf.faces()[pointHit.index()];
 
-    forcingPointNormals[i] = normalised(face::area<pointField>(faceHit.points(surf.points())));
+    forcingPointNormals[celli] = normalised(face::area<pointField>(faceHit.points(surf.points())));
   }
 }
 
-void Foam::immersedBoundary::calc()
+void Foam::immersedBoundary::readCoeffs()
+{}
+
+void Foam::immersedBoundary::init()
 {
+    // Init surface face properties
+    forAll(surfaceFaceCenters_, i)
+    {
+        surfaceFaceCenters_[i] = surf_.surface().faceCentres()[i];
+        surfaceFaceNormals_[i] = surf_.surface().faceNormals()[i];
+    }
+    
     // Use meshSearch and surfSearch and cellClassification to identify cells
     // that are cut by the surface. 
+    
     calcForcingPointAndNormal
     (
       mesh_, 
@@ -120,7 +105,15 @@ void Foam::immersedBoundary::calc()
     );
 
     scalar dpp(0.5);
-    probePoints_ = forcingPoints_ + dpp * forcingPointNormals_;
+    label celli;
+    labelList forcingCellsList(forcingCells_.sortedToc());
+    forAll(forcingCellsList, i)
+    {
+        celli = forcingCellsList[i];
+        probePoints_[celli] = forcingPoints_[celli] + dpp * forcingPointNormals_[celli];
+    }
+
+    readCoeffs();
     
 }
 
@@ -133,48 +126,72 @@ Foam::immersedBoundary::immersedBoundary
 :
     mesh_(mesh),
     surf_(surf),
+    dpp_(0.5),
     forcingCells_
     (
       mesh_,
       "forcingCells",
-      calcForcingCells(mesh_, surf_),
+      surfaceMeshTools::findSurfaceCutCells(mesh_, surf_),
       IOobject::NO_WRITE
     ),
-    surfaceFaceCenters_(surf_.surface().faceCentres()),
-    surfaceFaceNormals_(surf_.surface().faceNormals()),
+    surfaceFaceCenters_(surf_.surface().faceCentres().size()),
+    surfaceFaceNormals_(surf_.surface().faceNormals().size()),
     forcingPoints_(forcingCells_.size()),
+    forcingPointAreas_(forcingCells_.size()), // This is not calculated
     forcingPointNormals_(forcingCells_.size()),
-    probePoints_(forcingCells_.size())
+    probePoints_(forcingCells_.size()),
+    Kp_(dimensionSet(1, 0, -1, 0, 0), 10),
+    KI_(dimensionSet(1, 0, -1, 0, 0), 10),
+    ustar_(dimVelocity, 0.1),
+    fU_(forcingCells_.toc().size())
 {
-    calc();
+    init();
 }
     
 
 // * * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
-Foam::tmp<Foam::volVectorField> fFp()
-{}
 
-Foam::tmp<Foam::volVectorField> Foam::immersedBoundary::fnFp(Foam::volVectorField& U)
+tmp<dimensionedVectorCellSet> Foam::immersedBoundary::fnFp(Foam::volVectorField& U)
 {
     // Interpolate velocity to the forcing point
     // Try "interpolationCellPoint.H"
     interpolationCellPoint<Foam::vector> interpCell(U);
-    labelField forcingCellLabels(forcingCells_.toc());
-    vectorField Ufp
+    labelField forcingCellLabels(forcingCells_.sortedToc());
+    pointField forcingPointField = vectorCellSet2pointField(forcingPoints_);
+    pointField forcingPointNormalField = vectorCellSet2pointField(forcingPointNormals_);
+    
+    tmp<vectorField> tUfp
     (
       interpCell.interpolate
       (
-        forcingPoints_,
+        forcingPointField,
         forcingCellLabels
       ) 
-      & forcingPointNormals_ * forcingPointNormals_ // normalize to normal dir
+      & forcingPointNormalField * forcingPointNormalField // normalize to normal dir
     );
+    
 
     // Compute the difference between normal velocity and desired value
     // Note there is a requirement to store previous values
-    dimensionedVector Utarget(dimVelocity, vector(0, 0, 0));
+    // Current version has no previus iteration values
+    vector Utarget(0, 0, 0);
 
+    tmp<dimensionedVectorCellSet> tfnfp
+    (
+        new dimensionedVectorCellSet(forcingCells_.toc().size())
+    );
+
+    label celli;
+    forAll(forcingCellLabels, i)
+    {
+        celli = forcingCellLabels[i];
+        tfnfp.ref()[celli] = Kp_ * dimensionedVector(dimVelocity, (tUfp()[i] - Utarget));
+    }
+
+    return tfnfp;
 }
 
-Foam::tmp<Foam::volVectorField> fpFp()
-{}
+tmp<dimensionedVectorCellSet> Foam::immersedBoundary::fFp(Foam::volVectorField& U)
+{
+
+}
