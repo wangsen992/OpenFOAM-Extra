@@ -61,12 +61,6 @@ class canopySurfaceModel
          
     // Private Member Functions
         
-        static labelHashSet findSurfaceCutCells
-        (
-            polyMesh& mesh,
-            triSurfaceMesh& surface
-        );
-
         static HashTable<dimensionedScalar, label> calcLAD
         (
             polyMesh& mesh,
