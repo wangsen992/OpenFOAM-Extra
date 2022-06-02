@@ -30,35 +30,11 @@ Class
 #include "meshSearch.H"
 #include "cellClassification.H"
 #include "triSurfaceSearch.H"
+#include "surfaceMeshTools.H"
 
 namespace Foam
 {
 
-labelHashSet canopySurfaceModel::findSurfaceCutCells
-(
-    polyMesh& mesh,
-    triSurfaceMesh& surface
-)
-{
-    Info << "running findSurfaceCutCells" << endl; 
-    DynamicList<label> dynList(0);
-
-    // Compute the total area of leaves within a mesh cell
-    const pointField& surfacePoints = surface.points();
-    const faceList& faces = surface.surface().faces();
-
-    label celli;
-    point faceCenter;
-    forAll(faces, i)
-    {
-        
-        faceCenter = faces[i].centre(surfacePoints);
-        celli = mesh.findCell(faceCenter);
-        dynList.append(celli);
-    } 
-
-    return labelHashSet(dynList);
-}
 
 HashTable<dimensionedScalar, label> canopySurfaceModel::calcLAD
 (
@@ -118,7 +94,7 @@ canopySurfaceModel::canopySurfaceModel
 :
     mesh_(mesh),
     surface_(surface),
-    canopyCellsIndex_(findSurfaceCutCells(mesh_, surface_)),
+    canopyCellsIndex_(surfaceMeshTools::findSurfaceCutCells(mesh_, surface_)),
     lad_(calcLAD(mesh_, surface_, canopyCellsIndex_))
 {
     
