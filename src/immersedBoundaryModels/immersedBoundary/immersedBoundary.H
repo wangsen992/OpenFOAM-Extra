@@ -26,7 +26,7 @@ Class
 
 Description
     Base class for immersedBoundary. Offers interface for source term 
-    calculations.
+    calculations and surface analysis functions
 
 SourceFiles
     immersedBoundary.C
@@ -36,6 +36,7 @@ SourceFiles
 #ifndef immersedBoundary_H
 #define immersedBoundary_H
 
+#include "cellSetHashTables.H"
 #include "volFieldsFwd.H"
 #include "cellSet.H"
 #include "triSurfaceMesh.H"
@@ -50,37 +51,48 @@ class immersedBoundary
 {
     // Private Member Data
     
+    // References to mesh and surface
     const polyMesh&         mesh_;
     const triSurfaceMesh&   surf_;
-    PtrList<
     
-    cellSet           forcingCells_;
-    pointField        surfaceFaceCenters_;
-    vectorField       surfaceFaceNormals_;
-    pointField        forcingPoints_;
-    vectorField       forcingPointNormals_;
-    pointField        probePoints_;
+    // geometries relevant to the IBM. 
+    scalar              dpp_;
+    cellSet             forcingCells_;
+    vectorCellSet       surfaceFaceCenters_;
+    vectorCellSet       surfaceFaceNormals_;
+    vectorCellSet       forcingPoints_;
+    vectorCellSet       forcingPointAreas_;
+    vectorCellSet       forcingPointNormals_;
+    vectorCellSet       probePoints_;
+
+    // parameters for computing source terms (elasticity formulation)
+    dimensionedScalar   Kp_;
+    dimensionedScalar   KI_;
+    dimensionedScalar   ustar_;
+
+    // Storage of source terms
+    dimensionedVectorCellSet     fU_;
 
 protected:
     
     // Protected Member Functions
-    static labelHashSet calcForcingCells
-    (
-      const polyMesh& mesh,
-      const triSurfaceMesh& surf
-     );
 
-    void calcForcingPointAndNormal
+    // Compute the forcing point (center of gravity of surface within the 
+    // forcing cell) and forcing normal.
+    static void calcForcingPointAndNormal
     (
       const polyMesh& mesh, 
       const triSurface& surf, 
-      const labelHashSet& forcingCells,
-      pointField& forcingPoints,
-      vectorField& forcingPointNormals
+      const cellSet& forcingCells,
+      vectorCellSet& forcingPoints,
+      vectorCellSet& forcingPointNormals
     );
 
     // compute all attributes
-    void calc();
+    void init();
+
+    // Read coefficients
+    void readCoeffs();
 
 public:
     
@@ -92,6 +104,8 @@ public:
           const polyMesh& mesh, 
           const triSurfaceMesh& surf
       );
+    // Destructor
+    virtual ~immersedBoundary(){};
 
     // Member Functions
     
@@ -103,24 +117,27 @@ public:
 
         const cellSet& forcingCells(){return forcingCells_;};
 
-        const pointField& surfaceFaceCenters(){return surfaceFaceCenters_;};
+        const vectorCellSet& surfaceFaceCenters(){return surfaceFaceCenters_;};
 
-        const vectorField& surfaceFaceNormals(){return surfaceFaceNormals_;};
+        const vectorCellSet& surfaceFaceNormals(){return surfaceFaceNormals_;};
 
-        const pointField& forcingPoints(){return forcingPoints_;};
+        const vectorCellSet& forcingPoints(){return forcingPoints_;};
 
-        const vectorField& forcingPointNormals(){return forcingPointNormals_;};
+        const vectorCellSet& forcingPointNormals(){return forcingPointNormals_;};
 
-        const pointField probePoints(){return probePoints_;};
+        const vectorCellSet& probePoints(){return probePoints_;};
 
     //- Computing source terms
     
-        tmp<volVectorField> fFp(volVectorField& U);
-        tmp<volVectorField> fnFp(volVectorField& U);
-        tmp<volVectorField> fpFp();
-        tmp<volScalarField> kSource();
-        tmp<volScalarField> epsilonSource();
-        tmp<volTensorField> RSource();
+        virtual tmp<dimensionedVectorCellSet> fFp(volVectorField& U);
+        virtual tmp<dimensionedVectorCellSet> fnFp(volVectorField& U);
+        dimensionedVectorCellSet& fU();
+        virtual scalarField kSource();
+        virtual scalarField epsilonSource();
+        virtual tensorField RSource();
+
+    //- interface to call correcting everything
+    void correct();
 
 };
 }

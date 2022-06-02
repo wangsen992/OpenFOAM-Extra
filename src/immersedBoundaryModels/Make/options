@@ -10,7 +10,8 @@ EXE_INC = \
     -I$(LIB_SRC)/ThermophysicalTransportModels/lnInclude \
     -I$(LIB_SRC)/transportModels/lnInclude \
     -I$(LIB_SRC)/radiationModels/lnInclude \
-    -I$(LIB_SRC)/triSurface/lnInclude
+    -I$(LIB_SRC)/triSurface/lnInclude \
+    -I$(USER_LIB_SRC)/surfaceMeshTools/lnInclude
 
 LIB_LIBS = \
     -lmomentumTransportModels \
@@ -26,4 +27,5 @@ LIB_LIBS = \
     -lfvModels \
     -lfvConstraints \
     -lradiationModels \
-    -ltriSurface
+    -ltriSurface \
+    -lsurfaceMeshTools
