@@ -53,4 +53,26 @@ labelHashSet surfaceMeshTools::findSurfaceCutCells
 
     return labelHashSet(dynList);
 }
+
+void surfaceMeshTools::writeObjFile(OFstream of, triSurface surf)
+{
+    forAll(surf.points(), i)
+    {
+        of << "v " 
+              << surf.points()[i].x() << " "
+              << surf.points()[i].y() << " "
+              << surf.points()[i].z() << endl;
+    }
+    forAll(surf.faces(), i)
+    {
+        face facei = surf.faces()[i];
+        of << "f ";
+        forAll(facei, plabel)
+        {
+          of << facei[plabel]+1 << " ";
+        }
+        of << endl;
+    }
+    // To-DO: Check if the close file is needed.
+}
 }
