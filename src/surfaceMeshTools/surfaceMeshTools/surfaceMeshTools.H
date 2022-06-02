@@ -48,6 +48,8 @@ namespace surfaceMeshTools
         const triSurfaceMesh& surface
     );
 
+    // Write the triSurface representation of the surface
+    void writeObjFile(OFstream, triSurface);
 }
 }
 
