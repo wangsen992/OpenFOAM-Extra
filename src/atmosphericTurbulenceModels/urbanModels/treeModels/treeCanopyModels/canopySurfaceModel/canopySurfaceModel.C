@@ -36,7 +36,7 @@ namespace Foam
 {
 
 
-HashTable<dimensionedScalar, label> canopySurfaceModel::calcLAD
+dimensionedScalarCellSet canopySurfaceModel::calcLAD
 (
     polyMesh& mesh,
     triSurfaceMesh& surface,
@@ -86,6 +86,17 @@ HashTable<dimensionedScalar, label> canopySurfaceModel::calcLAD
     return leafAreaDensity;
 }
 
+void canopySurfaceModel::calcRadProps()
+{
+    labelList cells(canopyCellsIndex_.sortedToc());
+    forAll(cells, i)
+    {
+        a_[cells[i]] = dimensionedScalar(dimless/dimLength, 0);
+        e_[cells[i]] = dimensionedScalar(dimless/dimLength, 0);
+        E_[cells[i]] = dimensionedScalar(dimless/dimLength/dimTime, 0);
+    }
+}
+
 canopySurfaceModel::canopySurfaceModel
 (
     polyMesh& mesh,
@@ -95,8 +106,12 @@ canopySurfaceModel::canopySurfaceModel
     mesh_(mesh),
     surface_(surface),
     canopyCellsIndex_(surfaceMeshTools::findSurfaceCutCells(mesh_, surface_)),
-    lad_(calcLAD(mesh_, surface_, canopyCellsIndex_))
+    lad_(calcLAD(mesh_, surface_, canopyCellsIndex_)),
+    a_(canopyCellsIndex_.size()),
+    e_(canopyCellsIndex_.size()),
+    E_(canopyCellsIndex_.size())
 {
-    
+    calcRadProps();
 };
+
 } 

@@ -26,7 +26,8 @@ Class
 Description
     Provides an interface for providing useful geoemtry information for
     the tree canopy. Offers both fine grained and bulk information based on
-    different type of input. 
+    different type of input. Parametrization of radiative transfer 
+    properties are also provided here.
 
 SourceFiles
     canopyGeometryModel.C
@@ -38,6 +39,7 @@ SourceFiles
 #include "fvCFD.H"
 #include "polyMesh.H"
 #include "triSurfaceMesh.H"
+#include "cellSetHashTables.H"
 
 namespace Foam
 {
@@ -57,16 +59,30 @@ class canopySurfaceModel
         labelHashSet     canopyCellsIndex_;
 
         //- Leaf area density
-        HashTable<dimensionedScalar, label> lad_;
-         
+        dimensionedScalarCellSet lad_;
+
+        //- Radiation related properties
+        
+            //- Absorption coefficient (net)
+            dimensionedScalarCellSet a_;
+
+            //- Emission coefficient (net)
+            dimensionedScalarCellSet e_;
+
+            //- Emission contribution (net)
+            dimensionedScalarCellSet E_;
+
+        
     // Private Member Functions
         
-        static HashTable<dimensionedScalar, label> calcLAD
+        static dimensionedScalarCellSet calcLAD
         (
             polyMesh& mesh,
             triSurfaceMesh& surface,
             labelHashSet& cellsSet
         );
+
+        void calcRadProps();
 
 
 public: 
@@ -94,8 +110,12 @@ public:
         // Parameters for all types of analysis
 
             //- reference to leaf area density
-            const HashTable<dimensionedScalar, label>& lad() const {return lad_;};
+            const dimensionedScalarCellSet& lad() const {return lad_;};
 
+            //- Reference to radiation related properties
+            const dimensionedScalarCellSet& a() const {return a_;};
+            const dimensionedScalarCellSet& e() const {return e_;};
+            const dimensionedScalarCellSet& E() const {return E_;};
 };
 }
 

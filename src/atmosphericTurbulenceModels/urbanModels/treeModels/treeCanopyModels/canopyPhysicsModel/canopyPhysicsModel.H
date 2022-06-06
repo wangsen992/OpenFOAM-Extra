@@ -49,6 +49,7 @@ SourceFiles
 #include "radiationModel.H"
 
 #include "canopySurfaceModel.H"
+#include "cellSetHashTables.H"
 
 namespace Foam
 {
@@ -69,14 +70,14 @@ class canopyPhysicsModel
         radiationModel& radiation_;
 
         //- internal source terms 
-        vectorField fU_;
-        scalarField fT_;
-        scalarField fq_;
+        dimensionedVectorCellSet fU_;
+        dimensionedScalarCellSet fT_;
+        dimensionedScalarCellSet fq_;
 
-        scalarField fk_;
-        scalarField feps_;
-        scalarField fomega_;
-        tensorField fR_;
+        dimensionedScalarCellSet fk_;
+        dimensionedScalarCellSet feps_;
+        dimensionedScalarCellSet fomega_;
+        dimensionedTensorCellSet fR_;
 
     // Private Member Function
     
@@ -127,25 +128,25 @@ public:
             //- Source term to the momentum equation
             //- Aerodynamic Drag of Tree Canopy (should be implemented as a
             //model) 
-            vectorField& fU(){return fU_;};
+            dimensionedVectorCellSet& fU(){return fU_;};
 
             //- Source term to the TKE equation
-            scalarField& fk(){return fk_;};
+            dimensionedScalarCellSet& fk(){return fk_;};
 
             //- Source term to the TKE Dissipation equation
-            scalarField& feps(){return feps_;};
+            dimensionedScalarCellSet& feps(){return feps_;};
 
             //- Source term to the specific TKE dissipation equation
-            scalarField& fomega(){return fomega_;};
+            dimensionedScalarCellSet& fomega(){return fomega_;};
             
             //- Source term to the Reynolds Stress equation
-            tensorField& fR(){return fR_;} ;
+            dimensionedTensorCellSet& fR(){return fR_;} ;
 
             //- Source term to the T/theta equation
-            scalarField& fT(){return fT_;};
+            dimensionedScalarCellSet& fT(){return fT_;};
 
             //- Source term to the specific humidity equation 
-            scalarField& fq(){return fq_;};
+            dimensionedScalarCellSet& fq(){return fq_;};
         
         
         virtual void correct();

@@ -24,6 +24,7 @@ License
 \*---------------------------------------------------------------------------*/
 
 #include "canopyPhysicsModel.H"
+#include "absorptionEmissionModel.H"
 
 namespace Foam
 {
