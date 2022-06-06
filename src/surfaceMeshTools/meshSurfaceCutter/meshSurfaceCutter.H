@@ -37,6 +37,9 @@ SourceFiles
 
 #include "polyMesh.H"
 #include "triSurfaceMesh.H"
+#include "cellClassification.H"
+#include "meshSearch.H"
+#include "triSurfaceSearch.H"
 
 namespace Foam
 {
@@ -50,7 +53,26 @@ class meshSurfaceCutter
 
         //- Reference to mesh and surface
         const polyMesh&     mesh_;
-        const triSurfaceMesh&     surf_;
+        const triSurface&     surf_;
+
+        //- cut information
+        meshSearch queryMesh_;
+        triSurfaceSearch  querySurf_;
+        cellClassification cellClassification_;
+        cellList meshCellsCutBySurf_;
+        faceList meshFacesCutBySurf_;
+        pointField intersectionPoints_;
+        
+    // Private Member Functions
+
+        //- find intersections points between mesh and surf
+        void calcIntersectionPoints
+        (
+            const polyMesh& mesh,
+            const triSurface& surf_,
+            pointField& intersectionPoints
+        );
+
 
 public:
     
@@ -60,7 +82,7 @@ public:
         meshSurfaceCutter
         (
             const polyMesh& mesh, 
-            const triSurfaceMesh& surf
+            const triSurface& surf
         );
 
     // Destructor
@@ -69,6 +91,10 @@ public:
 
     // Public Member Functions
         
+        //- Find all intersection points on surface cut by mesh
+        //- See tests/meshSurfaceCutter for current version
+        pointField&  intersectionPoints(){return intersectionPoints_;};
+
         //- Cut surface with mesh
         tmp<triSurfaceMesh> cutSurf();
 
