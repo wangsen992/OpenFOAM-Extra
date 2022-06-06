@@ -30,26 +30,95 @@ Description
 #include "meshSurfaceCutter.H"
 #include "surfaceMeshTools.H"
 #include "cellSet.H"
+#include "meshSearch.H"
+#include "DynamicList.H"
+#include "indexedOctree.H"
+#include "treeDataFace.H"
+#include "treeBoundBox.H"
 
 namespace Foam
 {
 namespace surfaceMeshTools
 {
 
+void meshSurfaceCutter::calcIntersectionPoints
+(
+    const polyMesh& mesh,
+    const triSurface& surf,
+    pointField& intersectionPoints
+)
+{
+    const faceList& surfFaces(surf.faces());
+    labelList meshFacesList(mesh.nInternalFaces());
+    DynamicList<point> intersectionPointsDynList(0);
+    forAll(meshFacesList, i)
+    {
+        meshFacesList[i] = i;
+    }
+    indexedOctree<treeDataFace> faceTree
+    (
+      treeDataFace
+      (false, mesh, meshFacesList),
+      treeBoundBox(mesh.points()),
+      8, 10, 3.00
+    );
+    forAll(surfFaces, i)
+    {
+        face facei = surfFaces[i];
+        const pointField& facePoints = facei.points(surf.points());
+        forAll(facePoints, j)
+        {
+            point p1 = facePoints[j];
+            point p2 = facePoints[facePoints.fcIndex(j)];
+            pointIndexHit hit = faceTree.findLine(p1, p2);
+            if (hit.hit())
+            {
+                intersectionPointsDynList.append(hit.hitPoint());
+            }
+        }
+    }
+
+    intersectionPoints.resize(intersectionPointsDynList.size());
+    forAll(intersectionPoints, i)
+    {
+        intersectionPoints[i] = intersectionPointsDynList[i];
+    }
+}
+
 meshSurfaceCutter::meshSurfaceCutter
 (
     const polyMesh& mesh, 
-    const triSurfaceMesh& surf
+    const triSurface& surf
 )
 :
 mesh_(mesh),
-surf_(surf)
-{};
+surf_(surf),
+queryMesh_(mesh_),
+querySurf_(surf_),
+cellClassification_
+(
+  mesh_,queryMesh_,querySurf_,pointField(1, vector(0, 0, 0))
+),
+meshCellsCutBySurf_(),
+meshFacesCutBySurf_(),
+intersectionPoints_(0)
+{
+    forAll(cellClassification_, i)
+    {
+        if (cellClassification_[i] == cellClassification::CUT)
+        {
+            meshCellsCutBySurf_.append(mesh.cells()[i]);
+            
+        };
+    }
+
+    // find all intersection points
+    calcIntersectionPoints(mesh_, surf_, intersectionPoints_);
+};
 
 tmp<triSurfaceMesh> meshSurfaceCutter::cutSurf()
 {
     // Set up containers for following operation
-    const faceList& surfaceFaces(surf_.faces());
     labelHashSet cutCellSet = findSurfaceCutCells(mesh_, surf_);
     labelList cutCells = cutCellSet.sortedToc();
     
