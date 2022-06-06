@@ -42,6 +42,7 @@ namespace Foam
     typedef HashTable<dimensionedVector, label> dimensionedVectorCellSet;
     typedef HashTable<dimensionedTensor, label> dimensionedTensorCellSet;
 
+    // Convert the vectorCellSet into a list/field
     inline pointField vectorCellSet2pointField(vectorCellSet& vc)
     {
         const labelList& cellList(vc.sortedToc());
@@ -50,7 +51,7 @@ namespace Foam
         forAll(cellList, i)
         {
             celli = cellList[i];
-            pF[celli] = vc[celli];
+            pF[i] = vc[celli];
         }
 
         return pF;
