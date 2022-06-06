@@ -35,7 +35,9 @@ Description
     potentially easier interface to set up the vegetation coverage. 
 
 Description
-    Base class for tree/plant canopy model based on bulk parametrization of the tree canopy with aerodynamic drag force. No turbulent property update here. For LES use only. 
+    Base class for tree/plant canopy model based on bulk parametrization of the 
+    tree canopy with aerodynamic drag force. No turbulent property update here. 
+    For LES use only. 
     
 SourceFiles
     dragCanopyPhysicsModel.C
@@ -57,7 +59,7 @@ class dragCanopyPhysicsModel
         scalar  Cd_;
 
         //- Leaf area density reference 
-        const HashTable<dimensionedScalar, label>& lad_;
+        const dimensionedScalarCellSet& lad_;
 
         //- cell list to perform operation on
         labelList cells_;

@@ -56,13 +56,13 @@ void dragCanopyPhysicsModel::correctU()
     scalar magUi;
     scalar ladi;
     
-    forAll(cells_, celli)
+    forAll(cells_, i)
     {
-        Ui = U[cells_[celli]];
+        Ui = U[cells_[i]];
         magUi = mag(Ui);
-        ladi = lad_[cells_[celli]].value();
+        ladi = lad_[cells_[i]].value();
 
-        fU()[celli] = Cd_ * ladi * cmptMultiply(cmptSqr(Ui), Ui);
+        fU()[cells_[i]] = Cd_ * ladi * cmptMultiply(cmptSqr(Ui), Ui);
     };
 }
 void dragCanopyPhysicsModel::correct()
