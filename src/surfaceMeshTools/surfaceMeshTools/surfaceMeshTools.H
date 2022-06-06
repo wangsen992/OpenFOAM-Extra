@@ -48,8 +48,45 @@ namespace surfaceMeshTools
         const triSurfaceMesh& surface
     );
 
+    labelHashSet findSurfaceCutCells
+    (
+        const polyMesh& mesh,
+        const triSurface& surface
+    );
     // Write the triSurface representation of the surface
-    void writeObjFile(OFstream, triSurface);
+    void writeObjFile(OFstream, triSurface&);
+    
+    // Write the polyMesh as obj file
+    void writeObjFile(OFstream, polyMesh&);
+
+    // Write obj representation of faces subset
+    void writeObjFile
+    (
+        Ostream& os,
+        const faceList& faces,
+        const pointField& points,
+        const labelList& faceLabels
+    );
+
+    // Write the obj representation of faces
+    void writeObjFile
+    (
+        Ostream& os,
+        const faceList&,
+        const pointField&
+    );
+
+    // Return all faces intersected by or intersecting surface
+    // Adapted from cellClassification::markFaces
+    boolList markFaces
+    (
+      const polyMesh& mesh,
+      const triSurface& surface,
+      label debug=0
+    );
+
+    // Find intersection of an edge from two edge points and a face using
+    // intersection from face
 }
 }
 
