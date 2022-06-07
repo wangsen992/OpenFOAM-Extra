@@ -31,13 +31,11 @@ namespace Foam
 
 canopyPhysicsModel::canopyPhysicsModel
 (
-    word modelName,
     canopySurfaceModel canopySurface,
-    fluidAtmThermophysicalTransportModel& transport,
-    radiationModel& radiation
+    const fluidAtmThermophysicalTransportModel& transport,
+    const radiationModel& radiation
 )
 :
-    modelName_(modelName),
     canopySurface_(canopySurface),
     transport_(transport),
     radiation_(radiation),
@@ -50,6 +48,15 @@ canopyPhysicsModel::canopyPhysicsModel
     feps_(0),
     fomega_(0),
     fR_(0)
+{
+}
+
+Foam::autoPtr<canopyPhysicsModel> Foam::canopyPhysicsModel::New
+(
+    canopySurfaceModel canopySurface,
+    const fluidAtmThermophysicalTransportModel& transport,
+    const radiationModel& radiation
+)
 {
 }
 

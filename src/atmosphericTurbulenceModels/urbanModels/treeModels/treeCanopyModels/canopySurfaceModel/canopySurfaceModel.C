@@ -88,12 +88,24 @@ dimensionedScalarCellSet canopySurfaceModel::calcLAD
 
 void canopySurfaceModel::calcRadProps()
 {
-    labelList cells(canopyCellsIndex_.sortedToc());
-    forAll(cells, i)
+    labelList cellList(canopyCellsIndex_.sortedToc());
+    forAll(cellList, i)
     {
-        a_[cells[i]] = dimensionedScalar(dimless/dimLength, 0);
-        e_[cells[i]] = dimensionedScalar(dimless/dimLength, 0);
-        E_[cells[i]] = dimensionedScalar(dimless/dimLength/dimTime, 0);
+        a_.set
+        (
+          cellList[i],
+          dimensionedScalar(dimless/dimLength, 0)
+        );
+        e_.set
+        (
+          cellList[i],
+          dimensionedScalar(dimless/dimLength, 0)
+        );
+        E_.set
+        (
+          cellList[i],
+          dimensionedScalar(dimless/dimLength/dimTime, 0)
+        );
     }
 }
 
