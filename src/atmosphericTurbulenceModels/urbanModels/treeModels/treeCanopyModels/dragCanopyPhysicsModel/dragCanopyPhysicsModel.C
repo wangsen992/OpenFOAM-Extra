@@ -26,6 +26,7 @@ Class
 \*---------------------------------------------------------------------------*/
 
 #include "dragCanopyPhysicsModel.H"
+#include "absorptionEmissionModel.H"
 
 namespace Foam
 {
@@ -71,14 +72,22 @@ void dragCanopyPhysicsModel::correctTurb()
 void dragCanopyPhysicsModel::correctThermo()
 {
     // correct heat capacity of tree region
+    const radiationModel& radiation(this->radiation());
+    const radiationModels::absorptionEmissionModel& absEms(radiation.absorptionEmission());
+    const fvMesh& mesh(this->transport().momentumTransport().mesh());
+    volScalarField& Cv = mesh.lookupObjectRef<volScalarField>("Cv");
+    Info << "Testing access to Cv: " << endl;
+    Info << Cv.name() << ": " << Cv.size() << endl;
+
     // correct thermal diffusivity of tree region
+    // correct the radiative flux propreties 
 }
 
 void dragCanopyPhysicsModel::correct()
 {
     correctU();
     correctTurb();
+    correctThermo();
 };
-
 
 }
