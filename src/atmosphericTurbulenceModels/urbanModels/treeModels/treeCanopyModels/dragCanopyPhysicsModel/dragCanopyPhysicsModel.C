@@ -32,14 +32,13 @@ namespace Foam
 
 dragCanopyPhysicsModel::dragCanopyPhysicsModel
 (
-    word    modelName,
-    canopySurfaceModel& canopySurface,
-    fluidAtmThermophysicalTransportModel& transport,
-    radiationModel& radiation,
+    canopySurfaceModel canopySurface,
+    const fluidAtmThermophysicalTransportModel& transport,
+    const radiationModel& radiation,
     scalar Cd
 )
 :
-canopyPhysicsModel(modelName, canopySurface, transport, radiation),
+canopyPhysicsModel(canopySurface, transport, radiation),
 Cd_(Cd),
 lad_(this->canopySurface().lad()),
 cells_(this->canopySurface().canopyCells().sortedToc())
@@ -65,6 +64,16 @@ void dragCanopyPhysicsModel::correctU()
         fU()[cells_[i]] = Cd_ * ladi * cmptMultiply(cmptSqr(Ui), Ui);
     };
 }
+void dragCanopyPhysicsModel::correctTurb()
+{
+}
+
+void dragCanopyPhysicsModel::correctThermo()
+{
+    // correct heat capacity of tree region
+    // correct thermal diffusivity of tree region
+}
+
 void dragCanopyPhysicsModel::correct()
 {
     correctU();

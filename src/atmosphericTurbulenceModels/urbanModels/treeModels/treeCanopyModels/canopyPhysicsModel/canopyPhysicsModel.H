@@ -42,6 +42,7 @@ SourceFiles
 #define canopyPhysicsModel_H
 
 #include "fvCFD.H"
+#include "runTimeSelectionTables.H"
 #include "canopySurfaceModel.H"
 #include "triSurfaceMesh.H"
 #include "runTimeSelectionTables.H"
@@ -58,16 +59,13 @@ class canopyPhysicsModel
     
     // Private Member Data
 
-        //- Model name
-        word      modelName_;
-
         //- canopy surface model
         canopySurfaceModel   canopySurface_;
         
         //- Reference that provide access to transport
-        fluidAtmThermophysicalTransportModel&   transport_;
+        const fluidAtmThermophysicalTransportModel&   transport_;
 
-        radiationModel& radiation_;
+        const radiationModel& radiation_;
 
         //- internal source terms 
         dimensionedVectorCellSet fU_;
@@ -88,18 +86,39 @@ class canopyPhysicsModel
 
 public:
      
-    //- Runtime type information
-    // TypeName("canopyModel");
+    // Declare run-time construtor selection table
+    declareRunTimeNewSelectionTable
+    (
+      autoPtr, 
+      canopyPhysicsModel, 
+      dictionary, 
+      (
+            canopySurfaceModel canopySurface,
+            fluidAtmThermophysicalTransportModel& transport,
+            radiationModel& radiation
+      ), 
+      (canopySurface, transport, radiation)
+    );
     
     // Constructors
         //- Construct with components
         canopyPhysicsModel
         (
-            word    modelName,
             canopySurfaceModel canopySurface,
-            fluidAtmThermophysicalTransportModel& transport,
-            radiationModel& radiation
+            const fluidAtmThermophysicalTransportModel& transport,
+            const radiationModel& radiation
         );
+
+    // Selectors
+
+        //- Return areference to the selected canopy physics model
+        static autoPtr<canopyPhysicsModel> New
+        (
+            canopySurfaceModel canopySurface,
+            const fluidAtmThermophysicalTransportModel& transport,
+            const radiationModel& radiation
+        );
+            
 
     // Destructor
         virtual ~canopyPhysicsModel(){};
@@ -107,9 +126,6 @@ public:
     // Member Functions
         
         // Access
-            //- Model Name
-            inline const word modelName() const{return modelName_;}
-
             //- canopy surface model acess
             inline const canopySurfaceModel& canopySurface() const 
             {return canopySurface_;}

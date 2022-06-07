@@ -76,10 +76,9 @@ public:
         //- Construct with model name
         dragCanopyPhysicsModel
         (
-            word    modelName,
-            canopySurfaceModel& canopySurface,
-            fluidAtmThermophysicalTransportModel& transport,
-            radiationModel& radiation,
+            canopySurfaceModel canopySurface,
+            const fluidAtmThermophysicalTransportModel& transport,
+            const radiationModel& radiation,
             scalar  Cd
         );
 
@@ -90,7 +89,9 @@ public:
         
         void correctU();
 
-        virtual void correctTurb(){};
+        virtual void correctTurb();
+        
+        virtual void correctThermo();
 
         virtual void correct();
 
