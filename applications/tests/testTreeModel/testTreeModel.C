@@ -36,8 +36,6 @@ Description
 
 #include "canopySurfaceModel.H"
 #include "dragCanopyPhysicsModel.H"
-#include "cellSet.H"
-#include "cellZoneSet.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -117,44 +115,22 @@ int main(int argc, char *argv[])
       )
     );
     canopySurfaceModel canopy1(mesh, canopySurf);
-    cellSet leafCellSet
-    (runTime, "leaves", canopy1.canopyCells(), IOobject::AUTO_WRITE);
+    Info << "canopySurfaceModel created." << endl;
 
-    volScalarField lad
-    (
-      IOobject
-      (
-        "lad",
-        runTime.timeName(),
-        mesh,
-        IOobject::NO_READ,
-        IOobject::AUTO_WRITE
-      ),
-      mesh,
-      dimArea/dimVolume
-    );
-    forAll(leafCellSet.toc(), celli)
-    {
-      lad[leafCellSet.toc()[celli]] = canopy1.lad()[leafCellSet.toc()[celli]].value() ;
-    }
+    dragCanopyPhysicsModel dragTree(canopy1, tTransport, tRad, 0.5);
+    Info << "dragCanopyPhysicsModel created." << endl;
 
-
-    dragCanopyPhysicsModel dragTree
-    ("dragModel", canopy1, tTransport(), tRad(), 0.5);
-
+    Info << "Models in treeCanopy: " << endl;
+    Info << "type = " << dragTree.transport().momentumTransport().type() << endl;
+    Info << "coeffDict = " << dragTree.transport().momentumTransport().coeffDict() << endl;
     
-    vectorField fieldU(dragTree.fU());
-    Info << "starting printing information" << endl;
-    forAll(fieldU, i)
-    {
-        Info << i << endl;
-        Info << fieldU[i] << endl;
-    }
-    
+    Info << "Models in global: " << endl;
+    Info << "type = " << tTransport->momentumTransport().type() << endl;
+    Info << "coeffDict = " << tTransport->momentumTransport().coeffDict() << endl;
+
     runTime++;
     runTime.write();
-
-
+    Info << "end" << endl;
     
     return 0;
 }

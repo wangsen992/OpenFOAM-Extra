@@ -29,6 +29,8 @@ Description
 
 \*---------------------------------------------------------------------------*/
 
+#ifndef cellSetHashTables_H
+#define cellSetHashTables_H
 #include "HashTable.H"
 #include "dimensionedTypes.H"
 #include "pointField.H"
@@ -57,3 +59,5 @@ namespace Foam
         return pF;
     }
 }
+
+#endif
