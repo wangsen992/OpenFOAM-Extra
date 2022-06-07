@@ -94,8 +94,8 @@ public:
       dictionary, 
       (
             canopySurfaceModel canopySurface,
-            fluidAtmThermophysicalTransportModel& transport,
-            radiationModel& radiation
+            const fluidAtmThermophysicalTransportModel& transport,
+            const radiationModel& radiation
       ), 
       (canopySurface, transport, radiation)
     );
