@@ -168,9 +168,14 @@ void Foam::thetaRhoAtmThermo<BasicRhoThermo, MixtureType>::calculate()
                     this->patchFaceTransportMixture
                     (patchi, facei, thermoMixture);
 
+<<<<<<< HEAD:src/atmosphericTurbulenceModels/thermophysicalModels/rhoAtmThermo/thetaRhoAtmThermo.C
                 gamma = 0.2854;
                 pT[facei] = ptheta[facei] * this->BasicRhoThermo::exner(pp[facei], p0, gamma);
 
+=======
+                pT[facei] = ptheta[facei] 
+                  / this->BasicRhoThermo::exner(pp[facei], p0, gamma);
+>>>>>>> 9f84fb2 (corrected radiation temperature update in patch):src/atmosphericTurbulenceModels/thermophysicalModels/rhoAtmThermo/heRhoAtmThermo.C
                 phe[facei] = thermoMixture.HE(pp[facei], pT[facei]);
 
                 pCp[facei] = thermoMixture.Cp(pp[facei], pT[facei]);
