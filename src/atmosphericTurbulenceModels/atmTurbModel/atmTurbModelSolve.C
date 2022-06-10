@@ -60,6 +60,8 @@ tmp<fvScalarMatrix> Foam::atmTurbModel::thetaEqn()
     Info << "Init TEqn." << endl;
 
     // Explicit coding of radiation term 
+
+    radiation_->correct();
     tmp<volScalarField> tExner
     (
         thermo_->exner(thermo_->p(), thermo_->p0(), thermo_->gamma())
