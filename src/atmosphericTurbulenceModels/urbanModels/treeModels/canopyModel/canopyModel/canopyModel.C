@@ -23,13 +23,13 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "canopyPhysicsModel.H"
+#include "canopyModel.H"
 #include "absorptionEmissionModel.H"
 
 namespace Foam
 {
 
-canopyPhysicsModel::canopyPhysicsModel
+canopyModel::canopyModel
 (
     canopySurfaceModel canopySurface,
     const fluidAtmThermophysicalTransportModel& transport,
@@ -51,7 +51,7 @@ canopyPhysicsModel::canopyPhysicsModel
 {
 }
 
-Foam::autoPtr<canopyPhysicsModel> Foam::canopyPhysicsModel::New
+Foam::autoPtr<canopyModel> Foam::canopyModel::New
 (
     canopySurfaceModel canopySurface,
     const fluidAtmThermophysicalTransportModel& transport,
@@ -60,7 +60,7 @@ Foam::autoPtr<canopyPhysicsModel> Foam::canopyPhysicsModel::New
 {
 }
 
-void canopyPhysicsModel::correct()
+void canopyModel::correct()
 {
     this->correctU();
     this->correctTurb();

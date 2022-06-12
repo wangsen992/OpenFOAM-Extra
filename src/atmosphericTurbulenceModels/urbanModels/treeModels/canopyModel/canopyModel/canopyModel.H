@@ -21,7 +21,7 @@ License
     You should have received a copy of the GNU General Public License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 Class
-    Foam::canopyPhysicsModel
+    Foam::canopyModel
 
 Description
     Base class for the handling the physics & evapotranspiration of leaves & canopies, 
@@ -38,8 +38,8 @@ SourceFiles
     canopyModel.C
 \*---------------------------------------------------------------------------*/
 
-#ifndef canopyPhysicsModel_H
-#define canopyPhysicsModel_H
+#ifndef canopyModel_H
+#define canopyModel_H
 
 #include "fvCFD.H"
 #include "runTimeSelectionTables.H"
@@ -54,7 +54,7 @@ SourceFiles
 
 namespace Foam
 {
-class canopyPhysicsModel
+class canopyModel
 {
     
     // Private Member Data
@@ -90,7 +90,7 @@ public:
     declareRunTimeNewSelectionTable
     (
       autoPtr, 
-      canopyPhysicsModel, 
+      canopyModel, 
       dictionary, 
       (
             canopySurfaceModel canopySurface,
@@ -102,7 +102,7 @@ public:
     
     // Constructors
         //- Construct with components
-        canopyPhysicsModel
+        canopyModel
         (
             canopySurfaceModel canopySurface,
             const fluidAtmThermophysicalTransportModel& transport,
@@ -112,7 +112,7 @@ public:
     // Selectors
 
         //- Return areference to the selected canopy physics model
-        static autoPtr<canopyPhysicsModel> New
+        static autoPtr<canopyModel> New
         (
             canopySurfaceModel canopySurface,
             const fluidAtmThermophysicalTransportModel& transport,
@@ -121,7 +121,7 @@ public:
             
 
     // Destructor
-        virtual ~canopyPhysicsModel(){};
+        virtual ~canopyModel(){};
 
     // Member Functions
         
