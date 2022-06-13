@@ -102,19 +102,18 @@ public:
         template<class Canopy>
         static autoPtr<Canopy> New
         (
-            const fvMesh&,
-            const cellSet& cells
+            const fvMesh&
         );
         
         //- Generic New for each of the related thermodynamics packages with
         // dictionary (within which cellSet is specified, and more control 
         // for LAD and Cd)
-        template<class Canopy>
-        static autoPtr<Canopy> New
-        (
-            const fvMesh&,
-            const dictionary&
-        );
+        // template<class Canopy>
+        // static autoPtr<Canopy> New
+        // (
+        //     const fvMesh&,
+        //     const dictionary&
+        // );
 
         //- To-Do: Other specializations of New
         
@@ -141,6 +140,18 @@ public:
             //- Drag Coefficients
             virtual const scalarCellSet& Cd() = 0;
 
+        //- Canopy source terms to the transport equations
+
+            //- Source term to momentum equation
+            virtual tmp<dimensionedVectorCellSet> fU() = 0;
+
+            //- Source term to temperature equation
+            virtual tmp<dimensionedScalarCellSet> fT() = 0;
+
+            //- Source term to species equation
+            virtual tmp<dimensionedScalarCellSet> fY(const label specie) = 0;
+            virtual tmp<dimensionedScalarCellSet> fY(const word& specieName) = 0;
+
 };
 
 
@@ -158,7 +169,7 @@ protected:
     // Protected data
 
         //- Cell Set of Canopy Influence
-        const cellSet& cells_;
+        labelHashSet cells_;
 
         // Cell Set Fields
 
@@ -179,10 +190,10 @@ public:
     // Constructors
 
         //- Construct from mesh and cellSet
-        implementation(const fvMesh&, const cellSet& cells);
+        implementation(const fvMesh&);
 
-        //- Construct from mesh and arbitrary dictionary
-        implementation(const fvMesh&, const dictionary&);
+        // //- Construct from mesh and arbitrary dictionary
+        // implementation(const fvMesh&, const dictionary&);
 
     //- Destructor
     virtual ~implementation();
@@ -216,5 +227,9 @@ public:
             }
 };
 }
+
+#ifdef NoRepository
+    #include "basicCanopyTemplates.C"
+#endif
 
 #endif

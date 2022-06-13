@@ -27,6 +27,7 @@ License
 #include "IOdictionary.H"
 #include "IOobject.H"
 #include "basicCanopy.H"
+#include "fvCellSet.H"
 
 const Foam::word Foam::basicCanopy::dictName("canopyProperties");
 
@@ -43,8 +44,7 @@ namespace Foam
 
 Foam::basicCanopy::implementation::implementation
 (
-    const fvMesh& mesh,
-    const cellSet& cells
+    const fvMesh& mesh
 )
 :
     IOdictionary
@@ -58,9 +58,9 @@ Foam::basicCanopy::implementation::implementation
         IOobject::NO_WRITE
       )
     ),
-    cells_(cells),
+    cells_(fvCellSet(*this, mesh).cells()),
     lad_(cells_.toc().size()),
-    Cd_(cells.toc().size())
+    Cd_(cells_.toc().size())
 {
     if (basicCanopy::debug)
     {
