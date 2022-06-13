@@ -12,9 +12,10 @@ ThermophysicalTransportModels/fluidAtmThermo/fluidAtmThermophysicalTransportMode
 fvModels/geostrophicForce/geostrophicForce.C
 fvModels/boussinesqBuoyancyForce/boussinesqBuoyancyForce.C
 
-urbanModels/treeModels/treeCanopyModels/canopyPhysicsModel/canopyPhysicsModel.C
-urbanModels/treeModels/treeCanopyModels/dragCanopyPhysicsModel/dragCanopyPhysicsModel.C
-urbanModels/treeModels/treeCanopyModels/canopySurfaceModel/canopySurfaceModel.C
+# urbanModels/treeModels/treeCanopyModels/canopyPhysicsModel/canopyPhysicsModel.C
+# urbanModels/treeModels/treeCanopyModels/dragCanopyPhysicsModel/dragCanopyPhysicsModel.C
+# urbanModels/treeModels/treeCanopyModels/canopySurfaceModel/canopySurfaceModel.C
+urbanModels/treeModels/canopyModels/basic/triSurfaceBasicCanopy/triSurfaceBasicCanopys.C
 
 LIB = $(FOAM_USER_LIBBIN)/libatmosphericTurbulenceModels
 
