@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2011-2021 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2020 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -21,51 +21,55 @@ License
     You should have received a copy of the GNU General Public License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
+Class
+    Foam::triSurfaceBasicCanopy
+
+Description
+    A test implementation that does not include a drag model yet
+
+SourceFiles
+    triSurfaceBasicCanopy.C
+
 \*---------------------------------------------------------------------------*/
 
+#include "triSurfaceBasicCanopy.H"
 
-#include "IOdictionary.H"
-#include "IOobject.H"
-#include "basicCanopy.H"
-#include "fvCellSet.H"
 
-const Foam::word Foam::basicCanopy::dictName("canopyProperties");
+// * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
 
-namespace Foam
+template<class BasicCanopy>
+void Foam::triSurfaceBasicCanopy<BasicCanopy>::calculate()
 {
-    defineTypeNameAndDebug(basicCanopy, 1);
-    defineRunTimeSelectionTable(basicCanopy, fvMesh);
+    if (BasicCanopy::debug)
+    {
+        Info << "Running calculate..." << endl;
+    }
 }
 
-
-// * * * * * * * * * * * * * Static Member Functions * * * * * * * * * * * * //
-// * * * * * * * * * * * * Protected Member Functions  * * * * * * * * * * * //
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-Foam::basicCanopy::implementation::implementation
+template<class BasicCanopy>
+Foam::triSurfaceBasicCanopy<BasicCanopy>::triSurfaceBasicCanopy
 (
     const fvMesh& mesh
 )
 :
-    IOdictionary
-    (
-      IOobject
-      (
-        dictName,
-        mesh.time().constant(),
-        mesh,
-        IOobject::MUST_READ_IF_MODIFIED,
-        IOobject::NO_WRITE
-      )
-    )
+    triSurfaceBasicCanopy<BasicCanopy>(mesh)
 {
-    if (basicCanopy::debug)
-    {
-        Info << properties() << endl;
-    }
+    calculate();
 }
 
-
-// * * * * * * * * * * * * * * * * Selectors * * * * * * * * * * * * * * * * //
-// * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
+
+template<class BasicCanopy>
+void Foam::triSurfaceBasicCanopy<BasicCanopy>::correct()
+{
+    
+    if (BasicCanopy::debug)
+    {
+        Info << "Running correct..." << endl;
+    }
+
+    calculate();
+
+}

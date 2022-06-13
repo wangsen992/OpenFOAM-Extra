@@ -89,8 +89,8 @@ public:
         autoPtr,
         basicCanopy,
         fvMesh,
-        (const fvMesh& mesh, const cellSet& cells),
-        (mesh, cells)
+        (const fvMesh& mesh),
+        (mesh)
     );
     
     // Static Member Functions
@@ -134,11 +134,15 @@ public:
 
         //- Access to canopy form-related variables
 
+            //- Cells
+            virtual const labelHashSet& canopyCells() const = 0;
+
             //- Leaf Area Density [m^-1]
-            virtual const dimensionedScalarCellSet& lad() = 0;
+            virtual const dimensionedScalarCellSet& lad() const = 0;
 
             //- Drag Coefficients
-            virtual const scalarCellSet& Cd() = 0;
+            virtual const scalarCellSet& Cd() const = 0;
+
 
         //- Canopy source terms to the transport equations
 
@@ -168,16 +172,6 @@ protected:
 
     // Protected data
 
-        //- Cell Set of Canopy Influence
-        labelHashSet cells_;
-
-        // Cell Set Fields
-
-            //- Leaf Area Density [m^-1]
-            dimensionedScalarCellSet lad_;
-
-            //- Drag Coefficients
-            scalarCellSet   Cd_;
 
 public:
             
@@ -212,19 +206,6 @@ public:
             return *this;
         }
         
-        //- Access to canopy form-related variables
-
-            //- Leaf Area Density [m^-1]
-            virtual const dimensionedScalarCellSet& lad()
-            {
-                return lad_;
-            }
-
-            //- Drag Coefficients
-            virtual const scalarCellSet& Cd()
-            {
-                return Cd_;
-            }
 };
 }
 
