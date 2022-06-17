@@ -33,17 +33,21 @@ SourceFiles
 \*---------------------------------------------------------------------------*/
 
 #include "className.H"
-#include "triSurfaceBasicCanopy.H"
-#include "basicCanopy.H"
+#include "triSurfaceDragCanopy.H"
+#include "dragCanopy.H"
 #include "addToRunTimeSelectionTable.H"
 
 namespace Foam
 {
-    typedef triSurfaceBasicCanopy<basicCanopy> triSurfaceBasicCanopyModel;
+    // This is the typical specialization of the templates (without physics
+    // yet)
+    typedef triSurfaceDragCanopy<dragCanopy::composite> triSurfaceDragCanopyModel;
     defineTemplateTypeNameAndDebugWithName
     (
-      triSurfaceBasicCanopyModel, 
-      "triSurfaceBasicCanopyModel",
+      triSurfaceDragCanopyModel, 
+      "triSurfaceDragCanopyModel",
       1
     );
+    addToRunTimeSelectionTable(basicCanopy, triSurfaceDragCanopyModel, fvMesh);
+    addToRunTimeSelectionTable(dragCanopy, triSurfaceDragCanopyModel, fvMesh);
 } 

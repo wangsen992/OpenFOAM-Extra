@@ -68,4 +68,7 @@ Foam::basicCanopy::implementation::implementation
 
 // * * * * * * * * * * * * * * * * Selectors * * * * * * * * * * * * * * * * //
 // * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
+Foam::basicCanopy::~basicCanopy() {};
+
+Foam::basicCanopy::implementation::~implementation() {};
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
