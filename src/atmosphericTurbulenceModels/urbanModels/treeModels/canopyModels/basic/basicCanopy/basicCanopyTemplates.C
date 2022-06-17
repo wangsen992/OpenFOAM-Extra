@@ -55,9 +55,11 @@ Foam::autoPtr<Canopy> Foam::basicCanopy::New
     Info << "Selecting canopy model type " << canopyType << endl;
 
     typename Canopy::fvMeshConstructorTable::iterator cstrIter = 
-        fvMeshConstructorTablePtr_->find(canopyType);
+        Canopy::fvMeshConstructorTablePtr_->find(canopyType);
 
-    if (cstrIter == fvMeshConstructorTablePtr_->end())
+    Info << "Completed finding table ptr.. " << endl;
+
+    if (cstrIter == Canopy::fvMeshConstructorTablePtr_->end())
     {
         FatalErrorInFunction
             << "Unknown canopy model type "
@@ -67,7 +69,7 @@ Foam::autoPtr<Canopy> Foam::basicCanopy::New
             << exit(FatalError);
     }
 
-    return autoPtr<basicCanopy>
+    return autoPtr<Canopy>
     (
         cstrIter()(mesh)
     );

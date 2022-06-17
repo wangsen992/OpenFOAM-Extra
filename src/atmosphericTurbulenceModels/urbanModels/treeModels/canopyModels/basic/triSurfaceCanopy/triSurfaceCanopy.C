@@ -35,7 +35,7 @@ namespace Foam
 template<class BasicCanopy>
 dimensionedScalarCellSet triSurfaceCanopy<BasicCanopy>::calcLAD
 (
-    polyMesh& mesh,
+    const polyMesh& mesh,
     triSurfaceMesh& surface,
     labelHashSet& cellsIndex
 )
@@ -96,7 +96,7 @@ dictionary triSurfaceCanopy<BasicCanopy>::coeffs()
 template<class BasicCanopy>
 triSurfaceCanopy<BasicCanopy>::triSurfaceCanopy
 (
-    fvMesh& mesh
+    const fvMesh& mesh
 )
 :
     BasicCanopy(mesh),
@@ -125,7 +125,7 @@ triSurfaceCanopy<BasicCanopy>::triSurfaceCanopy
     labelList cells = canopyCells_.sortedToc();
     forAll(cells, i)
     {
-        Cd_[cells[i]] = Cd;
+        Cd_.set(cells[i], Cd);
     }
 }
 

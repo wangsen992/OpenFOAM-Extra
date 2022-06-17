@@ -22,25 +22,25 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::triSurfaceBasicCanopy
+    Foam::triSurfaceDragCanopy
 
 Description
     A test implementation that does not include a drag model yet
 
 SourceFiles
-    triSurfaceBasicCanopy.C
+    triSurfaceDragCanopy.C
 
 \*---------------------------------------------------------------------------*/
 
-#include "triSurfaceBasicCanopy.H"
+#include "triSurfaceDragCanopy.H"
 
 
 // * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
 
-template<class BasicCanopy>
-void Foam::triSurfaceBasicCanopy<BasicCanopy>::calculate()
+template<class BasicDragCanopy>
+void Foam::triSurfaceDragCanopy<BasicDragCanopy>::calculate()
 {
-    if (BasicCanopy::debug)
+    if (debug)
     {
         Info << "Running calculate..." << endl;
     }
@@ -48,24 +48,24 @@ void Foam::triSurfaceBasicCanopy<BasicCanopy>::calculate()
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-template<class BasicCanopy>
-Foam::triSurfaceBasicCanopy<BasicCanopy>::triSurfaceBasicCanopy
+template<class BasicDragCanopy>
+Foam::triSurfaceDragCanopy<BasicDragCanopy>::triSurfaceDragCanopy
 (
     const fvMesh& mesh
 )
 :
-    triSurfaceBasicCanopy<BasicCanopy>(mesh)
+    triSurfaceCanopy<BasicDragCanopy>(mesh)
 {
     calculate();
 }
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-template<class BasicCanopy>
-void Foam::triSurfaceBasicCanopy<BasicCanopy>::correct()
+template<class BasicDragCanopy>
+void Foam::triSurfaceDragCanopy<BasicDragCanopy>::correct()
 {
     
-    if (BasicCanopy::debug)
+    if (debug)
     {
         Info << "Running correct..." << endl;
     }

@@ -78,7 +78,7 @@ protected:
 
         static dimensionedScalarCellSet calcLAD
         (
-            polyMesh& mesh,
+            const polyMesh& mesh,
             triSurfaceMesh& surface,
             labelHashSet& cellsSet
         );
@@ -92,7 +92,7 @@ public:
         //- Construct from mesh
         triSurfaceCanopy
         (
-          fvMesh& mesh
+          const fvMesh& mesh
         );
     
     //- Destructor

@@ -22,13 +22,13 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::triSurfaceBasicCanopy
+    Foam::triSurfaceDragCanopy
 
 Description
     A test implementation that does not include a drag model yet
 
 SourceFiles
-    triSurfaceBasicCanopy.C
+    triSurfaceDragCanopy.C
 
 \*---------------------------------------------------------------------------*/
 
@@ -47,10 +47,10 @@ namespace Foam
                          Class triSurfaceBasicCanopy Declaration
 \*---------------------------------------------------------------------------*/
 
-template<class BasicCanopy>
-class triSurfaceBasicCanopy
+template<class BasicDragCanopy>
+class triSurfaceDragCanopy
 :
-    public triSurfaceCanopy<BasicCanopy>
+    public triSurfaceCanopy<BasicDragCanopy>
 {
     // Private Member Functions
 
@@ -60,23 +60,23 @@ class triSurfaceBasicCanopy
 public:
 
     //- Runtime type information
-    TypeName("triSurfaceBasicCanopy");
+    TypeName("triSurfaceDragCanopy");
 
 
     // Constructors
 
         //- Construct from mesh and phase name
-        triSurfaceBasicCanopy
+        triSurfaceDragCanopy
         (
             const fvMesh&
         );
 
         //- Disallow default bitwise copy construction
-        triSurfaceBasicCanopy(const triSurfaceBasicCanopy<BasicCanopy>&) = delete;
+        triSurfaceDragCanopy(const triSurfaceDragCanopy<BasicDragCanopy>&) = delete;
 
 
     //- Destructor
-    virtual ~triSurfaceBasicCanopy(){};
+    virtual ~triSurfaceDragCanopy(){};
     
     // Member Functions
 
@@ -89,7 +89,7 @@ public:
         //- Disallow default bitwise assignment
         void operator=
         (
-            const triSurfaceBasicCanopy<BasicCanopy>&
+            const triSurfaceDragCanopy<BasicDragCanopy>&
         ) = delete;
 
 };
@@ -100,7 +100,7 @@ public:
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 #ifdef NoRepository
-    #include "triSurfaceBasicCanopy.C"
+    #include "triSurfaceDragCanopy.C"
 #endif
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

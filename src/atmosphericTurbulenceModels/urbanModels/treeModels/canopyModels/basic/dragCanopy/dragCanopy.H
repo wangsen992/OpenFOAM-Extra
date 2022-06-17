@@ -35,6 +35,8 @@ SourceFiles
 #ifndef dragCanopy_H
 #define dragCanopy_H
 
+#include "basicCanopy.H"
+
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 
 namespace Foam
@@ -43,17 +45,125 @@ namespace Foam
                           Class heThermo Declaration
 \*---------------------------------------------------------------------------*/
 
+class dragCanopy
+:
+    virtual public basicCanopy
+{
+public:
+    
+    // Public Classes
 
+        //- Forward declare the implementation class
+        class implementation;
+
+        //- Forward declare the implementation class
+        class composite;
+
+        //- Runtime type information
+        TypeName("dragCanopy");
+
+        //- Declare run-time constructor selection table
+        declareRunTimeSelectionTable
+        (
+            autoPtr,
+            dragCanopy,
+            fvMesh,
+            (const fvMesh& mesh),
+            (mesh)
+        );
+        
+    // Selectors
+
+        //- Standard selection based on fvMesh
+        static autoPtr<dragCanopy> New
+        (
+            const fvMesh&
+        );
+        
+    //- Destructor
+    virtual ~dragCanopy(){};
+
+    // Member Functions
+    
+        //- Canopy source terms to the transport equations
+
+            //- Source term to momentum equation
+            virtual dimensionedVectorCellSet& fU() = 0;
+
+         //    //- Source term to temperature equation
+         //    virtual dimensionedScalarCellSet& fT() = 0;
+
+         //    //- Source term to species equation
+         //    virtual dimensionedScalarCellSet& fY(const label specie) = 0;
+         //    virtual dimensionedScalarCellSet& fY(const word& specieName) = 0;
+};
+
+/*---------------------------------------------------------------------------*\
+                 Class dragCanopy::implementation Declaration
+\*---------------------------------------------------------------------------*/
+
+class dragCanopy::implementation
+:
+    virtual public dragCanopy
+{
+protected:
+    
+    // Protected Data 
+
+        // Momentum Source
+        dimensionedVectorCellSet fU_;
+
+public:
+
+    // Constructors
+
+        //- Construct from mesh
+        implementation(const fvMesh&);
+    
+      
+    //- Destructor
+    virtual ~implementation(){};
+    
+    // Member Functions
+    
+          //- Source term to momentum equation
+          virtual dimensionedVectorCellSet& fU(){return fU_;};
+
+    // Member Operators
+
+          //- Disallow default bitwise assignment
+          void operator=(const implementation&) = delete;
+};
+
+/*---------------------------------------------------------------------------*\
+                 Class dragCanopy::composite Declaration
+\*---------------------------------------------------------------------------*/
+
+class dragCanopy::composite
+:
+    public basicCanopy::implementation,
+    public dragCanopy::implementation
+{
+public:
+
+    // Constructors
+
+        //- Construct from mesh
+        composite
+        (
+            const fvMesh& mesh
+        )
+        :
+            basicCanopy::implementation(mesh),
+            dragCanopy::implementation(mesh)
+        {}
+};
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace Foam
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-
-#ifdef NoRepository
-    #include "dragCanopy.C"
-#endif
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

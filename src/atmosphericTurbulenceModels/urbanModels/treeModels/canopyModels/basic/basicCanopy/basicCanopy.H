@@ -105,19 +105,6 @@ public:
             const fvMesh&
         );
         
-        //- Generic New for each of the related thermodynamics packages with
-        // dictionary (within which cellSet is specified, and more control 
-        // for LAD and Cd)
-        // template<class Canopy>
-        // static autoPtr<Canopy> New
-        // (
-        //     const fvMesh&,
-        //     const dictionary&
-        // );
-
-        //- To-Do: Other specializations of New
-        
-    
     //- Destructor
     virtual ~basicCanopy();
     
@@ -144,17 +131,6 @@ public:
             virtual const scalarCellSet& Cd() const = 0;
 
 
-        //- Canopy source terms to the transport equations
-
-            //- Source term to momentum equation
-            virtual tmp<dimensionedVectorCellSet> fU() = 0;
-
-            //- Source term to temperature equation
-            virtual tmp<dimensionedScalarCellSet> fT() = 0;
-
-            //- Source term to species equation
-            virtual tmp<dimensionedScalarCellSet> fY(const label specie) = 0;
-            virtual tmp<dimensionedScalarCellSet> fY(const word& specieName) = 0;
 
 };
 
@@ -183,11 +159,9 @@ public:
 
     // Constructors
 
-        //- Construct from mesh and cellSet
+        //- Construct from mesh
         implementation(const fvMesh&);
-
-        // //- Construct from mesh and arbitrary dictionary
-        // implementation(const fvMesh&, const dictionary&);
+        
 
     //- Destructor
     virtual ~implementation();
