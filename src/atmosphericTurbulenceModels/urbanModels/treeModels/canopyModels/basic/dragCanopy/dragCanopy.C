@@ -43,7 +43,8 @@ Foam::dragCanopy::implementation::implementation
 )
 :
     fU_(1)
-{}
+{
+}
 
 // * * * * * * * * * * * * * * * * Selectors * * * * * * * * * * * * * * * * //
 Foam::autoPtr<Foam::dragCanopy> Foam::dragCanopy::New

@@ -57,7 +57,8 @@ Foam::basicCanopy::implementation::implementation
         IOobject::MUST_READ_IF_MODIFIED,
         IOobject::NO_WRITE
       )
-    )
+    ),
+    mesh_(mesh)
 {
     if (basicCanopy::debug)
     {
