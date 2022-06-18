@@ -110,6 +110,9 @@ public:
     
     // Member Functions
 
+        //- Return access to mesh
+        virtual const fvMesh& mesh() const = 0;
+
         //- Return the dictionary
         virtual const IOdictionary& properties() const = 0;
 
@@ -148,6 +151,8 @@ protected:
 
     // Protected data
 
+        // Holds a constant reference to fvMesh
+        const fvMesh& mesh_;
 
 public:
             
@@ -167,6 +172,9 @@ public:
     virtual ~implementation();
 
     // Member Functions
+    
+        //- Return access to mesh
+        virtual const fvMesh& mesh() const { return mesh_;};
 
         //- Return the dictionary
         virtual const IOdictionary& properties() const

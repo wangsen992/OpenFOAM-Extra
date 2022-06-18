@@ -44,6 +44,33 @@ void Foam::triSurfaceDragCanopy<BasicDragCanopy>::calculate()
     {
         Info << "Running calculate..." << endl;
     }
+
+    const fvMesh& mesh_ (this->mesh());
+
+    // Get velocity field
+    const volVectorField& UCells 
+      = mesh_.lookupObjectRef<volVectorField>("U");
+    
+    if (debug)
+    {
+        Info << "Size of U: " << UCells.size() << endl;
+    }
+
+    // Prepare for assigning values
+    labelList cells = this->canopyCells().sortedToc();
+    scalarCellSet& CdCells = this->Cd_;
+    dimensionedScalarCellSet& ladCells = this->lad_;
+
+    // Assign fU values based on simple drag model
+    forAll(cells, i)
+    {
+        this->fU_.insert
+        (
+          cells[i],
+          CdCells[cells[i]] * mag(UCells[cells[i]]) * ladCells[cells[i]] * UCells[cells[i]]
+        );
+    }
+
 }
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
@@ -56,6 +83,7 @@ Foam::triSurfaceDragCanopy<BasicDragCanopy>::triSurfaceDragCanopy
 :
     triSurfaceCanopy<BasicDragCanopy>(mesh)
 {
+    this->fU_.resize(this->canopyCells().toc().size());
     calculate();
 }
 
