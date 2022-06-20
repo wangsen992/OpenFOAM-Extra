@@ -87,7 +87,7 @@ public:
     
         //- Canopy source terms to the transport equations
 
-            //- Source term to momentum equation
+            //- Source term to momentum equation [m/s^2]
             virtual dimensionedVectorCellSet& fU() = 0;
 
          //    //- Source term to temperature equation

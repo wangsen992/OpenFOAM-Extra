@@ -24,12 +24,6 @@ License
 Class
     Foam::triSurfaceDragCanopy
 
-Description
-    A test implementation that does not include a drag model yet
-
-SourceFiles
-    triSurfaceDragCanopy.C
-
 \*---------------------------------------------------------------------------*/
 
 #include "triSurfaceDragCanopy.H"
@@ -64,13 +58,12 @@ void Foam::triSurfaceDragCanopy<BasicDragCanopy>::calculate()
     // Assign fU values based on simple drag model
     forAll(cells, i)
     {
-        this->fU_.insert
-        (
-          cells[i],
-          CdCells[cells[i]] * mag(UCells[cells[i]]) * ladCells[cells[i]] * UCells[cells[i]]
-        );
+        this->fU_[cells[i]] = 
+          CdCells[cells[i]] 
+          * dimensionedScalar(dimVelocity, mag(UCells[cells[i]]))
+          * ladCells[cells[i]] 
+          * dimensionedVector(dimVelocity, UCells[cells[i]]);
     }
-
 }
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
@@ -83,7 +76,16 @@ Foam::triSurfaceDragCanopy<BasicDragCanopy>::triSurfaceDragCanopy
 :
     triSurfaceCanopy<BasicDragCanopy>(mesh)
 {
+    labelList cells = this->canopyCells().sortedToc();
     this->fU_.resize(this->canopyCells().toc().size());
+    forAll(cells, i)
+    {
+        this->fU_.insert
+        (
+          cells[i],
+          dimensionedVector(dimVelocity/dimTime, vector(0,0,0))
+        );
+    }
     calculate();
 }
 
