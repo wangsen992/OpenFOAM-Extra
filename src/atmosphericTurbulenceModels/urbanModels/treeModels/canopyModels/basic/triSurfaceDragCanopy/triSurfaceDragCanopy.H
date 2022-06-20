@@ -25,7 +25,7 @@ Class
     Foam::triSurfaceDragCanopy
 
 Description
-    A test implementation that does not include a drag model yet
+    A test implementation that has a basic drag model on U only
 
 SourceFiles
     triSurfaceDragCanopy.C
@@ -73,7 +73,6 @@ public:
 
         //- Disallow default bitwise copy construction
         triSurfaceDragCanopy(const triSurfaceDragCanopy<BasicDragCanopy>&) = delete;
-
 
     //- Destructor
     virtual ~triSurfaceDragCanopy(){};
