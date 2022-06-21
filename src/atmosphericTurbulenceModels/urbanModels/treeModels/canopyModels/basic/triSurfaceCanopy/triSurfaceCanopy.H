@@ -48,7 +48,7 @@ namespace Foam
                           Class triSurfaceCanopy Declaration
 \*---------------------------------------------------------------------------*/
 
-template<class BasicCanopy>
+template<class BasicCanopy, class FoliageModelType>
 class triSurfaceCanopy
 :
     public BasicCanopy
