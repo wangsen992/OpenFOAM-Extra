@@ -1,0 +1,30 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Website:  https://openfoam.org
+    \\  /    A nd           | Version:  9
+     \\/     M anipulation  |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    format      ascii;
+    class       dictionary;
+    location    "constant";
+    object      canopyProperties;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+canopyType      triSurfaceDragCanopyModel;
+
+triSurfaceCanopyCoeffs
+{
+    X         3;
+    Y         10;
+    surface     "dense_tree.obj";
+}
+
+triSurfaceDragCanopyCoeffs
+{
+    X         3;
+    Y         10;
+}

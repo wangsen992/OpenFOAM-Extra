@@ -1,0 +1,40 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Website:  https://openfoam.org
+    \\  /    A nd           | Version:  9
+     \\/     M anipulation  |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    format      ascii;
+    class       dictionary;
+    location    "constant";
+    object      fvModels;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+geostrophicForce
+{
+    type            geostrophicForce;
+
+    selectionMode   all;
+
+		UName						U;
+		Ug							(10 0 0);
+		f								(0 0 1e-4);
+}
+
+boussinesqBuoyancyForce
+{
+		type						boussinesqBuoyancyForce;
+
+		selectionMode		all;
+
+		UName						U;
+		theta0					300;
+		g								(0 0 -10);
+}
+
+
+// ************************************************************************* //
