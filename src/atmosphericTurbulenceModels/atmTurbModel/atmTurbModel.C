@@ -155,18 +155,6 @@ Foam::atmTurbModel::atmTurbModel(IOobject io)
     thermo_->lwc()
   ),
   pressureReference_(thermo_->p(), pimple_.dict()),
-  g_
-  (
-    IOobject
-    (
-      "g",
-      mesh_.time().timeName(),
-      mesh_,
-      IOobject::NO_READ,
-      IOobject::NO_WRITE
-    ),
-    dimensionedVector("g", atmTurbDict_.lookup("g"))
-  ),
   turbulence_
   (
     compressible::momentumTransportModel::New
@@ -179,7 +167,7 @@ Foam::atmTurbModel::atmTurbModel(IOobject io)
   ),
   transport_
   (
-    fluidThermophysicalTransportModel::New(turbulence_, thermo_)
+    fluidAtmThermophysicalTransportModel::New(turbulence_, thermo_)
   ),
   radiation_
   (
@@ -190,7 +178,11 @@ Foam::atmTurbModel::atmTurbModel(IOobject io)
   UEqn_(),
   thetaEqn_(),
   qEqn_(),
-  lwcEqn_()
+  lwcEqn_(),
+  g_
+  (
+      mesh_.lookupObjectRef<uniformDimensionedVectorField>("g")
+  )
 {
   // creating fields
   mesh_.setFluxRequired(p_rgh_.name());

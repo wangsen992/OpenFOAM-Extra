@@ -23,6 +23,7 @@ License
 
 \*---------------------------------------------------------------------------*/
 
+#include "IOobject.H"
 #include "boussinesqBuoyancyForce.H"
 #include "fvMatrices.H"
 #include "addToRunTimeSelectionTable.H"
@@ -84,13 +85,27 @@ Foam::fv::boussinesqBuoyancyForce::boussinesqBuoyancyForce
     ),
     theta0_
     (
-        "theta0", 
-        dimTemperature, 
-        scalar(coeffs().lookup<scalar>("theta0"))
+      IOobject
+      (
+        "theta0",
+        mesh.time().timeName(),
+        mesh,
+        IOobject::NO_READ,
+        IOobject::NO_WRITE
+      ),
+      dimensionedScalar("theta0", coeffs().lookup("theta0"))
     ),
     g_
     (
-        mesh.lookupObjectRef<uniformDimensionedVectorField>("g")
+      IOobject
+      (
+        "g",
+        mesh.time().timeName(),
+        mesh,
+        IOobject::NO_READ,
+        IOobject::NO_WRITE
+      ),
+      dimensionedVector("g", coeffs().lookup("g"))
     ),
     pthermo_
     (

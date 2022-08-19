@@ -32,7 +32,8 @@ Description
 #include "dynamicMomentumTransportModel.H"
 #include "pimpleControl.H"
 #include "pressureReference.H"
-#include "fluidThermophysicalTransportModel.H"
+// #include "fluidThermophysicalTransportModel.H"
+#include "fluidAtmThermophysicalTransportModel.H"
 #include "fvModels.H"
 #include "fvConstraints.H"
 #include "radiationModel.H"
@@ -70,13 +71,12 @@ protected:
 
     pressureReference pressureReference_;
 
-    uniformDimensionedVectorField g_; // gravititational acceleration
 
     // Instantiate for turbulence modeling (eddy viscosity)
     autoPtr<compressible::momentumTransportModel> turbulence_;
     // Instantiate for thermal turbulent modeling & scalar modeling (eddy
     // diffusivities)
-    autoPtr<fluidThermophysicalTransportModel> transport_;
+    autoPtr<fluidAtmThermophysicalTransportModel> transport_;
     autoPtr<radiationModel> radiation_;
     fvModels& fvModels_;
     fvConstraints& fvConstraints_;
@@ -85,6 +85,8 @@ protected:
     tmp<fvScalarMatrix> thetaEqn_;
     tmp<fvScalarMatrix> qEqn_;
     tmp<fvScalarMatrix> lwcEqn_;
+
+    uniformDimensionedVectorField& g_; // gravititational acceleration
 
     // Protected Static Function
     static volScalarField& lookupOrConstructScalar

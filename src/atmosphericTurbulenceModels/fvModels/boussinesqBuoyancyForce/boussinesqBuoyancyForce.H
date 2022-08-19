@@ -80,10 +80,10 @@ class boussinesqBuoyancyForce
         volVectorField& U_;
 
         //- Reference Temperature
-        dimensionedScalar theta0_;
+        uniformDimensionedScalarField theta0_;
 
         //- Gravitational Acceleration
-        uniformDimensionedVectorField& g_;
+        uniformDimensionedVectorField g_;
 
         //- Thermophysical Model
         autoPtr<fluidAtmThermo> pthermo_;
