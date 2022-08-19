@@ -38,15 +38,6 @@ namespace LESModels
 
 // * * * * * * * * * * * * Protected Member Functions  * * * * * * * * * * * //
 template<class BasicMomentumTransportModel>
-void incompressibleKEqn<BasicMomentumTransportModel>::correctl()
-{
-    
-    // assumed to be the same as grid delta by default, 
-    // to be modified with stratification
-    l_ = this->delta();
-}
-
-template<class BasicMomentumTransportModel>
 void incompressibleKEqn<BasicMomentumTransportModel>::correctNut()
 {
     this->nut_ = 0.10 * l_ *sqrt(k_);
@@ -118,7 +109,20 @@ incompressibleKEqn<BasicMomentumTransportModel>::incompressibleKEqn
             IOobject::NO_READ,
             IOobject::AUTO_WRITE
         ),
-        this->mesh_
+        this->delta()
+    ), 
+
+    delta_
+    (
+        IOobject
+        (
+            IOobject::groupName("delta", this->alphaRhoPhi_.group()),
+            this->runTime_.constant(), // for non-adaptive mesh
+            this->mesh_,
+            IOobject::NO_READ,
+            IOobject::AUTO_WRITE
+        ),
+        this->delta()
     )
 {
     bound(k_, this->kMin_);
@@ -205,7 +209,6 @@ void incompressibleKEqn<BasicMomentumTransportModel>::correct()
     fvConstraints.constrain(k_);
     bound(k_, this->kMin_);
 
-    correctl();
     correctNut();
 }
 

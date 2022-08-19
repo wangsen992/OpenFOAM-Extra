@@ -79,13 +79,15 @@ protected:
             // Subgrid-scale mixing length
             volScalarField l_;
 
+            // Subgrid-scale
+            volScalarField delta_;
+
 
         // Model constants
 
     // Protected Member Functions
 
         // correctl() is to be overwritten in the thermophysical model
-        virtual void correctl();
         virtual void correctNut();
         virtual tmp<fvScalarMatrix> kSource() const;
 
