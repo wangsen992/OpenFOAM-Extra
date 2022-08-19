@@ -23,7 +23,7 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "Deardorff1980EddyDiffusivity.H"
+// #include "Deardorff1980EddyDiffusivity.H"
 #include "fvmLaplacian.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
