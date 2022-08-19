@@ -25,26 +25,26 @@ Class
     Foam::turbulenceThermophysicalTransportModels::Deardorff1980EddyDiffusivity
 
 Description
-    Eddy-diffusivity based energy gradient heat flux model for RAS or LES
-    of turbulent flow.  Specie fluxes are computed assuming a unity turbulent
-    Lewis number.
-
+    Eddy-diffusivity based energy gradient heat flux model for LES
+    of turbulent flow.  
 Usage
     \verbatim
     LES
     {
-        model           unityLewisEddyDiffusivity;
-        Prt             0.85;
+        model           Deardorff1980EddyDiffusivity;
     }
     \endverbatim
 
 SourceFiles
-    unityLewisEddyDiffusivity.C
+    Deardorff1980EddyDiffusivity.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef unityLewisEddyDiffusivity_H
-#define unityLewisEddyDiffusivity_H
+#include "dynamicMomentumTransportModel.H"
+#include "fluidAtmThermo.H"
+
+#ifndef Deardorff1980EddyDiffusivity_H
+#define Deardorff1980EddyDiffusivity_H
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -54,11 +54,11 @@ namespace turbulenceThermophysicalTransportModels
 {
 
 /*---------------------------------------------------------------------------*\
-                       Class unityLewisEddyDiffusivity Declaration
+                       Class Deardorff1980EddyDiffusivity Declaration
 \*---------------------------------------------------------------------------*/
 
 template<class TurbulenceThermophysicalTransportModel>
-class unityLewisEddyDiffusivity
+class Deardorff1980EddyDiffusivity
 :
     public TurbulenceThermophysicalTransportModel
 {
@@ -69,17 +69,25 @@ protected:
 
         // Model coefficients
 
-            //- Turbulent Prandtl number []
-            dimensionedScalar Prt_;
-
         // Fields
 
             //- Turbulent thermal diffusivity of enthalpy [kg/m/s]
             volScalarField alphat_;
 
+            //- Turbulence Transport Model
+            const fluidAtmThermo&     thermo_;
+            const compressible::momentumTransportModel&    turbulence_;
+            
+            // Subgrid-scale mixing length
+            volScalarField& l_;
+
+            // Subgrid-scale
+            volScalarField& delta_;
+
 
     // Protected Member Functions
 
+        virtual void correctl();
         virtual void correctAlphat();
 
 
@@ -97,13 +105,13 @@ public:
 
 
     //- Runtime type information
-    TypeName("unityLewisEddyDiffusivity");
+    TypeName("Deardorff1980EddyDiffusivity");
 
 
     // Constructors
 
         //- Construct from a momentum transport model and a thermo model
-        unityLewisEddyDiffusivity
+        Deardorff1980EddyDiffusivity
         (
             const momentumTransportModel& momentumTransport,
             const thermoModel& thermo
@@ -112,7 +120,7 @@ public:
         //- Construct from a type name, a momentum transport model and a thermo
         //  model, and whether to default the turbulent Prandtl number to one
         //  if it is not specified
-        unityLewisEddyDiffusivity
+        Deardorff1980EddyDiffusivity
         (
             const word& type,
             const momentumTransportModel& momentumTransport,
@@ -122,7 +130,7 @@ public:
 
 
     //- Destructor
-    virtual ~unityLewisEddyDiffusivity()
+    virtual ~Deardorff1980EddyDiffusivity()
     {}
 
 
@@ -212,7 +220,7 @@ public:
         //- Return the source term for the given specie mass-fraction equation
         virtual tmp<fvScalarMatrix> divj(volScalarField& Yi) const;
 
-        //- Correct the unityLewisEddyDiffusivity viscosity
+        //- Correct the Deardorff1980EddyDiffusivity viscosity
         virtual void correct();
 };
 
@@ -225,7 +233,7 @@ public:
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 #ifdef NoRepository
-    #include "unityLewisEddyDiffusivity.C"
+    #include "Deardorff1980EddyDiffusivity.C"
 #endif
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

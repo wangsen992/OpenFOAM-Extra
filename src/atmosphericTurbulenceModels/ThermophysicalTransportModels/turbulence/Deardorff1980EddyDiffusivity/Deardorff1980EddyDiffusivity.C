@@ -23,7 +23,7 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "unityLewisEddyDiffusivity.H"
+#include "Deardorff1980EddyDiffusivity.H"
 #include "fvmLaplacian.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -34,14 +34,58 @@ namespace turbulenceThermophysicalTransportModels
 {
 
 // * * * * * * * * * * * * Protected Member Functions  * * * * * * * * * * * //
+template<class TurbulenceThermophysicalTransportModel>
+void Deardorff1980EddyDiffusivity<TurbulenceThermophysicalTransportModel>::
+correctl()
+{
+    // Load variable data into space
+    const volScalarField& k(turbulence_.k()());
+    uniformDimensionedVectorField& g
+    (
+        turbulence_.mesh()
+        . lookupObjectRef<uniformDimensionedVectorField>("g")
+    );
+    uniformDimensionedScalarField& theta0
+    (
+        turbulence_.mesh()
+        . lookupObjectRef<uniformDimensionedScalarField>("theta0")
+    );
+
+    tmp<volScalarField> tdtheta_vdz
+    (
+      fvc::grad(thermo_.theta_v())->component(2)
+    );
+    const volScalarField& dtheta_vdz(tdtheta_vdz.ref());
+    
+    // Testing Stage
+    forAll(dtheta_vdz, celli)
+    {
+      if (dtheta_vdz[celli] <= 0)
+      {
+         l_[celli] = delta_[celli];
+      }
+      else 
+      {
+          l_[celli] = 0.76 
+            * sqrt(k[celli] * theta0[celli]
+                 / mag(g[celli] / dtheta_vdz[celli]));
+
+          if (l_[celli] > delta_[celli])
+          {
+              l_[celli] = delta_[celli];
+          }
+      }
+    }
+}
 
 template<class TurbulenceThermophysicalTransportModel>
-void unityLewisEddyDiffusivity<TurbulenceThermophysicalTransportModel>::
+void Deardorff1980EddyDiffusivity<TurbulenceThermophysicalTransportModel>::
 correctAlphat()
 {
     alphat_ =
-        this->momentumTransport().rho()
-       *this->momentumTransport().nut()/Prt_;
+        (1 + 2 * l_ / delta_)
+       *this->momentumTransport().rho()
+       *this->momentumTransport().nut();
     alphat_.correctBoundaryConditions();
 }
 
@@ -49,14 +93,14 @@ correctAlphat()
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
 template<class TurbulenceThermophysicalTransportModel>
-unityLewisEddyDiffusivity<TurbulenceThermophysicalTransportModel>::
-unityLewisEddyDiffusivity
+Deardorff1980EddyDiffusivity<TurbulenceThermophysicalTransportModel>::
+Deardorff1980EddyDiffusivity
 (
     const momentumTransportModel& momentumTransport,
     const thermoModel& thermo
 )
 :
-    unityLewisEddyDiffusivity
+    Deardorff1980EddyDiffusivity
     (
         typeName,
         momentumTransport,
@@ -67,8 +111,8 @@ unityLewisEddyDiffusivity
 
 
 template<class TurbulenceThermophysicalTransportModel>
-unityLewisEddyDiffusivity<TurbulenceThermophysicalTransportModel>::
-unityLewisEddyDiffusivity
+Deardorff1980EddyDiffusivity<TurbulenceThermophysicalTransportModel>::
+Deardorff1980EddyDiffusivity
 (
     const word& type,
     const momentumTransportModel& momentumTransport,
@@ -81,23 +125,6 @@ unityLewisEddyDiffusivity
         type,
         momentumTransport,
         thermo
-    ),
-
-    Prt_
-    (
-        allowDefaultPrt
-      ? dimensioned<scalar>::lookupOrAddToDict
-        (
-            "Prt",
-            this->coeffDict_,
-            1
-        )
-      : dimensioned<scalar>
-        (
-            "Prt",
-            dimless,
-            this->coeffDict_
-        )
     ),
 
     alphat_
@@ -115,18 +142,29 @@ unityLewisEddyDiffusivity
             IOobject::AUTO_WRITE
         ),
         momentumTransport.mesh()
+    ),
+    thermo_(thermo),
+    turbulence_(momentumTransport),
+    l_
+    (
+      turbulence_.mesh().lookupObjectRef<volScalarField>("l")
+    ),
+    delta_
+    (
+      turbulence_.mesh().lookupObjectRef<volScalarField>("delta")
     )
-{}
+{
+}
 
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
 template<class TurbulenceThermophysicalTransportModel>
-bool unityLewisEddyDiffusivity<TurbulenceThermophysicalTransportModel>::read()
+bool Deardorff1980EddyDiffusivity<TurbulenceThermophysicalTransportModel>::read()
 {
     if (TurbulenceThermophysicalTransportModel::read())
     {
-        Prt_.readIfPresent(this->coeffDict());
+        // Prt_.readIfPresent(this->coeffDict());
 
         return true;
     }
@@ -139,7 +177,7 @@ bool unityLewisEddyDiffusivity<TurbulenceThermophysicalTransportModel>::read()
 
 template<class TurbulenceThermophysicalTransportModel>
 tmp<surfaceScalarField>
-unityLewisEddyDiffusivity<TurbulenceThermophysicalTransportModel>::q() const
+Deardorff1980EddyDiffusivity<TurbulenceThermophysicalTransportModel>::q() const
 {
     return surfaceScalarField::New
     (
@@ -156,7 +194,7 @@ unityLewisEddyDiffusivity<TurbulenceThermophysicalTransportModel>::q() const
 
 template<class TurbulenceThermophysicalTransportModel>
 tmp<fvScalarMatrix>
-unityLewisEddyDiffusivity<TurbulenceThermophysicalTransportModel>::divq
+Deardorff1980EddyDiffusivity<TurbulenceThermophysicalTransportModel>::divq
 (
     volScalarField& he
 ) const
@@ -167,7 +205,7 @@ unityLewisEddyDiffusivity<TurbulenceThermophysicalTransportModel>::divq
 
 template<class TurbulenceThermophysicalTransportModel>
 tmp<surfaceScalarField>
-unityLewisEddyDiffusivity<TurbulenceThermophysicalTransportModel>::j
+Deardorff1980EddyDiffusivity<TurbulenceThermophysicalTransportModel>::j
 (
     const volScalarField& Yi
 ) const
@@ -186,7 +224,7 @@ unityLewisEddyDiffusivity<TurbulenceThermophysicalTransportModel>::j
 
 template<class TurbulenceThermophysicalTransportModel>
 tmp<fvScalarMatrix>
-unityLewisEddyDiffusivity<TurbulenceThermophysicalTransportModel>::divj
+Deardorff1980EddyDiffusivity<TurbulenceThermophysicalTransportModel>::divj
 (
     volScalarField& Yi
 ) const
@@ -196,10 +234,11 @@ unityLewisEddyDiffusivity<TurbulenceThermophysicalTransportModel>::divj
 
 
 template<class TurbulenceThermophysicalTransportModel>
-void unityLewisEddyDiffusivity<TurbulenceThermophysicalTransportModel>::
+void Deardorff1980EddyDiffusivity<TurbulenceThermophysicalTransportModel>::
 correct()
 {
     TurbulenceThermophysicalTransportModel::correct();
+    correctl();
     correctAlphat();
 }
 
