@@ -22,16 +22,16 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Typedef
-    Foam::incompressible::thermophysicalTransportModel
+    Foam::compressible::thermophysicalTransportModel
 
 Typedef
-    Foam::incompressible::laminarThermophysicalTransportModel
+    Foam::compressible::laminarThermophysicalTransportModel
 
 Typedef
-    Foam::incompressible::RASThermophysicalTransportModel
+    Foam::compressible::RASThermophysicalTransportModel
 
 Typedef
-    Foam::incompressible::LESThermophysicalTransportModel
+    Foam::compressible::LESThermophysicalTransportModel
 
 Description
     Typedefs for laminar, RAS and LES thermophysical transport models
@@ -46,7 +46,6 @@ Description
 #include "laminarThermophysicalTransportModel.H"
 #include "RASThermophysicalTransportModel.H"
 #include "LESThermophysicalTransportModel.H"
-// #include "kinematicMomentumTransportModel.H"
 #include "dynamicMomentumTransportModel.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

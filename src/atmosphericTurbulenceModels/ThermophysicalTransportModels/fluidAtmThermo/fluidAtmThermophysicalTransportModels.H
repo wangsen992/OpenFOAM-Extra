@@ -24,7 +24,6 @@ License
 \*---------------------------------------------------------------------------*/
 
 #include "fluidAtmThermophysicalTransportModel.H"
-// #include "kinematicMomentumTransportModels.H"
 #include "dynamicMomentumTransportModels.H"
 #include "makeThermophysicalTransportModel.H"
 #include "addToRunTimeSelectionTable.H"
@@ -43,7 +42,7 @@ makeThermophysicalTransportModelTypes
     makeThermophysicalTransportModel                                           \
     (                                                                          \
         ThermophysicalTransportModel,                                          \
-        dynamicTransportModelCompressibleMomentumTransportModel,           \
+        dynamicTransportModelCompressibleMomentumTransportModel,               \
         fluidAtmThermo,                                                   \
         laminar,                                                               \
         Type                                                                   \
@@ -53,7 +52,7 @@ makeThermophysicalTransportModelTypes
     makeTurbulenceThermophysicalTransportModel                                 \
     (                                                                          \
         ThermophysicalTransportModel,                                          \
-        dynamicTransportModelCompressibleMomentumTransportModel,           \
+        dynamicTransportModelCompressibleMomentumTransportModel,               \
         fluidAtmThermo,                                                   \
         SType,                                                                 \
         Type                                                                   \
@@ -63,7 +62,7 @@ makeThermophysicalTransportModelTypes
     makeThermophysicalTransportModel                                           \
     (                                                                          \
         ThermophysicalTransportModel,                                          \
-        dynamicTransportModelCompressibleMomentumTransportModel,           \
+        dynamicTransportModelCompressibleMomentumTransportModel,               \
         fluidAtmThermo,                                                   \
         RAS,                                                                   \
         Type                                                                   \
@@ -73,7 +72,7 @@ makeThermophysicalTransportModelTypes
     makeThermophysicalTransportModel                                           \
     (                                                                          \
         ThermophysicalTransportModel,                                          \
-        dynamicTransportModelCompressibleMomentumTransportModel,           \
+        dynamicTransportModelCompressibleMomentumTransportModel,               \
         fluidAtmThermo,                                                   \
         LES,                                                                   \
         Type                                                                   \
