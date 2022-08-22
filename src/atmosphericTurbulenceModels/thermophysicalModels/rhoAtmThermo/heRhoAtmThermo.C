@@ -75,10 +75,11 @@ void Foam::heRhoAtmThermo<BasicRhoThermo, MixtureType>::calculate()
     scalarField& muCells = this->mu_.primitiveFieldRef();
     scalarField& alphaCells = this->alpha_.primitiveFieldRef();
 
-    Info << "Data loading completed" << endl;
+    // Info << "Data loading completed" << endl;
     // Update internal cell values
     forAll(TCells, celli)
     {
+        // Info << "Working on " << celli <<  endl;
         const typename MixtureType::thermoMixtureType& thermoMixture =
             this->cellThermoMixture(celli);
 
@@ -88,10 +89,10 @@ void Foam::heRhoAtmThermo<BasicRhoThermo, MixtureType>::calculate()
         // [To-Do] This can be updated for more general method, including all
         // the gamma below
         // [To-Do] Gamma, Cp, Cv and T are iterative. Solve this
-        gamma = 1.4;
+        gamma = 0.2854; // Currently using gamma value of dry air
 
         TCells[celli] = thetaCells[celli] 
-                  / this->BasicRhoThermo::exner(pCells[celli], p0, gamma);
+                  * this->BasicRhoThermo::exner(pCells[celli], p0, gamma);
         hCells[celli] = thermoMixture.HE
         (
             pCells[celli],
@@ -107,7 +108,9 @@ void Foam::heRhoAtmThermo<BasicRhoThermo, MixtureType>::calculate()
         alphaCells[celli] =
             transportMixture.kappa(pCells[celli], TCells[celli])
            /thermoMixture.Cp(pCells[celli], TCells[celli]);
+        // Info << "Update on " << celli << " completed" << endl;
     }
+    // Info << "Internal Cell update completed" << endl;
 
     // Init reference of boundaryField
     volScalarField::Boundary& pBf =
@@ -197,8 +200,8 @@ void Foam::heRhoAtmThermo<BasicRhoThermo, MixtureType>::calculate()
                 pT[facei] = thermoMixture.THE(phe[facei], pp[facei], pT[facei]);
 
                 // gamma = pCp[facei] / pCv[facei];
-                gamma = 1.4;
-                pT[facei] = ptheta[facei] / this->BasicRhoThermo::exner(pp[facei], p0, gamma);
+                gamma = 0.2854;
+                pT[facei] = ptheta[facei] * this->BasicRhoThermo::exner(pp[facei], p0, gamma);
                 phe[facei] = thermoMixture.HE(pp[facei], pT[facei]);
 
                 pCp[facei] = thermoMixture.Cp(pp[facei], pT[facei]);
@@ -213,6 +216,7 @@ void Foam::heRhoAtmThermo<BasicRhoThermo, MixtureType>::calculate()
             }
         }
     }
+    Info << "Boundary cell update completed." << endl;
 }
 
 
