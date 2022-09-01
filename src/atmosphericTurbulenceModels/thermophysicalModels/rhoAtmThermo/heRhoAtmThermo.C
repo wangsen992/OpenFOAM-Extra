@@ -170,6 +170,9 @@ void Foam::heRhoAtmThermo<BasicRhoThermo, MixtureType>::calculate()
                     this->patchFaceTransportMixture
                     (patchi, facei, thermoMixture);
 
+                gamma = 0.2854;
+                pT[facei] = ptheta[facei] * this->BasicRhoThermo::exner(pp[facei], p0, gamma);
+
                 phe[facei] = thermoMixture.HE(pp[facei], pT[facei]);
 
                 pCp[facei] = thermoMixture.Cp(pp[facei], pT[facei]);
