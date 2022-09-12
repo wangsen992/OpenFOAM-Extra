@@ -73,9 +73,11 @@ tmp<fvScalarMatrix> Foam::atmTurbModel::thetaEqn()
     );
 
     volScalarField& radSourceT = tRadSourceT.ref();
-    radSourceT.primitiveFieldRef() += radiation_->Rp() / rhoCp;
+    // Corrected the conversion term 
+    radSourceT.primitiveFieldRef() += radiation_->Rp() * theta_ / thermo_->T() / rhoCp;
 
-    tmp<volScalarField> radSourceTheta(radSourceT / Exner);
+    // tmp<volScalarField> radSourceTheta(radSourceT / Exner);
+    tmp<volScalarField> radSourceTheta(radSourceT);
 
     // Solve theta equation
     tmp<fvScalarMatrix> tThetaEqn
