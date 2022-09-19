@@ -59,7 +59,10 @@ void Foam::heRhoAtmThermo<BasicRhoThermo, MixtureType>::calculate()
 {
 
     Info << "Running calculate() ..." << endl;
-    scalar gamma;
+    // [To-Do] This can be updated for more general method, including all
+    // the gamma below
+    // [To-Do] Gamma, Cp, Cv and T are iterative. Solve this
+    scalar gamma = 0.2854; // Currently using gamma value of dry air
     scalar p0 = this->p0_.value();
     // Initiate Initial value loading (those two should be updated) 
     const scalarField& pCells = this->p_;
@@ -85,10 +88,6 @@ void Foam::heRhoAtmThermo<BasicRhoThermo, MixtureType>::calculate()
         const typename MixtureType::transportMixtureType& transportMixture =
             this->cellTransportMixture(celli, thermoMixture);
 
-        // [To-Do] This can be updated for more general method, including all
-        // the gamma below
-        // [To-Do] Gamma, Cp, Cv and T are iterative. Solve this
-        gamma = 0.2854; // Currently using gamma value of dry air
 
         TCells[celli] = thetaCells[celli] 
                   * this->BasicRhoThermo::exner(pCells[celli], p0, gamma);

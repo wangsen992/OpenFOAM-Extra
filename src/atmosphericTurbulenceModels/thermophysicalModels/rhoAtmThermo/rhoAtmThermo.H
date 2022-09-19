@@ -26,7 +26,10 @@ Class
 
 Description
     Base-class for multi-component fluid thermodynamic properties based on
-    density. This class is borrowed from rhoReactionThermo to make subsequent modification available.
+    density. 
+
+    This class is borrowed from rhoReactionThermo to make subsequent modification 
+    available.
 
 See also
     Foam::basicThermo

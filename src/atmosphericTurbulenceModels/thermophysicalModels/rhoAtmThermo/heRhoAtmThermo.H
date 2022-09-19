@@ -25,7 +25,13 @@ Class
     Foam::heRhoAtmThermo
 
 Description
-    An analytical engine for the thermodynamics of a mixture in atm context
+    An analytical engine for the thermodynamics of a mixture in atm context for
+    using potential temperature as the conservative variable instead of internal
+    energy (or enthalpy) as typically used in OpenFOAM. 
+
+    To use this thermo class, potential temperature should be solved first, then
+    temperature is recovered from exner function available from fluidAtmThermo, 
+    then the rest of variables are recovered. 
 
 SourceFiles
     heRhoAtmThermo.C
