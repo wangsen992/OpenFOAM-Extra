@@ -42,9 +42,21 @@ Foam::fluidAtmThermo::implementation::implementation
 )
 :
     theta_(lookupOrConstruct(mesh, "theta")),
-    lwc_(lookupOrConstruct(mesh, "lwc")),
+    theta_v_(lookupOrConstruct(mesh, "theta_v")),
+    ql_(lookupOrConstruct(mesh, "ql")),
+    qw_(lookupOrConstruct(mesh, "qw")),
     p0_("p0", dimPressure, pow(10,5))
-{}
+{
+    theta_v_ = theta_ * ( 1 + 0.608 * this->q()
+              //  - this->lwc_ // This is currently disabled, need to be
+              //  careful when implementing
+              );
+
+    Info << "Check default value of ql: " << nl
+         << average(ql_) << endl;
+
+    qw_ = q() + ql();
+}
 
 // * * * * * * * * * * * * * * * * Selectors * * * * * * * * * * * * * * * * //
 
@@ -98,15 +110,40 @@ const Foam::volScalarField& Foam::fluidAtmThermo::implementation::theta() const
     return theta_;
 }
 
-Foam::volScalarField& Foam::fluidAtmThermo::implementation::lwc()
+Foam::volScalarField& Foam::fluidAtmThermo::implementation::theta_v()
 {
-    return lwc_;
+    
+    return theta_v_;
 }
 
-
-const Foam::volScalarField& Foam::fluidAtmThermo::implementation::lwc() const
+const Foam::volScalarField& Foam::fluidAtmThermo::implementation::theta_v() const
 {
-    return lwc_;
+    
+    return theta_v_;
+}
+
+Foam::volScalarField& Foam::fluidAtmThermo::implementation::ql()
+{
+    
+    return ql_;
+}
+
+const Foam::volScalarField& Foam::fluidAtmThermo::implementation::ql() const
+{
+    
+    return ql_;
+}
+
+Foam::volScalarField& Foam::fluidAtmThermo::implementation::qw()
+{
+    
+    return qw_;
+}
+
+const Foam::volScalarField& Foam::fluidAtmThermo::implementation::qw() const
+{
+    
+    return qw_;
 }
 
 const Foam::dimensionedScalar Foam::fluidAtmThermo::implementation::p0() const
@@ -124,25 +161,6 @@ const Foam::volScalarField& Foam::fluidAtmThermo::implementation::q() const
     return this->composition().Y("H2O");
 }
 
-Foam::tmp<Foam::volScalarField> Foam::fluidAtmThermo::implementation::theta_v() const
-{
-    
-    Foam::tmp<Foam::volScalarField> ttheta_v
-    (
-        Foam::volScalarField::New
-        (
-            "theta_v",
-            this->theta_ 
-            * (
-                1 + 0.608 * this->q()
-              //  - this->lwc_ // This is currently disabled, need to be
-              //  careful when implementing
-              )
-        )
-    );
-    return ttheta_v;
-}
-
 Foam::tmp<Foam::volScalarField> Foam::fluidAtmThermo::implementation::r() const
 {
     Foam::tmp<Foam::volScalarField> tr
@@ -158,11 +176,16 @@ Foam::tmp<Foam::volScalarField> Foam::fluidAtmThermo::implementation::r() const
 
 Foam::tmp<Foam::volScalarField> Foam::fluidAtmThermo::implementation::rl() const
 {
-    Info << "Returning theta for testing rl()" << endl;
-    return this->theta_;
+    Foam::tmp<Foam::volScalarField> trl
+    (
+        Foam::volScalarField::New
+        (
+            "rl",
+            ql_ / this->composition().Y("dryAir")
+        )
+    );
+    return trl;
 }
-
-
 Foam::tmp<Foam::volScalarField> Foam::fluidAtmThermo::implementation::pp
 (
   const label speciei

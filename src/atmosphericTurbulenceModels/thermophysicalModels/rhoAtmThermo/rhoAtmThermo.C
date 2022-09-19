@@ -64,4 +64,19 @@ Foam::rhoAtmThermo::~rhoAtmThermo()
 Foam::rhoAtmThermo::implementation::~implementation()
 {}
 
+// * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
+Foam::tmp<Foam::volScalarField> Foam::rhoAtmThermo::implementation::lwc() const
+{
+    Foam::tmp<Foam::volScalarField> tlwc
+    (
+      Foam::volScalarField::New
+      (
+        "lwc",
+        this->ql() * this->rho()
+      )
+    );
+
+    return tlwc;
+}
+
 // ************************************************************************* //

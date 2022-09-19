@@ -117,22 +117,3 @@ tmp<fvScalarMatrix> Foam::atmTurbModel::qEqn()
     return qEqn_;
 }
 
-tmp<fvScalarMatrix> Foam::atmTurbModel::lwcEqn()
-{
-    Info << "Init lwcEqn." << endl;
-    tmp<fvScalarMatrix> tlwcEqn
-    (
-        fvm::ddt(lwc_)
-      + fvm::div(phi_, lwc_)
-      == 
-        // Warning: nut() is used instead of alphaEff Q
-        fvc::laplacian(transport_->alphaEff() / thermo_->rho(), lwc_)
-      + fvModels_.source(lwc_)
-    );
-    tlwcEqn->relax();
-    fvConstraints_.constrain(tlwcEqn.ref());
-    tlwcEqn->solve();
-    fvConstraints_.constrain(lwc_);
-    lwcEqn_ = tlwcEqn;
-    return lwcEqn_;
-}

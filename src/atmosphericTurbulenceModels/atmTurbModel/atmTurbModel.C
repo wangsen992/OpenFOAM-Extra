@@ -150,10 +150,6 @@ Foam::atmTurbModel::atmTurbModel(IOobject io)
   (
     thermo_->q()
   ),
-  lwc_
-  (
-    thermo_->lwc()
-  ),
   pressureReference_(thermo_->p(), pimple_.dict()),
   turbulence_
   (
@@ -178,7 +174,6 @@ Foam::atmTurbModel::atmTurbModel(IOobject io)
   UEqn_(),
   thetaEqn_(),
   qEqn_(),
-  lwcEqn_(),
   g_
   (
       mesh_.lookupObjectRef<uniformDimensionedVectorField>("g")

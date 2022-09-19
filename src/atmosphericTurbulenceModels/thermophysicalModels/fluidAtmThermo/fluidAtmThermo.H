@@ -112,35 +112,55 @@ public:
 
             //- Potential Temperature [K]
             virtual const volScalarField& theta() const;
-            
-            //- Liquid Water Content (LWC) [kg m-3]
+           
+            //- Virtual Potential Temperature [K]
             //  Non-const access allowed for transport equations
-            virtual volScalarField& lwc();
+            virtual volScalarField& theta_v();
 
-            //- Liquid Water Content (LWC) [kg m-3]
-            virtual const volScalarField& lwc() const;
+            //- Potential Temperature [K]
+            virtual const volScalarField& theta_v() const;
+
+            //- Specific Liquid Water Content
+            //  Non-const access allowed for transport equations
+            virtual volScalarField& ql();
+
+            //- Specific Liquid Water Content
+            virtual const volScalarField& ql() const;
+            
+            //- Total Specific Humidity
+            //  Non-const access allowed for transport equations
+            virtual volScalarField& qw();
+
+            //- Specific Liquid Water Content
+            virtual const volScalarField& qw() const;
 
             //- Reference Pressure [Pa]
             virtual const dimensionedScalar p0() const;
             
-            //- Specific Humidity [kg m-3]
+
+        // Access to Mixture Specie Information
+        
+            //- Specific Humidity [kg/kg]
             //  Non-const access allowed for transport equations
             virtual volScalarField& q();
 
-            //- Specific Humidity [kg m-3]
+            //- Specific Humidity [kg/kg]
             // Const access allowed for transport equations
             virtual const volScalarField& q() const;
             
-             //- Virtual Potential Temperature
-             virtual tmp<volScalarField> theta_v() const;
-             
-             //- Mixing Ratio []
-             virtual tmp<volScalarField> r() const;
- 
-             //- Liquid Mixing Ratio
-             virtual tmp<volScalarField> rl() const;
+        
+        // Derived variables from available references (see above) 
 
-        // Access to Mixture Specie Information
+            //- Liquid Water Content (LWC) [kg m-3]
+            // implemented in rhoAtmThermo for rho access
+            virtual tmp<volScalarField> lwc() const = 0;
+       
+            //- Mixing Ratio []
+            virtual tmp<volScalarField> r() const;
+
+            //- Liquid Mixing Ratio []
+            // Mass of liquid over Mass of Dry Air (similar to mixing ratio) 
+            virtual tmp<volScalarField> rl() const;
 
             //- Return the partial pressure for a specie given by index
             virtual tmp<volScalarField> pp(const label specie) const;
@@ -165,12 +185,22 @@ protected:
 
             //- Potential Temperature [K]
             volScalarField& theta_;
+            
+            //- Virtual Potential Temperature [K]
+            volScalarField& theta_v_;
 
-            //- Liquid Water Content (LWC) [kg m-3]
-            volScalarField& lwc_;
+            //- Specific Liquid Water Content
+            // [Note] ql is initialized to zero assuming non-saturated
+            // moist air. For saturated air, liquid water content is updated
+            // from application level, either by solving theta_l-ql relation 
+            // or by multi-phase flow system (PBM or LCM)
+            volScalarField& ql_;
+
+            //- Total Specific Humidity
+            volScalarField& qw_;
 
             //- Reference Pressure [Pa]
-            dimensionedScalar   p0_;
+            dimensionedScalar  p0_;
 
 public:
 
@@ -194,16 +224,33 @@ public:
             //- Potential Temperature [K]
             virtual const volScalarField& theta() const;
             
-            //- Liquid Water Content (LWC) [kg m-3]
+            //- Virtual Potential Temperature [K]
             //  Non-const access allowed for transport equations
-            virtual volScalarField& lwc();
+            virtual volScalarField& theta_v();
 
-            //- Liquid Water Content (LWC) [kg m-3]
-            virtual const volScalarField& lwc() const;
+            //- Potential Temperature [K]
+            virtual const volScalarField& theta_v() const;
+            
+            //- Specific Liquid Water Content
+            //  Non-const access allowed for transport equations
+            virtual volScalarField& ql();
+
+            //- Specific Liquid Water Content
+            virtual const volScalarField& ql() const;
+
+            //- Total Specific Humidity
+            //  Non-const access allowed for transport equations
+            virtual volScalarField& qw();
+
+            //- Specific Liquid Water Content
+            virtual const volScalarField& qw() const;
 
             //- Reference Pressure [K]
             virtual const dimensionedScalar p0() const;
             
+            
+        // Access to Mixture Specie Information
+        
             //- Specific Humidity [kg m-3]
             //  Non-const access allowed for transport equations
             virtual volScalarField& q();
@@ -211,26 +258,25 @@ public:
             //- Specific Humidity [kg m-3]
             // Const access allowed for transport equations
             virtual const volScalarField& q() const;
-            
-             //- Virtual Potential Temperature
-             virtual tmp<volScalarField> theta_v() const;
-             
-             //- Mixing Ratio []
-             virtual tmp<volScalarField> r() const;
- 
-             //- Liquid Mixing Ratio
-             virtual tmp<volScalarField> rl() const;
 
-        // Access to Mixture Specie Information
+        // Derived variables from available references (see above) 
+
+            //- Mixing Ratio []
+            virtual tmp<volScalarField> r() const;
+            
+            //- Liquid Mixing Ratio []
+            // Mass of liquid over Mass of Dry Air (similar to mixing ratio) 
+            virtual tmp<volScalarField> rl() const;
 
             //- Return the partial pressure for a specie given by index
             virtual tmp<volScalarField> pp(const label specie) const;
 
             //- Return the partial pressure for a specie given by name
             virtual tmp<volScalarField> pp(const word& specieName) const;
-            //- Return the saturation vapor pressure
-            virtual tmp<volScalarField> es() const;
 
+            //- Return the saturation vapor pressure (with approximated 
+            // Clausius-Clapeyron Equation, Bolton, 1980)
+            virtual tmp<volScalarField> es() const;
 
 };
 

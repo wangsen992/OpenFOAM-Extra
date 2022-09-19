@@ -123,9 +123,12 @@ public:
     
             
     // Member Operators
-
+       
         //- Disallow default bitwise assignment
         void operator=(const implementation&) = delete;
+
+        //- Liquid Water Content (LWC) [kg m-3]
+        virtual tmp<volScalarField> lwc() const;
 };
 
 

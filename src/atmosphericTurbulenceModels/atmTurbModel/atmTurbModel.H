@@ -67,7 +67,6 @@ protected:
     surfaceScalarField phi_; // face velocity flux
     surfaceScalarField rhophi_; // face mass flux
     volScalarField& q_; // specific humidity 
-    volScalarField& lwc_; // specific humidity 
 
     pressureReference pressureReference_;
 
@@ -84,7 +83,6 @@ protected:
     tmp<fvVectorMatrix> UEqn_;
     tmp<fvScalarMatrix> thetaEqn_;
     tmp<fvScalarMatrix> qEqn_;
-    tmp<fvScalarMatrix> lwcEqn_;
 
     uniformDimensionedVectorField& g_; // gravititational acceleration
 
@@ -119,7 +117,6 @@ public:
     pimpleControl& pimple(){return pimple_;}
     volVectorField& U(){return U_;}
     volScalarField& q(){return q_;}
-    volScalarField& lwc(){return lwc_;}
     volScalarField& theta(){return theta_;}
     volScalarField& p_rgh(){return p_rgh_;}
 
@@ -134,10 +131,6 @@ public:
     tmp<fvVectorMatrix> UEqn();
     tmp<fvScalarMatrix> thetaEqn();
     tmp<fvScalarMatrix> qEqn();
-
-    // Note: The implementation of liquid water content may be abstracted since
-    // there are multiple approaches to this variable
-    tmp<fvScalarMatrix> lwcEqn();
 
     void pressureCorrect();
     void nutCorrect();
