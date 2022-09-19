@@ -114,3 +114,91 @@ const Foam::dimensionedScalar Foam::fluidAtmThermo::implementation::p0() const
     return p0_;
 }
 
+Foam::volScalarField& Foam::fluidAtmThermo::implementation::q()
+{
+    return const_cast<volScalarField&>(this->composition().Y("H2O"));
+}
+
+const Foam::volScalarField& Foam::fluidAtmThermo::implementation::q() const
+{
+    return this->composition().Y("H2O");
+}
+
+Foam::tmp<Foam::volScalarField> Foam::fluidAtmThermo::implementation::theta_v() const
+{
+    
+    Foam::tmp<Foam::volScalarField> ttheta_v
+    (
+        Foam::volScalarField::New
+        (
+            "theta_v",
+            this->theta_ 
+            * (
+                1 + 0.608 * this->q()
+              //  - this->lwc_ // This is currently disabled, need to be
+              //  careful when implementing
+              )
+        )
+    );
+    return ttheta_v;
+}
+
+Foam::tmp<Foam::volScalarField> Foam::fluidAtmThermo::implementation::r() const
+{
+    Foam::tmp<Foam::volScalarField> tr
+    (
+        Foam::volScalarField::New
+        (
+            "r",
+            this->composition().Y("H2O") / this->composition().Y("dryAir")
+        )
+    );
+    return tr;
+}
+
+Foam::tmp<Foam::volScalarField> Foam::fluidAtmThermo::implementation::rl() const
+{
+    Info << "Returning theta for testing rl()" << endl;
+    return this->theta_;
+}
+
+
+Foam::tmp<Foam::volScalarField> Foam::fluidAtmThermo::implementation::pp
+(
+  const label speciei
+) const
+{
+    return 
+    ( 
+      this->composition().Y(speciei) * this->composition().Wi(speciei) // R 
+    * this->p()
+    );
+}
+
+Foam::tmp<Foam::volScalarField> Foam::fluidAtmThermo::implementation::pp
+(
+  const word& specieName
+) const
+{
+  const speciesTable& speciesTbl(this->composition().species());
+  label speciei(speciesTbl[specieName]);
+  return this->pp(speciei);
+}
+
+Foam::tmp<Foam::volScalarField> Foam::fluidAtmThermo::implementation::es () const
+{
+    Foam::tmp<Foam::volScalarField> Tcelsius
+    (
+        this->T() - dimensionedScalar(dimTemperature, 273.15)
+    );
+
+    Foam::tmp<Foam::volScalarField> tes
+    (
+        6.112 * 
+        exp( 
+             (17.67 * Tcelsius) 
+           / (Tcelsius + dimensionedScalar(dimTemperature, 243.5)                    )
+           )
+    );
+    return tes * dimensionedScalar(dimPressure, 1);
+}

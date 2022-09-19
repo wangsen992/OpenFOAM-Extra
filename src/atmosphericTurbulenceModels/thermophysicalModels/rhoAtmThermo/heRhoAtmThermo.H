@@ -94,43 +94,6 @@ public:
         //scalar exner(const scalar, const scalar);
 
 
-        // Access to thermodynamic state variables
-        
-            //- Virtual Potential Temperature
-            virtual tmp<volScalarField> theta_v() const;
-            
-            //- Moisture (specific humidity) [kg m-3]
-            //  Non-const access allowed for transport equations
-            virtual volScalarField& q();
-
-            //- Moisture (specific humidity) [kg m-3]
-            virtual const volScalarField& q() const;
-            
-            //- Mixing Ratio []
-            virtual tmp<volScalarField> r() const;
-
-            //- Liquid Mixing Ratio
-            virtual tmp<volScalarField> rl() const;
-        // Access to Mixture Specie Information
-        
-            //- Return the table of species
-            virtual const speciesTable& species() const;
-
-            //- Molecular Weight of Given Specie
-            virtual scalar Wi(const label speciei) const;
-            
-            //- Return the const mass-fraction field for a specie given by index
-            virtual const volScalarField& Y(const label speciei) const;
-            
-            //- Return the const mass-fraction field for a specie given by name
-            virtual const volScalarField& Y(const word& specieName) const;
-            //- Return the partial pressure for a specie given by index
-            virtual tmp<volScalarField> pp(const label specie) const;
-
-            //- Return the partial pressure for a specie given by name
-            virtual tmp<volScalarField> pp(const word& specieName) const;
-            //- Return the saturation vapor pressure
-            virtual tmp<volScalarField> es() const;
 
             //- Update properties
             virtual void correct();

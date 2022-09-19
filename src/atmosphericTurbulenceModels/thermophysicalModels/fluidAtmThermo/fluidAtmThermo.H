@@ -25,7 +25,14 @@ Class
     Foam::fluidAtmThermo
 
 Description
-    A fluid thermo extended for atm (supporting multi-component mixture)
+    A fluid thermo extended for atm (supporting multi-component mixture). 
+    This branch of thermo module enables the use of potential
+    temperature (or entropy conserved temperature variable) for energy transport 
+    computation by providing variables attributes and interface relevant for 
+    atmospheric science problems. 
+
+    The final application can still be written in either with potential 
+    temperature or with internal energy form. 
 
 \*---------------------------------------------------------------------------*/
 
@@ -101,59 +108,47 @@ public:
 
             //- Potential Temperature [K]
             //  Non-const access allowed for transport equations
-            virtual volScalarField& theta() = 0;
+            virtual volScalarField& theta();
 
             //- Potential Temperature [K]
-            virtual const volScalarField& theta() const = 0;
+            virtual const volScalarField& theta() const;
+            
+            //- Liquid Water Content (LWC) [kg m-3]
+            //  Non-const access allowed for transport equations
+            virtual volScalarField& lwc();
+
+            //- Liquid Water Content (LWC) [kg m-3]
+            virtual const volScalarField& lwc() const;
+
+            //- Reference Pressure [Pa]
+            virtual const dimensionedScalar p0() const;
             
             //- Specific Humidity [kg m-3]
             //  Non-const access allowed for transport equations
-            virtual volScalarField& q() = 0;
+            virtual volScalarField& q();
 
             //- Specific Humidity [kg m-3]
             // Const access allowed for transport equations
-            virtual const volScalarField& q() const = 0;
-            
-            //- Liquid Water Content (LWC) [kg m-3]
-            //  Non-const access allowed for transport equations
-            virtual volScalarField& lwc() = 0;
-
-            //- Liquid Water Content (LWC) [kg m-3]
-            virtual const volScalarField& lwc() const = 0;
-
-            //- Reference Pressure [Pa]
-            virtual const dimensionedScalar p0() const = 0;
+            virtual const volScalarField& q() const;
             
              //- Virtual Potential Temperature
-             virtual tmp<volScalarField> theta_v() const = 0;
+             virtual tmp<volScalarField> theta_v() const;
              
              //- Mixing Ratio []
-             virtual tmp<volScalarField> r() const = 0;
+             virtual tmp<volScalarField> r() const;
  
              //- Liquid Mixing Ratio
-             virtual tmp<volScalarField> rl() const = 0;
+             virtual tmp<volScalarField> rl() const;
 
         // Access to Mixture Specie Information
 
-            //- Return the table of species
-            virtual const speciesTable& species() const = 0;
-
-            //- Molecular Weight of Given Specie
-            virtual scalar Wi(const label speciei) const = 0;
-
-            //- Return the const mass-fraction field for a specie given by index
-            virtual const volScalarField& Y(const label specie) const = 0;
-            
-            //- Return the const mass-fraction field for a specie given by name
-            virtual const volScalarField& Y(const word& specieName) const = 0;
-
             //- Return the partial pressure for a specie given by index
-            virtual tmp<volScalarField> pp(const label specie) const = 0;
+            virtual tmp<volScalarField> pp(const label specie) const;
 
             //- Return the partial pressure for a specie given by name
-            virtual tmp<volScalarField> pp(const word& specieName) const = 0;
+            virtual tmp<volScalarField> pp(const word& specieName) const;
             //- Return the saturation vapor pressure
-            virtual tmp<volScalarField> es() const = 0;
+            virtual tmp<volScalarField> es() const;
 };
 /*---------------------------------------------------------------------------*\
                      Class fluidReactionThermo Declaration
@@ -208,6 +203,33 @@ public:
 
             //- Reference Pressure [K]
             virtual const dimensionedScalar p0() const;
+            
+            //- Specific Humidity [kg m-3]
+            //  Non-const access allowed for transport equations
+            virtual volScalarField& q();
+
+            //- Specific Humidity [kg m-3]
+            // Const access allowed for transport equations
+            virtual const volScalarField& q() const;
+            
+             //- Virtual Potential Temperature
+             virtual tmp<volScalarField> theta_v() const;
+             
+             //- Mixing Ratio []
+             virtual tmp<volScalarField> r() const;
+ 
+             //- Liquid Mixing Ratio
+             virtual tmp<volScalarField> rl() const;
+
+        // Access to Mixture Specie Information
+
+            //- Return the partial pressure for a specie given by index
+            virtual tmp<volScalarField> pp(const label specie) const;
+
+            //- Return the partial pressure for a specie given by name
+            virtual tmp<volScalarField> pp(const word& specieName) const;
+            //- Return the saturation vapor pressure
+            virtual tmp<volScalarField> es() const;
 
 
 };
