@@ -43,14 +43,19 @@ Foam::fluidAtmThermo::implementation::implementation
 :
     theta_(lookupOrConstruct(mesh, "theta")),
     theta_v_(lookupOrConstruct(mesh, "theta_v")),
+    theta_l_(lookupOrConstruct(mesh, "theta_l")),
     ql_(lookupOrConstruct(mesh, "ql")),
     qw_(lookupOrConstruct(mesh, "qw")),
-    p0_("p0", dimPressure, pow(10,5))
+    p0_("p0", dimPressure, pow(10,5)),
+    Lv_("Lv", dimEnergy/dimMass, 2.26*pow(10,6))
 {
-    theta_v_ = theta_ * ( 1 + 0.608 * this->q()
-              //  - this->lwc_ // This is currently disabled, need to be
-              //  careful when implementing
-              );
+    // Pure virtual functions are being called at this point (e.g. Cp()) 
+    // which can be compiled but can cause unwanted behaviour. Try moving 
+    // updates below to the final thermodynamics compute engine 
+    // (e.g. thetaRhoAtmThermo)
+    theta_v_ = theta_ * ( 1 + 0.608 * q() - ql());
+
+    theta_l_ = theta_ - (Lv_ / Cp() * theta_ / T()) * ql_;
 
     Info << "Check default value of ql: " << nl
          << average(ql_) << endl;
@@ -149,6 +154,11 @@ const Foam::volScalarField& Foam::fluidAtmThermo::implementation::qw() const
 const Foam::dimensionedScalar Foam::fluidAtmThermo::implementation::p0() const
 {
     return p0_;
+}
+
+const Foam::dimensionedScalar Foam::fluidAtmThermo::implementation::Lv() const
+{
+    return Lv_;
 }
 
 Foam::volScalarField& Foam::fluidAtmThermo::implementation::q()

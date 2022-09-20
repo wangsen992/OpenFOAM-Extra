@@ -26,13 +26,13 @@ License
 #include "Ostream.H"
 #include "autoPtr.H"
 #include "dimensionSet.H"
-#include "heRhoAtmThermo.H"
+#include "thetaRhoAtmThermo.H"
 #include "speciesTable.H"
 #include "thermodynamicConstants.H"
 
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
 template<class BasicRhoThermo, class MixtureType>
-void Foam::heRhoAtmThermo<BasicRhoThermo, MixtureType>::validate_mixture()
+void Foam::thetaRhoAtmThermo<BasicRhoThermo, MixtureType>::validate_mixture()
 {
     wordList basicSpecie{"dryAir", "H2O"};
     Info << "Validating mixture species elements" << endl;
@@ -55,7 +55,7 @@ void Foam::heRhoAtmThermo<BasicRhoThermo, MixtureType>::validate_mixture()
 
 
 template<class BasicRhoThermo, class MixtureType>
-void Foam::heRhoAtmThermo<BasicRhoThermo, MixtureType>::calculate()
+void Foam::thetaRhoAtmThermo<BasicRhoThermo, MixtureType>::calculate()
 {
 
     Info << "Running calculate() ..." << endl;
@@ -222,7 +222,7 @@ void Foam::heRhoAtmThermo<BasicRhoThermo, MixtureType>::calculate()
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
 template<class BasicRhoThermo, class MixtureType>
-Foam::heRhoAtmThermo<BasicRhoThermo, MixtureType>::heRhoAtmThermo
+Foam::thetaRhoAtmThermo<BasicRhoThermo, MixtureType>::thetaRhoAtmThermo
 (
     const fvMesh& mesh,
     const word& phaseName
@@ -238,21 +238,21 @@ Foam::heRhoAtmThermo<BasicRhoThermo, MixtureType>::heRhoAtmThermo
 // * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
 
 template<class BasicRhoThermo, class MixtureType>
-Foam::heRhoAtmThermo<BasicRhoThermo, MixtureType>::~heRhoAtmThermo()
+Foam::thetaRhoAtmThermo<BasicRhoThermo, MixtureType>::~thetaRhoAtmThermo()
 {}
 
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
 template<class BasicRhoThermo, class MixtureType>
-void Foam::heRhoAtmThermo<BasicRhoThermo, MixtureType>::correct()
+void Foam::thetaRhoAtmThermo<BasicRhoThermo, MixtureType>::correct()
 {
     if (debug)
     {
         InfoInFunction << endl;
     }
 
-    Info << "Running correct in heRhoAtmThermo.." << endl;
+    Info << "Running correct in thetaRhoAtmThermo.." << endl;
 
     // Now run calculate
     calculate();

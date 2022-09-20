@@ -120,6 +120,13 @@ public:
             //- Potential Temperature [K]
             virtual const volScalarField& theta_v() const;
 
+            //- Liquid Water Potential Temperature [K]
+            //  Non-const access allowed for transport equations
+            virtual volScalarField& theta_l();
+
+            //- Potential Temperature [K]
+            virtual const volScalarField& theta_l() const;
+
             //- Specific Liquid Water Content
             //  Non-const access allowed for transport equations
             virtual volScalarField& ql();
@@ -136,6 +143,9 @@ public:
 
             //- Reference Pressure [Pa]
             virtual const dimensionedScalar p0() const;
+            
+            //- Specific Latent Heat of Water [J/kg]
+            virtual const dimensionedScalar Lv() const;
             
 
         // Access to Mixture Specie Information
@@ -189,6 +199,9 @@ protected:
             //- Virtual Potential Temperature [K]
             volScalarField& theta_v_;
 
+            //- Liquid Water Potential Temperature [K]
+            volScalarField& theta_l_;
+
             //- Specific Liquid Water Content
             // [Note] ql is initialized to zero assuming non-saturated
             // moist air. For saturated air, liquid water content is updated
@@ -198,9 +211,14 @@ protected:
 
             //- Total Specific Humidity
             volScalarField& qw_;
+            
+        // Model Parameters
 
             //- Reference Pressure [Pa]
             dimensionedScalar  p0_;
+
+            //- Specific Latent Heat of Vaporization [J/kg]
+            dimensionedScalar Lv_;
 
 public:
 
@@ -208,7 +226,6 @@ public:
 
         //- Construct from mesh and phase name
         implementation(const fvMesh&, const word& phaseName);
-
 
     //- Destructor
     virtual ~implementation();
@@ -231,6 +248,13 @@ public:
             //- Potential Temperature [K]
             virtual const volScalarField& theta_v() const;
             
+            //- Liquid Water Potential Temperature [K]
+            //  Non-const access allowed for transport equations
+            virtual volScalarField& theta_l();
+
+            //- Potential Temperature [K]
+            virtual const volScalarField& theta_l() const;
+
             //- Specific Liquid Water Content
             //  Non-const access allowed for transport equations
             virtual volScalarField& ql();
@@ -247,6 +271,9 @@ public:
 
             //- Reference Pressure [K]
             virtual const dimensionedScalar p0() const;
+
+            //- Specific Latent Heat of Water [J/kg]
+            virtual const dimensionedScalar Lv() const;
             
             
         // Access to Mixture Specie Information

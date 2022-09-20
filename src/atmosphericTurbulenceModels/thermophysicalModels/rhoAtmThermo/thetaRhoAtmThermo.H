@@ -22,7 +22,7 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::heRhoAtmThermo
+    Foam::thetaRhoAtmThermo
 
 Description
     An analytical engine for the thermodynamics of a mixture in atm context for
@@ -34,7 +34,7 @@ Description
     then the rest of variables are recovered. 
 
 SourceFiles
-    heRhoAtmThermo.C
+    thetaRhoAtmThermo.C
 
 \*---------------------------------------------------------------------------*/
 
@@ -54,11 +54,11 @@ namespace Foam
 {
 
 /*---------------------------------------------------------------------------*\
-                         Class heRhoAtmThermo Declaration
+                         Class thetaRhoAtmThermo Declaration
 \*---------------------------------------------------------------------------*/
 
 template<class BasicRhoThermo, class MixtureType>
-class heRhoAtmThermo
+class thetaRhoAtmThermo
 :
     public heThermo<BasicRhoThermo, MixtureType>
 {
@@ -75,24 +75,24 @@ class heRhoAtmThermo
 public:
 
     //- Runtime type information
-    TypeName("heRhoAtmThermo");
+    TypeName("thetaRhoAtmThermo");
 
 
     // Constructors
 
         //- Construct from mesh and phase name
-        heRhoAtmThermo
+        thetaRhoAtmThermo
         (
             const fvMesh&,
             const word& phaseName
         );
 
         //- Disallow default bitwise copy construction
-        heRhoAtmThermo(const heRhoAtmThermo<BasicRhoThermo, MixtureType>&) = delete;
+        thetaRhoAtmThermo(const thetaRhoAtmThermo<BasicRhoThermo, MixtureType>&) = delete;
 
 
     //- Destructor
-    virtual ~heRhoAtmThermo();
+    virtual ~thetaRhoAtmThermo();
 
 
     // Member Functions
@@ -109,7 +109,7 @@ public:
         //- Disallow default bitwise assignment
         void operator=
         (
-            const heRhoAtmThermo<BasicRhoThermo, MixtureType>&
+            const thetaRhoAtmThermo<BasicRhoThermo, MixtureType>&
         ) = delete;
 };
 
@@ -121,7 +121,7 @@ public:
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 #ifdef NoRepository
-    #include "heRhoAtmThermo.C"
+    #include "thetaRhoAtmThermo.C"
 #endif
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
