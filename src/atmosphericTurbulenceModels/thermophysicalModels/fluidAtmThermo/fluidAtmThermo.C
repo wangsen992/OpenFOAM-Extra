@@ -42,25 +42,10 @@ Foam::fluidAtmThermo::implementation::implementation
 )
 :
     theta_(lookupOrConstruct(mesh, "theta")),
-    theta_v_(lookupOrConstruct(mesh, "theta_v")),
-    theta_l_(lookupOrConstruct(mesh, "theta_l")),
     ql_(lookupOrConstruct(mesh, "ql")),
-    qw_(lookupOrConstruct(mesh, "qw")),
     p0_("p0", dimPressure, pow(10,5)),
     Lv_("Lv", dimEnergy/dimMass, 2.26*pow(10,6))
 {
-    // Pure virtual functions are being called at this point (e.g. Cp()) 
-    // which can be compiled but can cause unwanted behaviour. Try moving 
-    // updates below to the final thermodynamics compute engine 
-    // (e.g. thetaRhoAtmThermo)
-    theta_v_ = theta_ * ( 1 + 0.608 * q() - ql());
-
-    theta_l_ = theta_ - (Lv_ / Cp() * theta_ / T()) * ql_;
-
-    Info << "Check default value of ql: " << nl
-         << average(ql_) << endl;
-
-    qw_ = q() + ql();
 }
 
 // * * * * * * * * * * * * * * * * Selectors * * * * * * * * * * * * * * * * //
@@ -115,18 +100,6 @@ const Foam::volScalarField& Foam::fluidAtmThermo::implementation::theta() const
     return theta_;
 }
 
-Foam::volScalarField& Foam::fluidAtmThermo::implementation::theta_v()
-{
-    
-    return theta_v_;
-}
-
-const Foam::volScalarField& Foam::fluidAtmThermo::implementation::theta_v() const
-{
-    
-    return theta_v_;
-}
-
 Foam::volScalarField& Foam::fluidAtmThermo::implementation::ql()
 {
     
@@ -138,19 +111,6 @@ const Foam::volScalarField& Foam::fluidAtmThermo::implementation::ql() const
     
     return ql_;
 }
-
-Foam::volScalarField& Foam::fluidAtmThermo::implementation::qw()
-{
-    
-    return qw_;
-}
-
-const Foam::volScalarField& Foam::fluidAtmThermo::implementation::qw() const
-{
-    
-    return qw_;
-}
-
 const Foam::dimensionedScalar Foam::fluidAtmThermo::implementation::p0() const
 {
     return p0_;
@@ -161,17 +121,56 @@ const Foam::dimensionedScalar Foam::fluidAtmThermo::implementation::Lv() const
     return Lv_;
 }
 
-Foam::volScalarField& Foam::fluidAtmThermo::implementation::q()
+Foam::volScalarField& Foam::fluidAtmThermo::q()
 {
     return const_cast<volScalarField&>(this->composition().Y("H2O"));
 }
 
-const Foam::volScalarField& Foam::fluidAtmThermo::implementation::q() const
+const Foam::volScalarField& Foam::fluidAtmThermo::q() const
 {
     return this->composition().Y("H2O");
 }
 
-Foam::tmp<Foam::volScalarField> Foam::fluidAtmThermo::implementation::r() const
+Foam::tmp<Foam::volScalarField> Foam::fluidAtmThermo::theta_v() const
+{
+    Foam::tmp<Foam::volScalarField> ttheta_v
+    (
+        Foam::volScalarField::New
+        (
+            "theta_v",
+            theta() * (1 + 0.608 * q() - ql())
+        )
+    );
+    return ttheta_v;
+}
+
+Foam::tmp<Foam::volScalarField> Foam::fluidAtmThermo::theta_l() const
+{
+    Foam::tmp<Foam::volScalarField> ttheta_l
+    (
+        Foam::volScalarField::New
+        (
+            "theta_l",
+            theta() - (Lv() / Cp() * theta() / T()) * ql()
+        )
+    );
+    return ttheta_l;
+}
+
+Foam::tmp<Foam::volScalarField> Foam::fluidAtmThermo::qw() const
+{
+    Foam::tmp<Foam::volScalarField> tqw
+    (
+        Foam::volScalarField::New
+        (
+            "qw",
+            ql() + q()        
+        )
+    );
+    return tqw;
+}
+
+Foam::tmp<Foam::volScalarField> Foam::fluidAtmThermo::r() const
 {
     Foam::tmp<Foam::volScalarField> tr
     (
@@ -184,19 +183,19 @@ Foam::tmp<Foam::volScalarField> Foam::fluidAtmThermo::implementation::r() const
     return tr;
 }
 
-Foam::tmp<Foam::volScalarField> Foam::fluidAtmThermo::implementation::rl() const
+Foam::tmp<Foam::volScalarField> Foam::fluidAtmThermo::rl() const
 {
     Foam::tmp<Foam::volScalarField> trl
     (
         Foam::volScalarField::New
         (
             "rl",
-            ql_ / this->composition().Y("dryAir")
+            ql() / this->composition().Y("dryAir")
         )
     );
     return trl;
 }
-Foam::tmp<Foam::volScalarField> Foam::fluidAtmThermo::implementation::pp
+Foam::tmp<Foam::volScalarField> Foam::fluidAtmThermo::pp
 (
   const label speciei
 ) const
@@ -208,7 +207,7 @@ Foam::tmp<Foam::volScalarField> Foam::fluidAtmThermo::implementation::pp
     );
 }
 
-Foam::tmp<Foam::volScalarField> Foam::fluidAtmThermo::implementation::pp
+Foam::tmp<Foam::volScalarField> Foam::fluidAtmThermo::pp
 (
   const word& specieName
 ) const
@@ -218,7 +217,7 @@ Foam::tmp<Foam::volScalarField> Foam::fluidAtmThermo::implementation::pp
   return this->pp(speciei);
 }
 
-Foam::tmp<Foam::volScalarField> Foam::fluidAtmThermo::implementation::es () const
+Foam::tmp<Foam::volScalarField> Foam::fluidAtmThermo::es () const
 {
     Foam::tmp<Foam::volScalarField> Tcelsius
     (

@@ -108,44 +108,23 @@ public:
 
             //- Potential Temperature [K]
             //  Non-const access allowed for transport equations
-            virtual volScalarField& theta();
+            virtual volScalarField& theta() = 0;
 
             //- Potential Temperature [K]
-            virtual const volScalarField& theta() const;
+            virtual const volScalarField& theta() const = 0;
            
-            //- Virtual Potential Temperature [K]
-            //  Non-const access allowed for transport equations
-            virtual volScalarField& theta_v();
-
-            //- Potential Temperature [K]
-            virtual const volScalarField& theta_v() const;
-
-            //- Liquid Water Potential Temperature [K]
-            //  Non-const access allowed for transport equations
-            virtual volScalarField& theta_l();
-
-            //- Potential Temperature [K]
-            virtual const volScalarField& theta_l() const;
-
             //- Specific Liquid Water Content
             //  Non-const access allowed for transport equations
-            virtual volScalarField& ql();
+            virtual volScalarField& ql() = 0;
 
             //- Specific Liquid Water Content
-            virtual const volScalarField& ql() const;
+            virtual const volScalarField& ql() const = 0;
             
-            //- Total Specific Humidity
-            //  Non-const access allowed for transport equations
-            virtual volScalarField& qw();
-
-            //- Specific Liquid Water Content
-            virtual const volScalarField& qw() const;
-
             //- Reference Pressure [Pa]
-            virtual const dimensionedScalar p0() const;
+            virtual const dimensionedScalar p0() const = 0;
             
             //- Specific Latent Heat of Water [J/kg]
-            virtual const dimensionedScalar Lv() const;
+            virtual const dimensionedScalar Lv() const = 0;
             
 
         // Access to Mixture Specie Information
@@ -160,6 +139,17 @@ public:
             
         
         // Derived variables from available references (see above) 
+            //- Virtual Potential Temperature [K]
+            //  Non-const access allowed for transport equations
+            virtual tmp<volScalarField> theta_v() const;
+
+            //- Liquid Water Potential Temperature [K]
+            //  Non-const access allowed for transport equations
+            virtual tmp<volScalarField> theta_l() const;
+            
+            //- Total Specific Humidity
+            //  Non-const access allowed for transport equations
+            virtual tmp<volScalarField> qw() const;
 
             //- Liquid Water Content (LWC) [kg m-3]
             // implemented in rhoAtmThermo for rho access
@@ -196,21 +186,12 @@ protected:
             //- Potential Temperature [K]
             volScalarField& theta_;
             
-            //- Virtual Potential Temperature [K]
-            volScalarField& theta_v_;
-
-            //- Liquid Water Potential Temperature [K]
-            volScalarField& theta_l_;
-
             //- Specific Liquid Water Content
             // [Note] ql is initialized to zero assuming non-saturated
             // moist air. For saturated air, liquid water content is updated
             // from application level, either by solving theta_l-ql relation 
             // or by multi-phase flow system (PBM or LCM)
             volScalarField& ql_;
-
-            //- Total Specific Humidity
-            volScalarField& qw_;
             
         // Model Parameters
 
@@ -241,20 +222,6 @@ public:
             //- Potential Temperature [K]
             virtual const volScalarField& theta() const;
             
-            //- Virtual Potential Temperature [K]
-            //  Non-const access allowed for transport equations
-            virtual volScalarField& theta_v();
-
-            //- Potential Temperature [K]
-            virtual const volScalarField& theta_v() const;
-            
-            //- Liquid Water Potential Temperature [K]
-            //  Non-const access allowed for transport equations
-            virtual volScalarField& theta_l();
-
-            //- Potential Temperature [K]
-            virtual const volScalarField& theta_l() const;
-
             //- Specific Liquid Water Content
             //  Non-const access allowed for transport equations
             virtual volScalarField& ql();
@@ -262,49 +229,12 @@ public:
             //- Specific Liquid Water Content
             virtual const volScalarField& ql() const;
 
-            //- Total Specific Humidity
-            //  Non-const access allowed for transport equations
-            virtual volScalarField& qw();
-
-            //- Specific Liquid Water Content
-            virtual const volScalarField& qw() const;
-
             //- Reference Pressure [K]
             virtual const dimensionedScalar p0() const;
 
             //- Specific Latent Heat of Water [J/kg]
             virtual const dimensionedScalar Lv() const;
             
-            
-        // Access to Mixture Specie Information
-        
-            //- Specific Humidity [kg m-3]
-            //  Non-const access allowed for transport equations
-            virtual volScalarField& q();
-
-            //- Specific Humidity [kg m-3]
-            // Const access allowed for transport equations
-            virtual const volScalarField& q() const;
-
-        // Derived variables from available references (see above) 
-
-            //- Mixing Ratio []
-            virtual tmp<volScalarField> r() const;
-            
-            //- Liquid Mixing Ratio []
-            // Mass of liquid over Mass of Dry Air (similar to mixing ratio) 
-            virtual tmp<volScalarField> rl() const;
-
-            //- Return the partial pressure for a specie given by index
-            virtual tmp<volScalarField> pp(const label specie) const;
-
-            //- Return the partial pressure for a specie given by name
-            virtual tmp<volScalarField> pp(const word& specieName) const;
-
-            //- Return the saturation vapor pressure (with approximated 
-            // Clausius-Clapeyron Equation, Bolton, 1980)
-            virtual tmp<volScalarField> es() const;
-
 };
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
