@@ -102,7 +102,8 @@ void Foam::fv::boussinesqBuoyancyKSource::addSup
     tmp<volVectorField> tgradTheta(fvc::grad(thermo_.theta_v()));
     const volVectorField& gradTheta(tgradTheta.ref());
     // Warning: Doesn't work in incompressible mode since alphat has rho in it
-    eqn -= alphat_ * g_ & gradTheta / theta0_;
+    // The sign for the term depends on the sign for g, which is negative. 
+    eqn += alphat_ * g_ & gradTheta / theta0_;
 }
 
 
@@ -116,7 +117,7 @@ void Foam::fv::boussinesqBuoyancyKSource::addSup
     tmp<volVectorField> tgradTheta(fvc::grad(thermo_.theta_v()));
     const volVectorField& gradTheta(tgradTheta.ref());
 
-    eqn -= alphat_ * g_ & gradTheta / theta0_;
+    eqn += alphat_ * g_ & gradTheta / theta0_;
 }
 
 
@@ -130,7 +131,7 @@ void Foam::fv::boussinesqBuoyancyKSource::addSup
 {
     tmp<volVectorField> tgradTheta(fvc::grad(thermo_.theta_v()));
     const volVectorField& gradTheta(tgradTheta.ref());
-    eqn -= alpha * rho * alphat_ * g_ & gradTheta / theta0_;
+    eqn += alpha * rho * alphat_ * g_ & gradTheta / theta0_;
 }
 
 

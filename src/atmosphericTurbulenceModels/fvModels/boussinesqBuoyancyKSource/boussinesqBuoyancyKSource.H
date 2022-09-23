@@ -25,7 +25,7 @@ Class
     Foam::fv::boussinesqBuoyancyKSource
 
 Description
-    Calculates and applies the buoyancy force based on Boussinesq 
+    Calculates and applies the buoyancy contribution to TKE based on Boussinesq 
     Approximation to momentum equation
 
 Usage
