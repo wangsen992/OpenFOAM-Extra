@@ -22,5 +22,12 @@ urbanModels/treeModels/canopyModels/basic/basicCanopy/basicCanopy.C
 urbanModels/treeModels/canopyModels/basic/dragCanopy/dragCanopy.C
 urbanModels/treeModels/canopyModels/basic/triSurfaceDragCanopy/triSurfaceDragCanopys.C
 
+# urbanModels/treeModels/treeCanopyModels/canopyPhysicsModel/canopyPhysicsModel.C
+# urbanModels/treeModels/treeCanopyModels/dragCanopyPhysicsModel/dragCanopyPhysicsModel.C
+# urbanModels/treeModels/treeCanopyModels/canopySurfaceModel/canopySurfaceModel.C
+urbanModels/treeModels/canopyModels/basic/basicCanopy/basicCanopy.C
+urbanModels/treeModels/canopyModels/basic/dragCanopy/dragCanopy.C
+urbanModels/treeModels/canopyModels/basic/triSurfaceDragCanopy/triSurfaceDragCanopys.C
+
 LIB = $(FOAM_USER_LIBBIN)/libatmosphericTurbulenceModels
 

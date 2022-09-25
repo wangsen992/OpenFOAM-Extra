@@ -10,10 +10,11 @@ FoamFile
     format      ascii;
     class       dictionary;
     location    "constant";
-    object      thermophysicalProperties;
+    object      radiationProperties;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
+<<<<<<<< HEAD:tutorials/treeModelling/testTreeModel/boxMesh/constant/thermophysicalProperties
 // mixtureType       pureMixture;
 mixtureType       multiComponentMixture;
 
@@ -35,6 +36,32 @@ pRef            100000;
 // #include "mixture/mixture.pureMixture"
 #include "mixture/mixture.coefficientMultiComponentMixture"
 
+========
+radiationModel  fvDOM;
 
+fvDOMCoeffs
+{
+    nPhi        3;      // azimuthal angles in PI/2 on X-Y.(from Y to X)
+    nTheta      5;      // polar angles in PI (from Z to X-Y plane)
+    tolerance   1e-3;   // convergence tolerance for radiation iteration
+    maxIter     10;     // maximum number of iterations
+}
+
+// Number of flow iterations per radiation iteration
+solverFreq 10;
+
+absorptionEmissionModel constant;
+
+constantCoeffs
+{
+   absorptivity    0.5;
+   emissivity      0.5;
+   E               0;
+}
+>>>>>>>> urbanDev:tutorials/treeModelling/testTreeModel/boxMesh/constant/radiationProperties
+
+scatterModel    none;
+
+sootModel       none;
 
 // ************************************************************************* //
