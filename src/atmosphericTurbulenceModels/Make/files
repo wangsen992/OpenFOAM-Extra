@@ -1,8 +1,3 @@
-# atmThermo/atmThermo.C
-atmTurbModel/atmTurbModel.C
-atmTurbModel/atmTurbModelSolve.C
-atmTurbModel/atmTurbModelPressureCorrect.C
-
 thermophysicalModels/fluidAtmThermo/fluidAtmThermo.C
 thermophysicalModels/rhoAtmThermo/rhoAtmThermo.C
 thermophysicalModels/rhoAtmThermo/rhoAtmThermos.C
@@ -18,16 +13,16 @@ ThermophysicalTransportModels/fluidAtmThermo/fluidAtmThermophysicalTransportMode
 # urbanModels/treeModels/treeCanopyModels/canopyPhysicsModel/canopyPhysicsModel.C
 # urbanModels/treeModels/treeCanopyModels/dragCanopyPhysicsModel/dragCanopyPhysicsModel.C
 # urbanModels/treeModels/treeCanopyModels/canopySurfaceModel/canopySurfaceModel.C
-urbanModels/treeModels/canopyModels/basic/basicCanopy/basicCanopy.C
-urbanModels/treeModels/canopyModels/basic/dragCanopy/dragCanopy.C
-urbanModels/treeModels/canopyModels/basic/triSurfaceDragCanopy/triSurfaceDragCanopys.C
-
-# urbanModels/treeModels/treeCanopyModels/canopyPhysicsModel/canopyPhysicsModel.C
-# urbanModels/treeModels/treeCanopyModels/dragCanopyPhysicsModel/dragCanopyPhysicsModel.C
-# urbanModels/treeModels/treeCanopyModels/canopySurfaceModel/canopySurfaceModel.C
-urbanModels/treeModels/canopyModels/basic/basicCanopy/basicCanopy.C
-urbanModels/treeModels/canopyModels/basic/dragCanopy/dragCanopy.C
-urbanModels/treeModels/canopyModels/basic/triSurfaceDragCanopy/triSurfaceDragCanopys.C
+# urbanModels/treeModels/canopyModels/basic/basicCanopy/basicCanopy.C
+# urbanModels/treeModels/canopyModels/basic/dragCanopy/dragCanopy.C
+# urbanModels/treeModels/canopyModels/basic/triSurfaceDragCanopy/triSurfaceDragCanopys.C
+# 
+# # urbanModels/treeModels/treeCanopyModels/canopyPhysicsModel/canopyPhysicsModel.C
+# # urbanModels/treeModels/treeCanopyModels/dragCanopyPhysicsModel/dragCanopyPhysicsModel.C
+# # urbanModels/treeModels/treeCanopyModels/canopySurfaceModel/canopySurfaceModel.C
+# urbanModels/treeModels/canopyModels/basic/basicCanopy/basicCanopy.C
+# urbanModels/treeModels/canopyModels/basic/dragCanopy/dragCanopy.C
+# urbanModels/treeModels/canopyModels/basic/triSurfaceDragCanopy/triSurfaceDragCanopys.C
 
 LIB = $(FOAM_USER_LIBBIN)/libatmosphericTurbulenceModels
 
