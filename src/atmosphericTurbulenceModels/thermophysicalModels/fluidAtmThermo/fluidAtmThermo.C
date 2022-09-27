@@ -97,30 +97,30 @@ Foam::scalar Foam::fluidAtmThermo::exner
 (
     const scalar p,
     const scalar p0,
-    const scalar gamma
+    const scalar poConst
 )
 {
-    return Foam::pow((p/p0), gamma);
+    return Foam::pow((p/p0), poConst);
 }
 
 Foam::tmp<Foam::volScalarField> Foam::fluidAtmThermo::exner
 (
     const volScalarField& p, 
     const dimensionedScalar& p0,
-    const volScalarField& gamma
+    const volScalarField& poConst
 )
 {
-    return Foam::pow((p/p0), gamma);
+    return Foam::pow((p/p0), poConst);
 }
 
 Foam::tmp<Foam::volScalarField> Foam::fluidAtmThermo::exner
 (
     const volScalarField& p, 
     const dimensionedScalar& p0,
-    const scalar gamma
+    const scalar poConst
 )
 {
-    return Foam::pow((p/p0), gamma);
+    return Foam::pow((p/p0), poConst);
 }
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 Foam::volScalarField& Foam::fluidAtmThermo::implementation::theta()
@@ -163,6 +163,20 @@ Foam::volScalarField& Foam::fluidAtmThermo::q()
 const Foam::volScalarField& Foam::fluidAtmThermo::q() const
 {
     return this->composition().Y("H2O");
+}
+
+Foam::tmp<Foam::volScalarField> Foam::fluidAtmThermo::poConst() const
+{
+    Foam::tmp<Foam::volScalarField> tpoConst
+    (
+        Foam::volScalarField::New
+        (
+            "poConst",
+            (Cp() - Cv()) / Cp()
+        )
+    );
+    return tpoConst;
+    
 }
 
 Foam::tmp<Foam::volScalarField> Foam::fluidAtmThermo::theta_v() const

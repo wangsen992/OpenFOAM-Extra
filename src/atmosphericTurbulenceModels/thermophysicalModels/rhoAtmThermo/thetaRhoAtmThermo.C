@@ -93,10 +93,6 @@ void Foam::thetaRhoAtmThermo<BasicRhoThermo, MixtureType>::calculate()
             pCells[celli],
             TCells[celli]
         );
-        thetaCells[celli] = TCells[celli] 
-                  / this->BasicRhoThermo::exner(pCells[celli], p0, 0.2854);
-                        // thermoMixture.gamma(pCells[celli], TCells[celli]));
-
         CpCells[celli] = thermoMixture.Cp(pCells[celli], TCells[celli]);
         CvCells[celli] = thermoMixture.Cv(pCells[celli], TCells[celli]);
         psiCells[celli] = thermoMixture.psi(pCells[celli], TCells[celli]);
@@ -106,6 +102,11 @@ void Foam::thetaRhoAtmThermo<BasicRhoThermo, MixtureType>::calculate()
         alphaCells[celli] =
             transportMixture.kappa(pCells[celli], TCells[celli])
            /thermoMixture.Cp(pCells[celli], TCells[celli]);
+
+        thetaCells[celli] = TCells[celli] 
+                  / this->BasicRhoThermo::exner(pCells[celli], p0,
+                        (CpCells[celli] - CvCells[celli]) / CpCells[celli]);
+
         // Info << "Update on " << celli << " completed" << endl;
     }
     Info << "Internal Cell update completed" << endl;
@@ -173,10 +174,6 @@ void Foam::thetaRhoAtmThermo<BasicRhoThermo, MixtureType>::calculate()
 
 
                 phe[facei] = thermoMixture.HE(pp[facei], pT[facei]);
-                ptheta[facei] = pT[facei] /
-                              this->BasicRhoThermo::exner(pp[facei], p0, 0.2854);
-                                 // , thermoMixture.gamma(pp[facei], pT[facei]));
-
                 pCp[facei] = thermoMixture.Cp(pp[facei], pT[facei]);
                 pCv[facei] = thermoMixture.Cv(pp[facei], pT[facei]);
                 ppsi[facei] = thermoMixture.psi(pp[facei], pT[facei]);
@@ -186,6 +183,10 @@ void Foam::thetaRhoAtmThermo<BasicRhoThermo, MixtureType>::calculate()
                 palpha[facei] =
                     transportMixture.kappa(pp[facei], pT[facei])
                    /thermoMixture.Cp(pp[facei], pT[facei]);
+                ptheta[facei] = pT[facei] /
+                              this->BasicRhoThermo::exner(pp[facei], p0,
+                                  (pCp[facei] - pCv[facei])/pCp[facei]);
+
             }
         }
 
@@ -203,8 +204,6 @@ void Foam::thetaRhoAtmThermo<BasicRhoThermo, MixtureType>::calculate()
                     (patchi, facei, thermoMixture);
 
                 pT[facei] = thermoMixture.THE(phe[facei], pp[facei], pT[facei]);
-                ptheta[facei] = pT[facei] / this->BasicRhoThermo::exner(pp[facei], p0, 0.2854);
-                                    // thermoMixture.gamma(pp[facei], pT[facei]));
 
                 pCp[facei] = thermoMixture.Cp(pp[facei], pT[facei]);
                 pCv[facei] = thermoMixture.Cv(pp[facei], pT[facei]);
@@ -215,6 +214,8 @@ void Foam::thetaRhoAtmThermo<BasicRhoThermo, MixtureType>::calculate()
                 palpha[facei] =
                     transportMixture.kappa(pp[facei], pT[facei])
                    /thermoMixture.Cp(pp[facei], pT[facei]);
+                ptheta[facei] = pT[facei] / this->BasicRhoThermo::exner(pp[facei], p0,
+                                  (pCp[facei] - pCv[facei])/pCp[facei]);
             }
         }
     }

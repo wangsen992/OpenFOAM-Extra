@@ -92,21 +92,21 @@ public:
     (
         const scalar p, 
         const scalar p0, 
-        const scalar gamma
+        const scalar poConst
     );
 
     static tmp<volScalarField> exner
     (
         const volScalarField& p, 
         const dimensionedScalar& p0,
-        const volScalarField& gamma
+        const volScalarField& poConst
     );
 
     static tmp<volScalarField> exner
     (
         const volScalarField& p, 
         const dimensionedScalar& p0,
-        const scalar gamma
+        const scalar poConst
     );
     
     // Member Functions
@@ -146,6 +146,9 @@ public:
             
         
         // Derived variables from available references (see above) 
+            //- Poisson Constant poConst (R/Cp) []
+            virtual tmp<volScalarField> poConst() const;
+
             //- Virtual Potential Temperature [K]
             //  Non-const access allowed for transport equations
             virtual tmp<volScalarField> theta_v() const;

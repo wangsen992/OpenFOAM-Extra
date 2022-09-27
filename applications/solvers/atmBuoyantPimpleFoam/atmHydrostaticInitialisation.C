@@ -82,7 +82,7 @@ void Foam::atmHydrostaticInitialisation
             thermo.correct();
             rho = thermo.rho();
             p = ph_rgh + rho*gh + pRef;
-            T = theta_orig * thermo.exner(p, thermo.p0(), 0.2854);
+            T = theta_orig * thermo.exner(p, thermo.p0(), thermo.poConst());
             he = thermo.he(p, T);
 
             // Report range of states 
@@ -96,8 +96,8 @@ void Foam::atmHydrostaticInitialisation
             Info << "theta: " <<  max(theta) << " " << min(theta) << endl;
             Info << "theta_orig: " <<  max(theta_orig) << " " << min(theta_orig) << endl;
 
-            // thermo.correct();
-            // rho = thermo.rho();
+            thermo.correct();
+            rho = thermo.rho();
 
             label nCorr
             (
@@ -125,7 +125,7 @@ void Foam::atmHydrostaticInitialisation
                 ph_rghEqn.solve();
 
                 p = ph_rgh + rho*gh + pRef;
-                T = theta_orig * thermo.exner(p, thermo.p0(), 0.2854);
+                T = theta_orig * thermo.exner(p, thermo.p0(), thermo.poConst());
                 he = thermo.he(p, T);
                 thermo.correct();
                 rho = thermo.rho();
@@ -136,6 +136,7 @@ void Foam::atmHydrostaticInitialisation
                 Info << "T: " <<  max(T) << " " << min(T) << endl;
                 Info << "theta: " <<  max(thermo.theta()) << " " << min(thermo.theta()) << endl;
                 Info << "theta_orig: " <<  max(theta_orig) << " " << min(theta_orig) << endl;
+                Info << "poConst: " <<  max(thermo.poConst()) << " " << min(thermo.poConst()) << endl;
 
                 Info<< "Hydrostatic pressure variation "
                     << (max(ph_rgh) - min(ph_rgh)).value() << endl;
