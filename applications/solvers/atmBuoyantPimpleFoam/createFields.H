@@ -90,6 +90,7 @@ atmHydrostaticInitialisation
 (
     p_rgh,
     rho,
+    thermo.theta(),
     U,
     gh,
     ghf,

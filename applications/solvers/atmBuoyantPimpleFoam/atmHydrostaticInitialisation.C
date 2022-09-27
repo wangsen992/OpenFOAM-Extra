@@ -39,6 +39,7 @@ void Foam::atmHydrostaticInitialisation
 (
     volScalarField& p_rgh,
     volScalarField& rho,
+    volScalarField& theta,
     const volVectorField& U,
     const volScalarField& gh,
     const surfaceScalarField& ghf,
@@ -72,26 +73,31 @@ void Foam::atmHydrostaticInitialisation
             volScalarField& p = thermo.p();
             volScalarField& T = thermo.T();
             volScalarField& he = thermo.he();
-            volScalarField& theta = thermo.theta();
+            // theta can be substituted with other potential temperature
+            // variant. To differentia different theta types and allow
+            // automatic conversion in the poisson equation, name of theta can
+            // be used as an identifier to conditional statements. 
+            volScalarField theta_orig = theta;
 
             thermo.correct();
             rho = thermo.rho();
+            p = ph_rgh + rho*gh + pRef;
+            T = theta_orig * thermo.exner(p, thermo.p0(), 0.2854);
+            he = thermo.he(p, T);
 
+            // Report range of states 
             Info << "ph_rgh: " << max(ph_rgh)<< " " <<  min(ph_rgh) << endl;
             Info << "rho: " << max(rho) << " " << min(rho) << endl;
             Info << "gh: " << max(gh) << " " << min(gh)<< endl;
 
-            p = ph_rgh + rho*gh + pRef;
             Info << "p: " << max(p) << " " << min(p) << endl;
             Info << "p0: " << thermo.p0() << endl;
-            T = theta * thermo.exner(p, thermo.p0(), 0.2854);
-            he = thermo.he(p, T);
             Info << "T: " <<  max(T) << " " << min(T) << endl;
             Info << "theta: " <<  max(theta) << " " << min(theta) << endl;
-            rho = thermo.rho();
+            Info << "theta_orig: " <<  max(theta_orig) << " " << min(theta_orig) << endl;
 
-            thermo.correct();
-            rho = thermo.rho();
+            // thermo.correct();
+            // rho = thermo.rho();
 
             label nCorr
             (
@@ -119,6 +125,8 @@ void Foam::atmHydrostaticInitialisation
                 ph_rghEqn.solve();
 
                 p = ph_rgh + rho*gh + pRef;
+                T = theta_orig * thermo.exner(p, thermo.p0(), 0.2854);
+                he = thermo.he(p, T);
                 thermo.correct();
                 rho = thermo.rho();
                 Info << "ph_rgh: " << max(ph_rgh)<< " " <<  min(ph_rgh) << endl;
@@ -127,6 +135,7 @@ void Foam::atmHydrostaticInitialisation
                 Info << "p: " << max(p) << " " << min(p) << endl;
                 Info << "T: " <<  max(T) << " " << min(T) << endl;
                 Info << "theta: " <<  max(thermo.theta()) << " " << min(thermo.theta()) << endl;
+                Info << "theta_orig: " <<  max(theta_orig) << " " << min(theta_orig) << endl;
 
                 Info<< "Hydrostatic pressure variation "
                     << (max(ph_rgh) - min(ph_rgh)).value() << endl;

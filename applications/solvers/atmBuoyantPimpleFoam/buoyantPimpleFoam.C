@@ -65,15 +65,7 @@ int main(int argc, char *argv[])
     #include "createFieldRefs.H"
     #include "createRhoUfIfPresent.H"
 
-    Info << "Debug: " << nl 
-         << "patch 0: " << nl 
-         << rho.boundaryField()[0] << nl
-         << "patch 1: " << nl 
-         << rho.boundaryField()[1] << endl;
-
-    Info << "Turbulence validation starting." << endl;
     turbulence->validate();
-    Info << "Turbulence validation complete." << endl;
 
     if (!LTS)
     {

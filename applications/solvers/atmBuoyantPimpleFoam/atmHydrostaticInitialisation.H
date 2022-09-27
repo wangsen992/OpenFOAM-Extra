@@ -59,6 +59,7 @@ namespace Foam
     (
         volScalarField& p_rgh,
         volScalarField& rho,
+        volScalarField& theta,
         const volVectorField& U,
         const volScalarField& gh,
         const surfaceScalarField& ghf,
