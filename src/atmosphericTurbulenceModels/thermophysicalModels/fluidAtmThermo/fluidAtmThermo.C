@@ -41,10 +41,34 @@ Foam::fluidAtmThermo::implementation::implementation
     const word& phaseName
 )
 :
-    theta_(lookupOrConstruct(mesh, "theta")),
-    ql_(lookupOrConstruct(mesh, "ql")),
     p0_("p0", dimPressure, pow(10,5)),
-    Lv_("Lv", dimEnergy/dimMass, 2.26*pow(10,6))
+    Lv_("Lv", dimEnergy/dimMass, 2.26*pow(10,6)),
+    theta_
+    (
+      IOobject
+      (
+        "theta",
+        mesh.time().timeName(),
+        mesh,
+        IOobject::READ_IF_PRESENT,
+        IOobject::AUTO_WRITE
+      ),
+      mesh,
+      dimTemperature
+    ),
+    ql_
+    (
+      IOobject
+      (
+        "ql",
+        mesh.time().timeName(),
+        mesh,
+        IOobject::NO_READ,
+        IOobject::AUTO_WRITE
+      ),
+      mesh,
+      dimless
+    )
 {
 }
 
@@ -84,6 +108,16 @@ Foam::tmp<Foam::volScalarField> Foam::fluidAtmThermo::exner
     const volScalarField& p, 
     const dimensionedScalar& p0,
     const volScalarField& gamma
+)
+{
+    return Foam::pow((p/p0), gamma);
+}
+
+Foam::tmp<Foam::volScalarField> Foam::fluidAtmThermo::exner
+(
+    const volScalarField& p, 
+    const dimensionedScalar& p0,
+    const scalar gamma
 )
 {
     return Foam::pow((p/p0), gamma);

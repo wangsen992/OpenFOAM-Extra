@@ -62,14 +62,13 @@ void Foam::thetaRhoAtmThermo<BasicRhoThermo, MixtureType>::calculate()
     // [To-Do] This can be updated for more general method, including all
     // the gamma below
     // [To-Do] Gamma, Cp, Cv and T are iterative. Solve this
-    scalar gamma = 0.2854; // Currently using gamma value of dry air
     scalar p0 = this->p0_.value();
     // Initiate Initial value loading (those two should be updated) 
+    const scalarField& hCells = this->he();
     const scalarField& pCells = this->p_;
-    const scalarField& thetaCells = this->theta_;
 
-    scalarField& hCells = this->he();
-    scalarField& TCells = this->T_.primitiveFieldRef();
+    scalarField& TCells = this->T_;
+    scalarField& thetaCells = this->theta_;
     scalarField& CpCells = this->Cp_.primitiveFieldRef();
     scalarField& CvCells = this->Cv_.primitiveFieldRef();
     scalarField& psiCells = this->psi_.primitiveFieldRef();
@@ -88,14 +87,15 @@ void Foam::thetaRhoAtmThermo<BasicRhoThermo, MixtureType>::calculate()
         const typename MixtureType::transportMixtureType& transportMixture =
             this->cellTransportMixture(celli, thermoMixture);
 
-
-        TCells[celli] = thetaCells[celli] 
-                  * this->BasicRhoThermo::exner(pCells[celli], p0, gamma);
-        hCells[celli] = thermoMixture.HE
+        TCells[celli] = thermoMixture.THE
         (
+            hCells[celli],
             pCells[celli],
             TCells[celli]
         );
+        thetaCells[celli] = TCells[celli] 
+                  / this->BasicRhoThermo::exner(pCells[celli], p0, 0.2854);
+                        // thermoMixture.gamma(pCells[celli], TCells[celli]));
 
         CpCells[celli] = thermoMixture.Cp(pCells[celli], TCells[celli]);
         CvCells[celli] = thermoMixture.Cv(pCells[celli], TCells[celli]);
@@ -108,7 +108,7 @@ void Foam::thetaRhoAtmThermo<BasicRhoThermo, MixtureType>::calculate()
            /thermoMixture.Cp(pCells[celli], TCells[celli]);
         // Info << "Update on " << celli << " completed" << endl;
     }
-    // Info << "Internal Cell update completed" << endl;
+    Info << "Internal Cell update completed" << endl;
 
     // Init reference of boundaryField
     volScalarField::Boundary& pBf =
@@ -119,6 +119,9 @@ void Foam::thetaRhoAtmThermo<BasicRhoThermo, MixtureType>::calculate()
 
     volScalarField::Boundary& TBf =
         this->T_.boundaryFieldRef();
+
+    // volScalarField::Boundary gammaBf =
+    //     this->gamma()().boundaryField();
 
     volScalarField::Boundary& CpBf =
         this->Cp_.boundaryFieldRef();
@@ -145,8 +148,8 @@ void Foam::thetaRhoAtmThermo<BasicRhoThermo, MixtureType>::calculate()
     forAll(this->theta_.boundaryField(), patchi)
     {
         fvPatchScalarField& pp = pBf[patchi];
-        fvPatchScalarField& ptheta = thetaBf[patchi];
         fvPatchScalarField& pT = TBf[patchi];
+        fvPatchScalarField& ptheta = thetaBf[patchi];
         fvPatchScalarField& pCp = CpBf[patchi];
         fvPatchScalarField& pCv = CvBf[patchi];
         fvPatchScalarField& ppsi = psiBf[patchi];
@@ -156,7 +159,7 @@ void Foam::thetaRhoAtmThermo<BasicRhoThermo, MixtureType>::calculate()
         fvPatchScalarField& palpha = alphaBf[patchi];
 
         // Update if T is fixes boundary
-        if (ptheta.fixesValue())
+        if (pT.fixesValue())
         {
             forAll(ptheta, facei)
             {
@@ -168,9 +171,11 @@ void Foam::thetaRhoAtmThermo<BasicRhoThermo, MixtureType>::calculate()
                     this->patchFaceTransportMixture
                     (patchi, facei, thermoMixture);
 
-                pT[facei] = ptheta[facei] 
-                  / this->BasicRhoThermo::exner(pp[facei], p0, gamma);
+
                 phe[facei] = thermoMixture.HE(pp[facei], pT[facei]);
+                ptheta[facei] = pT[facei] /
+                              this->BasicRhoThermo::exner(pp[facei], p0, 0.2854);
+                                 // , thermoMixture.gamma(pp[facei], pT[facei]));
 
                 pCp[facei] = thermoMixture.Cp(pp[facei], pT[facei]);
                 pCv[facei] = thermoMixture.Cv(pp[facei], pT[facei]);
@@ -184,7 +189,7 @@ void Foam::thetaRhoAtmThermo<BasicRhoThermo, MixtureType>::calculate()
             }
         }
 
-        // Update if theta is not fixing value
+        // Update if T is not fixing value
         else
         {
             forAll(ptheta, facei)
@@ -197,10 +202,9 @@ void Foam::thetaRhoAtmThermo<BasicRhoThermo, MixtureType>::calculate()
                     this->patchFaceTransportMixture
                     (patchi, facei, thermoMixture);
 
-                // gamma = pCp[facei] / pCv[facei];
-                gamma = 0.2854;
-                pT[facei] = ptheta[facei] * this->BasicRhoThermo::exner(pp[facei], p0, gamma);
-                phe[facei] = thermoMixture.HE(pp[facei], pT[facei]);
+                pT[facei] = thermoMixture.THE(phe[facei], pp[facei], pT[facei]);
+                ptheta[facei] = pT[facei] / this->BasicRhoThermo::exner(pp[facei], p0, 0.2854);
+                                    // thermoMixture.gamma(pp[facei], pT[facei]));
 
                 pCp[facei] = thermoMixture.Cp(pp[facei], pT[facei]);
                 pCv[facei] = thermoMixture.Cv(pp[facei], pT[facei]);
@@ -230,7 +234,7 @@ Foam::thetaRhoAtmThermo<BasicRhoThermo, MixtureType>::thetaRhoAtmThermo
     heThermo<BasicRhoThermo, MixtureType>(mesh, phaseName)
 {
     validate_mixture();
-    calculate();
+    // calculate();
 }
 
 

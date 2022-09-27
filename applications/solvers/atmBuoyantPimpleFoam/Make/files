@@ -1,0 +1,4 @@
+atmHydrostaticInitialisation.C
+buoyantPimpleFoam.C
+
+EXE = $(FOAM_USER_APPBIN)/atmBuoyantPimpleFoam

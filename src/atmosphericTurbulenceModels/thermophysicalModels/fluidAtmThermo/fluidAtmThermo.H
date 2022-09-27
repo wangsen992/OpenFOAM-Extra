@@ -101,6 +101,13 @@ public:
         const dimensionedScalar& p0,
         const volScalarField& gamma
     );
+
+    static tmp<volScalarField> exner
+    (
+        const volScalarField& p, 
+        const dimensionedScalar& p0,
+        const scalar gamma
+    );
     
     // Member Functions
 
@@ -181,18 +188,6 @@ class fluidAtmThermo::implementation
 protected:
     // Protected data
 
-        // Fields
-
-            //- Potential Temperature [K]
-            volScalarField& theta_;
-            
-            //- Specific Liquid Water Content
-            // [Note] ql is initialized to zero assuming non-saturated
-            // moist air. For saturated air, liquid water content is updated
-            // from application level, either by solving theta_l-ql relation 
-            // or by multi-phase flow system (PBM or LCM)
-            volScalarField& ql_;
-            
         // Model Parameters
 
             //- Reference Pressure [Pa]
@@ -200,6 +195,18 @@ protected:
 
             //- Specific Latent Heat of Vaporization [J/kg]
             dimensionedScalar Lv_;
+        // Fields
+
+            //- Potential Temperature [K]
+            volScalarField theta_;
+            
+            //- Specific Liquid Water Content
+            // [Note] ql is initialized to zero assuming non-saturated
+            // moist air. For saturated air, liquid water content is updated
+            // from application level, either by solving theta_l-ql relation 
+            // or by multi-phase flow system (PBM or LCM)
+            volScalarField ql_;
+            
 
 public:
 
