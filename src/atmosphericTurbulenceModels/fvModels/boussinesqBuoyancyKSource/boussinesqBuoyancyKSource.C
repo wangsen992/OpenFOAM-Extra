@@ -113,7 +113,8 @@ void Foam::fv::boussinesqBuoyancyKSource::addSup
     const word& fieldName
 ) const
 {
-    tmp<volVectorField> tgradTheta(fvc::grad(thermo_.theta_v()));
+    Info << "[boussinesqBuoyancyKSource.C] runing addSup with rho and theta" << endl;
+    tmp<volVectorField> tgradTheta(fvc::grad(thermo_.theta()));
     const volVectorField& gradTheta(tgradTheta.ref());
 
     eqn -= alphat_ * g_ & gradTheta / theta0_;
@@ -130,7 +131,7 @@ void Foam::fv::boussinesqBuoyancyKSource::addSup
 {
     tmp<volVectorField> tgradTheta(fvc::grad(thermo_.theta_v()));
     const volVectorField& gradTheta(tgradTheta.ref());
-    eqn -= alpha * rho * alphat_ * g_ & gradTheta / theta0_;
+    eqn -= alpha * alphat_ * g_ & gradTheta / theta0_;
 }
 
 
