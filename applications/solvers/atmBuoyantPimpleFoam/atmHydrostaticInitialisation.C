@@ -85,17 +85,6 @@ void Foam::atmHydrostaticInitialisation
             T = theta_orig * thermo.exner(p, thermo.p0(), thermo.poConst());
             he = thermo.he(p, T);
 
-            // Report range of states 
-            Info << "ph_rgh: " << max(ph_rgh)<< " " <<  min(ph_rgh) << endl;
-            Info << "rho: " << max(rho) << " " << min(rho) << endl;
-            Info << "gh: " << max(gh) << " " << min(gh)<< endl;
-
-            Info << "p: " << max(p) << " " << min(p) << endl;
-            Info << "p0: " << thermo.p0() << endl;
-            Info << "T: " <<  max(T) << " " << min(T) << endl;
-            Info << "theta: " <<  max(theta) << " " << min(theta) << endl;
-            Info << "theta_orig: " <<  max(theta_orig) << " " << min(theta_orig) << endl;
-
             thermo.correct();
             rho = thermo.rho();
 
@@ -129,15 +118,6 @@ void Foam::atmHydrostaticInitialisation
                 he = thermo.he(p, T);
                 thermo.correct();
                 rho = thermo.rho();
-                Info << "ph_rgh: " << max(ph_rgh)<< " " <<  min(ph_rgh) << endl;
-                Info << "rho: " << max(rho) << " " << min(rho) << endl;
-                Info << "gh: " << max(gh) << " " << min(gh)<< endl;
-                Info << "p: " << max(p) << " " << min(p) << endl;
-                Info << "T: " <<  max(T) << " " << min(T) << endl;
-                Info << "theta: " <<  max(thermo.theta()) << " " << min(thermo.theta()) << endl;
-                Info << "theta_orig: " <<  max(theta_orig) << " " << min(theta_orig) << endl;
-                Info << "poConst: " <<  max(thermo.poConst()) << " " << min(thermo.poConst()) << endl;
-
                 Info<< "Hydrostatic pressure variation "
                     << (max(ph_rgh) - min(ph_rgh)).value() << endl;
             }
@@ -148,7 +128,7 @@ void Foam::atmHydrostaticInitialisation
         }
         else
         {
-            Info << "Non-Restart condition of atmHydrostaticInitialisation.." << endl;
+            Info << "Restart condition of atmHydrostaticInitialisation.." << endl;
             thermo.correct();
             rho = thermo.rho();
         }

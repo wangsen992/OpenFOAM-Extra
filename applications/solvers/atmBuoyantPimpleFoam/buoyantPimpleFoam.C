@@ -73,6 +73,10 @@ int main(int argc, char *argv[])
         #include "setInitialDeltaT.H"
     }
 
+    // Write the initial conditions in time 1 for debug purpose
+    // runTime++;
+    // runTime.write();
+
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
     Info<< "\nStarting time loop\n" << endl;
@@ -170,14 +174,14 @@ int main(int argc, char *argv[])
 
                 #include "UEqn.H"
 
-                if (pimple.thermophysics())
-                {
-                    #include "EEqn.H"
-                }
-
                 // --- Pressure corrector loop
                 while (pimple.correct())
                 {
+                    if (pimple.thermophysics())
+                    {
+                        #include "EEqn.H"
+                    }
+
                     #include "pEqn.H"
                 }
 
