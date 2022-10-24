@@ -53,7 +53,7 @@ correctl()
 
     tmp<volScalarField> tdtheta_vdz
     (
-      fvc::grad(thermo_.theta_v())->component(2)
+      fvc::grad(thermo_.theta())->component(2)
     );
     const volScalarField& dtheta_vdz(tdtheta_vdz.ref());
     
