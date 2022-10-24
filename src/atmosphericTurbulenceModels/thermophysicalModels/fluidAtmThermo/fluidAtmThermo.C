@@ -103,6 +103,16 @@ Foam::scalar Foam::fluidAtmThermo::exner
     return Foam::pow((p/p0), poConst);
 }
 
+static tmp<scalarField> exner
+(
+    const scalarField p, 
+    const scalar p0, 
+    const scalarField poConst
+)
+{
+    return Foam::pow((p/p0), poConst);
+};
+
 Foam::tmp<Foam::volScalarField> Foam::fluidAtmThermo::exner
 (
     const volScalarField& p, 

@@ -95,6 +95,13 @@ public:
         const scalar poConst
     );
 
+    static tmp<scalarField> exner
+    (
+        const scalarField p, 
+        const scalar p0, 
+        const scalarField poConst
+    );
+
     static tmp<volScalarField> exner
     (
         const volScalarField& p, 
