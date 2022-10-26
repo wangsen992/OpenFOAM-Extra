@@ -25,7 +25,13 @@ Class
     Foam::fv::treeModel
 
 Description
-    Interface to include tree models into the transport equations
+    Interface to include tree models into the transport equations. 
+
+    Currently the model is designed to be used for flexible runTime selection
+    with different types of 
+
+    The code structure (using templates and apply function) is borrowed from
+    solidificationMeltingSource in the original source. 
 
 Usage
     Example usage:
@@ -48,6 +54,9 @@ SourceFiles
 
 #include "fvModel.H"
 #include "treeModel.H"
+#include "MomentumTransportModel.H"
+#include "thermophysicalTransportModel.H"
+#include "radiationModel.H"
 
 namespace Foam
 {
@@ -70,6 +79,7 @@ class treeModelSource
         word UName_;
 
         //- Reference to embedded models
+        momentumTransportModel& turbulence_;
         thermophysicalTransportModel& transport_;
         radiationModel& radiation_;
 
@@ -80,6 +90,16 @@ class treeModelSource
 
         //- Non-virtual read
         void readCoeffs();
+
+        //- Validate compatibility with existing turbulence model
+        bool validate_turb();
+
+        // Apply treeModels to equation
+        void apply
+        (
+          const volScalarField& rho,
+          fvMatrix<scalar>& eqn
+        );
 
         //- construct tree model 
         treeModel constructTreeModel(dictionary& dict);
@@ -139,6 +159,29 @@ public:
                 const word& fieldName
             ) const;
 
+            //- Add explicit contribution to incompressible momentum equation
+            virtual void addSup
+            (
+                fvMatrix<scalar>& eqn,
+                const word& fieldName
+            ) const;
+
+            //- Add explicit contribution to compressible momentum equation
+            virtual void addSup
+            (
+                const volScalarField& rho,
+                fvMatrix<scalar>& eqn,
+                const word& fieldName
+            ) const;
+
+            //- Add explicit contribution to phase momentum equation
+            virtual void addSup
+            (
+                const volScalarField& alpha,
+                const volScalarField& rho,
+                fvMatrix<scalar>& eqn,
+                const word& fieldName
+            ) const;
 
         // IO
 

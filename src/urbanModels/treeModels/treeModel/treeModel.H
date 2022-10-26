@@ -34,8 +34,6 @@ SourceFiles
 
 #include "fvCFD.H"
 #include "fvCellSet.H"
-#include "canopyPhysicsModel.H"
-#include "trunkPhysicsModel.H"
 
 namespace Foam
 {
@@ -47,8 +45,6 @@ class treeModel
     // Private Member Data
     
         //- Reference to components of trees
-        canopyPhysicsModel& canopy_;
-        trunkPhysicsModel& trunk_;
 
     // Private Member Functions
     
@@ -66,8 +62,6 @@ public:
         //- Constructor from components
         treeModel
         (
-            canopyPhysicsModel& canopy,
-            trunkPhysicsModel&   trunk
         );
         
 
@@ -75,12 +69,11 @@ public:
     virtual ~treeModel(){}
 
     // Member Functions
-        
-        //- Access
-        canopyPhysicsModel& canopy(){return canopy_;};
-
-        trunkPhysicsModel& trunk(){return trunk_;};
-
+    // Functions here are to be called in treeModelSource addSup method
+    void correctU(fvMatrix<vector>&);
+    void correctThermo(fvMatrix<scalar>&);
+    void correctTurb();
+    void correctRad();
 };
 
 }

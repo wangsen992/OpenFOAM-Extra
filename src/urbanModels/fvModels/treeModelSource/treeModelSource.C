@@ -26,6 +26,7 @@ License
 #include "treeModelSource.H"
 #include "fvMatrices.H"
 #include "addToRunTimeSelectionTable.H"
+#include "basicThermo.H"
 
 // * * * * * * * * * * * * * Static Member Functions * * * * * * * * * * * * //
 
@@ -59,6 +60,32 @@ void Foam::fv::treeModelSource::readCoeffs()
         );
 }
 
+bool Foam::fv::treeModelSource::validate_turb()
+{
+  return false;    
+}
+
+void Foam::fv::treeModelSource::apply
+(
+  const volScalarField& rho,
+  fvMatrix<scalar>& eqn
+)
+{
+    if (debug)
+    {
+        Info<< type() << ": applying source to " << eqn.psi().name() << endl;
+    }
+
+    if (eqn.psi().dimensions() == dimTemperature)
+    {
+        // eqn -= L/Cp*(fvc::ddt(rho, alpha1_));
+    }
+    else
+    {
+        // eqn -= L*(fvc::ddt(rho, alpha1_));
+    }
+}
+
 Foam::treeModel Foam::fv::treeModelSource::constructTreeModel
 (dictionary& dict)
 {
@@ -88,7 +115,11 @@ Foam::fv::treeModelSource::treeModelSource
 
 Foam::wordList Foam::fv::treeModelSource::addSupFields() const
 {
-    return wordList(1, UName_);
+    
+    const basicThermo& thermo =
+        mesh().lookupObject<basicThermo>(basicThermo::dictName);
+
+    return wordList({UName_, thermo.he().name()});
 }
 
 
