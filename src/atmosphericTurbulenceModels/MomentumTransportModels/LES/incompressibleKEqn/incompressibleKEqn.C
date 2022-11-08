@@ -40,7 +40,8 @@ namespace LESModels
 template<class BasicMomentumTransportModel>
 void incompressibleKEqn<BasicMomentumTransportModel>::correctNut()
 {
-    this->nut_ = 0.10 * l_ *sqrt(k_);
+    scalar Ck = 0.10;
+    this->nut_ = Ck * l_ *sqrt(k_);
     this->nut_.correctBoundaryConditions();
     fvConstraints::New(this->mesh_).constrain(this->nut_);
 }

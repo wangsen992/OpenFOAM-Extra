@@ -73,7 +73,7 @@ protected:
 
         // Fields
 
-            // Subgrid-scale turbulence intensity
+            // Subgrid-scale turbulence kinetic energy
             volScalarField k_;
 
             // Subgrid-scale mixing length
