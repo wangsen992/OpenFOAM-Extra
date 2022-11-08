@@ -51,16 +51,16 @@ correctl()
         . lookupObjectRef<uniformDimensionedScalarField>("theta0")
     );
 
-    tmp<volScalarField> tdtheta_vdz
+    tmp<volScalarField> tdthetadz
     (
       fvc::grad(thermo_.theta())->component(2)
     );
-    const volScalarField& dtheta_vdz(tdtheta_vdz.ref());
+    const volScalarField& dthetadz(tdthetadz.ref());
     
     // Testing Stage
-    forAll(dtheta_vdz, celli)
+    forAll(dthetadz, celli)
     {
-      if (dtheta_vdz[celli] <= 0)
+      if (dthetadz[celli] <= 0)
       {
          l_[celli] = delta_[celli];
       }
@@ -68,7 +68,7 @@ correctl()
       {
           l_[celli] = 0.76 
             * sqrt(k[celli] * theta0[celli]
-                 / mag(g[celli] / dtheta_vdz[celli]));
+                 / mag(g[celli] / dthetadz[celli]));
 
           if (l_[celli] > delta_[celli])
           {
