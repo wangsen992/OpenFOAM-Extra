@@ -10,49 +10,21 @@ FoamFile
     format      ascii;
     class       dictionary;
     location    "constant";
-    object      fvModels;
+    object      thermophysicalTransport;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-// geostrophicForce
-// {
-//     type            geostrophicForce;
-// 
-//     selectionMode   all;
-// 
-// 		UName						U;
-// 		Ug							(6 0 0);
-// 		f								(0 0 0.826e-4);
-// }
-
-// boussinesqBuoyancyForce
-// {
-// 		type						boussinesqBuoyancyForce;
-// 
-// 		selectionMode		all;
-// 
-// 		UName						U;
-// 		theta0					[0 0 0 1 0] 300;
-// 		g								[0 1 -2 0 0] (0 0 -10);
-// }
-
-accelerationSource
+RAS
 {
-		type						accelerationSource;
-
-		selectionMode		all;
-
-		U								U;
-
-		velocity				constant (5 0 0);
 }
 
-
-boussinesqBuoyancyKSource
+LES
 {
-		type						boussinesqBuoyancyKSource;
+		model						Deardorff1980EddyDiffusivity;
 
-		selectionMode		all;
+		Prt							0.8;
+		Sct							0.75;
 }
+
 
 // ************************************************************************* //
