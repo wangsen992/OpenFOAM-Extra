@@ -23,6 +23,7 @@ License
 
 \*---------------------------------------------------------------------------*/
 
+#include "hydrostaticInitialisation.H"
 #include "atmHydrostaticInitialisation.H"
 
 #include "fluidAtmThermo.H"
@@ -70,24 +71,10 @@ void Foam::atmHydrostaticInitialisation
 
         if (!mesh.time().restart())
         {
+            thermo.correct();
             volScalarField& p = thermo.p();
-            volScalarField& T = thermo.T();
-            volScalarField& he = thermo.he();
-            // theta can be substituted with other potential temperature
-            // variant. To differentia different theta types and allow
-            // automatic conversion in the poisson equation, name of theta can
-            // be used as an identifier to conditional statements. 
-            volScalarField theta_orig = theta;
-
-            thermo.correct();
-            rho = thermo.rho();
             p = ph_rgh + rho*gh + pRef;
-            T = theta_orig * thermo.exner(p, thermo.p0(), thermo.poConst());
-            he = thermo.he(p, T);
-
-            thermo.correct();
             rho = thermo.rho();
-
             label nCorr
             (
                 dict.lookupOrDefault<label>("nHydrostaticCorrectors", 5)
@@ -112,14 +99,9 @@ void Foam::atmHydrostaticInitialisation
                 );
 
                 ph_rghEqn.solve();
-
                 p = ph_rgh + rho*gh + pRef;
-                T = theta_orig * thermo.exner(p, thermo.p0(), thermo.poConst());
-                he = thermo.he(p, T);
                 thermo.correct();
                 rho = thermo.rho();
-                Info<< "Hydrostatic pressure variation "
-                    << (max(ph_rgh) - min(ph_rgh)).value() << endl;
             }
 
             ph_rgh.write();
