@@ -129,6 +129,11 @@ uniformDimensionedScalarField theta0
         IOobject::NO_WRITE
     )
 );
+
+Info << "Correct nut and alphat based on prescribed U and T values.\n" << endl;
+turbulence->correct();
+thermophysicalTransport->correct();
+
 #include "createMRF.H"
 #include "createFvModels.H"
 #include "createFvConstraints.H"
