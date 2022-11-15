@@ -35,25 +35,6 @@ volVectorField U
     mesh
 );
 
-#include "compressibleCreatePhi.H"
-
-Info<< "Creating turbulence model\n" << endl;
-autoPtr<compressible::momentumTransportModel> turbulence
-(
-    compressible::momentumTransportModel::New
-    (
-        rho,
-        U,
-        phi,
-        thermo
-    )
-);
-
-Info<< "Creating thermophysical transport model\n" << endl;
-autoPtr<fluidAtmThermophysicalTransportModel> thermophysicalTransport
-(
-    fluidAtmThermophysicalTransportModel::New(turbulence(), thermo)
-);
 
 
 #include "readGravitationalAcceleration.H"
@@ -128,6 +109,27 @@ uniformDimensionedScalarField theta0
         IOobject::MUST_READ,
         IOobject::NO_WRITE
     )
+);
+
+// Phi creation is moved after hydrostatic initialization
+#include "compressibleCreatePhi.H"
+
+Info<< "Creating turbulence model\n" << endl;
+autoPtr<compressible::momentumTransportModel> turbulence
+(
+    compressible::momentumTransportModel::New
+    (
+        rho,
+        U,
+        phi,
+        thermo
+    )
+);
+
+Info<< "Creating thermophysical transport model\n" << endl;
+autoPtr<fluidAtmThermophysicalTransportModel> thermophysicalTransport
+(
+    fluidAtmThermophysicalTransportModel::New(turbulence(), thermo)
 );
 
 Info << "Correct nut and alphat based on prescribed U and T values.\n" << endl;

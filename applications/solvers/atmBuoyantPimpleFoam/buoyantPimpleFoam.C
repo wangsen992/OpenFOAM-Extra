@@ -73,9 +73,6 @@ int main(int argc, char *argv[])
         #include "setInitialDeltaT.H"
     }
 
-    // Write the initial conditions in time 1 for debug purpose
-    // runTime++;
-    // runTime.write();
 
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -164,7 +161,8 @@ int main(int argc, char *argv[])
 
                 if (pimple.firstPimpleIter() && !pimple.simpleRho())
                 {
-                    #include "rhoEqn.H"
+                    // #include "myRhoEqn.H"
+                    thermo.correct();
                 }
 
                 if (pimple.models())
@@ -172,18 +170,24 @@ int main(int argc, char *argv[])
                     fvModels.correct();
                 }
 
+                if (runTime.timeIndex() > 1)
+                {
+                    Info << "Applying acoustic damping with gamma_d = 0.1." << endl;
+                    p_rgh = p_rgh + 0.1 * (p_rgh - p_rgh.prevIter());
+                }
                 #include "UEqn.H"
+
+                if (pimple.thermophysics())
+                {
+                    #include "EEqn.H"
+                }
 
                 // --- Pressure corrector loop
                 while (pimple.correct())
                 {
-                    if (pimple.thermophysics())
-                    {
-                        #include "EEqn.H"
-                    }
-
                     #include "pEqn.H"
                 }
+
 
                 if (pimple.turbCorr())
                 {
