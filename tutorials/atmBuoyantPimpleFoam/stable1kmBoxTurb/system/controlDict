@@ -23,13 +23,13 @@ startTime       0;
 stopAt          endTime;
 
 // q = 200 Wm-2 when t < 7390, then switched to q = -200 Wm-2
-endTime					400;
+endTime					3600;
 
-deltaT          1;
+deltaT          1.;
 
 writeControl    runTime;
 
-writeInterval   1;
+writeInterval   10;
 
 purgeWrite      0;
 
@@ -47,7 +47,7 @@ runTimeModifiable true;
 
 adjustTimeStep  yes;
 
-maxCo           0.8;
+maxCo           0.5;
 
 // ************************************************************************* //
 libs ("libatmosphericTurbulenceModels.so");

@@ -22,13 +22,12 @@ boundaryField
 {
     floor
     {
-        type            fixedValue;
+        type            fixedFluxPressure;
         value           uniform 0;
     }
     ceiling
     {
         type            fixedFluxPressure;
-        gradient        uniform 0;
         value           uniform 0;
     }
     inlet

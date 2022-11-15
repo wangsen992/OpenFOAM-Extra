@@ -58,9 +58,14 @@ momentumSource
 				Pout << "**codeAddRhoSup**" << endl;
 				const Time& time = mesh().time();
 				const scalarField& V = mesh().V();
+				const vectorField& C = mesh().C();
 				vectorField& USource = eqn.source();
-				vector Fu(0, 0, 0);
-				USource += rho * V* Fu;
+				scalar x;
+				forAll(USource, i)
+				{
+						x = C[i].x();
+						USource[i] -= rho[i] * V[i] * vector(0, 0.02 * Foam::sin(2 * 3.14 * x/1000), 0) * time.deltaTValue();
+				}
 		#};
 
 		codeAddAlphaRhoSup

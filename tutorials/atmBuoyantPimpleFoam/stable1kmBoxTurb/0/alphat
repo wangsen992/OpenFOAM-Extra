@@ -22,8 +22,8 @@ boundaryField
 {
     floor
     {
-        type            fixedValue;
-        value           uniform 50;
+        type            calculated;
+        value           uniform 0;
     }
     ceiling
     {

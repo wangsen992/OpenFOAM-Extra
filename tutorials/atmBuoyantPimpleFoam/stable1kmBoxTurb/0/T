@@ -45,7 +45,7 @@ internalField    #codeStream
 
 							scalarField T(mesh.nCells(), 0.);
 
-							scalar dTdz = -0.0048;
+							scalar dTdz = -0.0076;
 							scalar T0 = 290;
 							scalar z;
 
@@ -64,12 +64,13 @@ boundaryField
     floor
     {
         type            fixedGradient;
-				gradient				uniform 0.0048;
+				// gradient				uniform 0.0048; // this is cause a positive heat flux
+				gradient				uniform 0.0076;
     }
     ceiling
     {
         type            fixedGradient;
-				gradient				uniform -0.0048;
+				gradient				uniform -0.0076;
     }
     "(inlet|outlet|leftBoundary|rightBoundary)"
     {
