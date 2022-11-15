@@ -72,6 +72,8 @@ protected:
     // Protected data
 
         // Fields
+            
+            volScalarField Ceps_;
 
             // Subgrid-scale turbulence kinetic energy
             volScalarField k_;
@@ -82,6 +84,12 @@ protected:
             // Subgrid-scale
             volScalarField delta_;
 
+            //- Diagnostic Variables
+            volScalarField kTransport_;
+            volScalarField kProd_;
+            volScalarField kDissipation_;
+            volScalarField kSource_;
+
 
         // Model constants
 
@@ -89,6 +97,7 @@ protected:
 
         // correctl() is to be overwritten in the thermophysical model
         virtual void correctNut();
+        virtual void correctCeps();
         virtual tmp<fvScalarMatrix> kSource() const;
 
 

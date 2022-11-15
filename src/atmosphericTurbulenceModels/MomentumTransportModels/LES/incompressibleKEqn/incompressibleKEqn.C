@@ -46,6 +46,11 @@ void incompressibleKEqn<BasicMomentumTransportModel>::correctNut()
     fvConstraints::New(this->mesh_).constrain(this->nut_);
 }
 
+template<class BasicMomentumTransportModel>
+void incompressibleKEqn<BasicMomentumTransportModel>::correctCeps()
+{
+    Ceps_ = 0.19 + (0.51 * l_ / delta_);
+}
 
 template<class BasicMomentumTransportModel>
 tmp<fvScalarMatrix> incompressibleKEqn<BasicMomentumTransportModel>::kSource() const
@@ -87,6 +92,19 @@ incompressibleKEqn<BasicMomentumTransportModel>::incompressibleKEqn
         transport
     ),
 
+    Ceps_
+    (
+        IOobject
+        (
+            IOobject::groupName("Ceps", this->alphaRhoPhi_.group()),
+            this->runTime_.timeName(),
+            this->mesh_,
+            IOobject::NO_READ,
+            IOobject::AUTO_WRITE
+        ),
+        this->mesh_,
+        dimless
+    ),
     k_
     (
         IOobject
@@ -124,6 +142,59 @@ incompressibleKEqn<BasicMomentumTransportModel>::incompressibleKEqn
             IOobject::AUTO_WRITE
         ),
         this->delta()
+    ),
+    kTransport_
+    (
+        IOobject
+        (
+            IOobject::groupName("kTransport", this->alphaRhoPhi_.group()),
+            this->runTime_.timeName(), // for non-adaptive mesh
+            this->mesh_,
+            IOobject::NO_READ,
+            IOobject::AUTO_WRITE
+        ),
+        this->mesh(),
+        dimVelocity * dimVelocity * dimDensity / dimTime
+        
+    ),
+    kProd_
+    (
+        IOobject
+        (
+            IOobject::groupName("kProd", this->alphaRhoPhi_.group()),
+            this->runTime_.timeName(), // for non-adaptive mesh
+            this->mesh_,
+            IOobject::NO_READ,
+            IOobject::AUTO_WRITE
+        ),
+        this->mesh(),
+        dimVelocity * dimVelocity * dimDensity / dimTime
+    ),
+    kDissipation_
+    (
+        IOobject
+        (
+            IOobject::groupName("kDissipation", this->alphaRhoPhi_.group()),
+            this->runTime_.timeName(), // for non-adaptive mesh
+            this->mesh_,
+            IOobject::NO_READ,
+            IOobject::AUTO_WRITE
+        ),
+        this->mesh(),
+        dimVelocity * dimVelocity * dimDensity / dimTime
+    ),
+    kSource_
+    (
+        IOobject
+        (
+            IOobject::groupName("kSource", this->alphaRhoPhi_.group()),
+            this->runTime_.timeName(), // for non-adaptive mesh
+            this->mesh_,
+            IOobject::NO_READ,
+            IOobject::AUTO_WRITE
+        ),
+        this->mesh(),
+        dimVelocity * dimVelocity * dimDensity / dimTime
     )
 {
     bound(k_, this->kMin_);
@@ -132,6 +203,8 @@ incompressibleKEqn<BasicMomentumTransportModel>::incompressibleKEqn
     {
         this->printCoeffs(type);
     }
+    correctCeps();
+    correctNut();
 }
 
 
@@ -199,7 +272,7 @@ void incompressibleKEqn<BasicMomentumTransportModel>::correct()
       - fvm::laplacian(alpha*rho*DkEff(), k_) // turbulent diffusion of k
      ==
         alpha*rho*G - fvm::SuSp((2.0/3.0)*alpha*rho*divU, k_) // production term
-      - fvm::Sp(this->Ce_*alpha*rho*sqrt(k_)/l_, k_) // dissipation
+      - fvm::Sp(Ceps_*alpha*rho*sqrt(k_)/l_, k_) // dissipation
       + kSource()
       + fvModels.source(alpha, rho, k_)
     );
@@ -210,6 +283,12 @@ void incompressibleKEqn<BasicMomentumTransportModel>::correct()
     fvConstraints.constrain(k_);
     bound(k_, this->kMin_);
 
+    // IO K equation contributors
+    kTransport_ = -fvc::div(alphaRhoPhi, k_) + fvc::laplacian(alpha*rho*DkEff(), k_);
+    kProd_ = alpha*rho*G - fvc::SuSp((2.0/3.0)*alpha*rho*divU, k_);
+    kDissipation_ = - fvc::Sp(Ceps_*alpha*rho*sqrt(k_)/l_, k_);
+
+    correctCeps();
     correctNut();
 }
 
