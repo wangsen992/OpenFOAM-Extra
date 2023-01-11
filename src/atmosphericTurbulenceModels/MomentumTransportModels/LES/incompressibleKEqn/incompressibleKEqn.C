@@ -286,8 +286,8 @@ void incompressibleKEqn<BasicMomentumTransportModel>::correct()
     // IO K equation contributors
     kTransport_ = -fvc::div(alphaRhoPhi, k_) + fvc::laplacian(alpha*rho*DkEff(), k_);
     kProd_ = alpha*rho*G - fvc::SuSp((2.0/3.0)*alpha*rho*divU, k_);
-    kDissipation_ = - fvc::Sp(Ceps_*alpha*rho*sqrt(k_)/l_, k_);
-
+    // kDissipation_ = - fvc::Sp(Ceps_*alpha*rho*sqrt(k_)/l_, k_);
+    kDissipation_ = - Ceps_ * alpha * rho * pow(k_, 1.5) / l_;
     correctCeps();
     correctNut();
 }
