@@ -55,14 +55,14 @@ correctl()
     // Testing Stage
     forAll(dbdz, celli)
     {
-      if (dbdz[celli] >= 0)
+      if (dbdz[celli] <= 0)
       {
          l_[celli] = delta_[celli];
       }
       else 
       {
           l_[celli] = 0.76 
-            * sqrt((-1) * k[celli] / dbdz[celli]);
+            * sqrt(k[celli] / dbdz[celli]);
 
           if (l_[celli] > delta_[celli])
           {
