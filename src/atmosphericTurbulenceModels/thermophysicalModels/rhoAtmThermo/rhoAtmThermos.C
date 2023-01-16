@@ -35,6 +35,7 @@ License
 #include "rhoThermo.H"
 #include "rhoAtmThermo.H"
 #include "thetaRhoAtmThermo.H"
+#include "heRhoAtmThermo.H"
 
 #include "forAtmGases.H"
 #include "forLiquids.H"
@@ -48,7 +49,7 @@ License
     (                                                                          \
         rhoThermo,                                                             \
         rhoAtmThermo,                                                     \
-        thetaRhoAtmThermo,                                                           \
+        heRhoAtmThermo,                                                           \
         Mixture,                                                               \
         ThermoPhysics                                                          \
     )
@@ -57,7 +58,7 @@ License
     makeAtmThermo                                                         \
     (                                                                          \
         rhoAtmThermo,                                                     \
-        thetaRhoAtmThermo,                                                           \
+        heRhoAtmThermo,                                                           \
         Mixture,                                                               \
         ThermoPhysics                                                          \
     )

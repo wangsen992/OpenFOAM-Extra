@@ -22,31 +22,22 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::thetaRhoAtmThermo
+    Foam::heRhoAtmThermo
 
 Description
-    An analytical engine for the thermodynamics of a mixture in atm context for
-    using potential temperature as the conservative variable instead of internal
-    energy (or enthalpy) as typically used in OpenFOAM. 
-
-    To use this thermo class, potential temperature should be solved first, then
-    temperature is recovered from exner function available from fluidAtmThermo, 
-    then the rest of variables are recovered. 
+    Energy for a mixture based on density
 
 SourceFiles
-    thetaRhoAtmThermo.C
+    heRhoAtmThermo.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef thetaRhoAtmThermo_H
-#define thetaRhoAtmThermo_H
+#ifndef heRhoAtmThermo_H
+#define heRhoAtmThermo_H
 
-#include "fvCFD.H"
-#include "volFields.H"
-#include "uniformGeometricFields.H"
 #include "rhoAtmThermo.H"
-#include "SpecieMixture.H"
 #include "heThermo.H"
+#include "SpecieMixture.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -54,19 +45,15 @@ namespace Foam
 {
 
 /*---------------------------------------------------------------------------*\
-                         Class thetaRhoAtmThermo Declaration
+                         Class heRhoAtmThermo Declaration
 \*---------------------------------------------------------------------------*/
 
 template<class BasicRhoThermo, class MixtureType>
-class thetaRhoAtmThermo
+class heRhoAtmThermo
 :
     public heThermo<BasicRhoThermo, MixtureType>
 {
     // Private Member Functions
-
-        // Validate basic mixture species
-        // Species should include at least dryAir and H2O (moisture)
-        void validate_mixture();
 
         //- Calculate the thermo variables
         void calculate();
@@ -75,41 +62,38 @@ class thetaRhoAtmThermo
 public:
 
     //- Runtime type information
-    TypeName("thetaRhoAtmThermo");
+    TypeName("heRhoAtmThermo");
 
 
     // Constructors
 
         //- Construct from mesh and phase name
-        thetaRhoAtmThermo
+        heRhoAtmThermo
         (
             const fvMesh&,
             const word& phaseName
         );
 
         //- Disallow default bitwise copy construction
-        thetaRhoAtmThermo(const thetaRhoAtmThermo<BasicRhoThermo, MixtureType>&) = delete;
+        heRhoAtmThermo(const heRhoAtmThermo<BasicRhoThermo, MixtureType>&) = delete;
 
 
     //- Destructor
-    virtual ~thetaRhoAtmThermo();
+    virtual ~heRhoAtmThermo();
 
 
     // Member Functions
-        //- Exner Function
-        //scalar exner(const scalar, const scalar);
 
+        //- Update properties
+        virtual void correct();
 
-
-            //- Update properties
-            virtual void correct();
 
     // Member Operators
 
         //- Disallow default bitwise assignment
         void operator=
         (
-            const thetaRhoAtmThermo<BasicRhoThermo, MixtureType>&
+            const heRhoAtmThermo<BasicRhoThermo, MixtureType>&
         ) = delete;
 };
 
@@ -121,7 +105,7 @@ public:
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 #ifdef NoRepository
-    #include "thetaRhoAtmThermo.C"
+    #include "heRhoAtmThermo.C"
 #endif
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

@@ -24,6 +24,7 @@ License
 \*---------------------------------------------------------------------------*/
 
 #include "rhoAtmThermo.H"
+#include "word.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
@@ -40,7 +41,35 @@ Foam::rhoAtmThermo::implementation::implementation
     const fvMesh& mesh,
     const word& phaseName
 )
-{}
+:
+  rhoRef_
+  (
+    IOobject
+    (
+       "rhoref",
+       mesh.time().constant(),
+       mesh,
+       IOobject::NO_READ,
+       IOobject::AUTO_WRITE
+    ),
+    mesh,
+    dimDensity
+  ),
+  b_
+  (
+    IOobject
+    (
+       "b",
+       mesh.time().timeName(),
+       mesh,
+       IOobject::NO_READ,
+       IOobject::AUTO_WRITE
+    ),
+    mesh,
+    dimDensity * dimAcceleration
+  )
+{
+}
 
 
 // * * * * * * * * * * * * * * * * Selectors * * * * * * * * * * * * * * * * //
@@ -65,18 +94,26 @@ Foam::rhoAtmThermo::implementation::~implementation()
 {}
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
-Foam::tmp<Foam::volScalarField> Foam::rhoAtmThermo::implementation::lwc() const
-{
-    Foam::tmp<Foam::volScalarField> tlwc
-    (
-      Foam::volScalarField::New
-      (
-        "lwc",
-        this->ql() * this->rho()
-      )
-    );
 
-    return tlwc;
+Foam::volScalarField& Foam::rhoAtmThermo::implementation::rhoRef()
+{
+    return rhoRef_;
+}
+
+
+const Foam::volScalarField& Foam::rhoAtmThermo::implementation::rhoRef() const
+{
+    return rhoRef_;
+}
+
+Foam::volVectorField& Foam::rhoAtmThermo::implementation::b()
+{
+    return b_;
+}
+
+const Foam::volVectorField& Foam::rhoAtmThermo::implementation::b() const
+{
+    return b_;
 }
 
 // ************************************************************************* //

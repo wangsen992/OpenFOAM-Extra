@@ -34,6 +34,12 @@ Description
     The final application can still be written in either with potential 
     temperature or with internal energy form. 
 
+    pRef and rhoRef are assigned after object construction and hydrostatic
+    initialization, and used for buoyancy definition. 
+
+    The key difference for atmThermo is that due to the presence of gravity,
+    there is a hydrostatic balance so definition of buoyancy becomes important. 
+
 \*---------------------------------------------------------------------------*/
 
 #ifndef fluidAtmThermo_H
@@ -42,6 +48,8 @@ Description
 #include "fvCFD.H"
 #include "fluidReactionThermo.H"
 #include "speciesTable.H"
+
+typedef fluidReactionThermo BaseFluidThermo;
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -52,7 +60,7 @@ namespace Foam
 \*---------------------------------------------------------------------------*/
 class fluidAtmThermo
 :
-    virtual public fluidReactionThermo
+    virtual public BaseFluidThermo
 {
 public:
     
@@ -86,106 +94,34 @@ public:
 
     //- Destructor
     virtual ~fluidAtmThermo();
-
-    // Static Function
-    static scalar exner
-    (
-        const scalar p, 
-        const scalar p0, 
-        const scalar poConst
-    );
-
-    static tmp<scalarField> exner
-    (
-        const scalarField p, 
-        const scalar p0, 
-        const scalarField poConst
-    );
-
-    static tmp<volScalarField> exner
-    (
-        const volScalarField& p, 
-        const dimensionedScalar& p0,
-        const volScalarField& poConst
-    );
-
-    static tmp<volScalarField> exner
-    (
-        const volScalarField& p, 
-        const dimensionedScalar& p0,
-        const scalar poConst
-    );
     
     // Member Functions
 
         // Access to thermodynamic state variables
 
-            //- Potential Temperature [K]
-            //  Non-const access allowed for transport equations
-            virtual volScalarField& theta() = 0;
-
-            //- Potential Temperature [K]
-            virtual const volScalarField& theta() const = 0;
-           
-            //- Specific Liquid Water Content
-            //  Non-const access allowed for transport equations
-            virtual volScalarField& ql() = 0;
-
-            //- Specific Liquid Water Content
-            virtual const volScalarField& ql() const = 0;
+            //- Reference Pressure [Pa]
+            virtual volScalarField& pRef ()= 0;
             
             //- Reference Pressure [Pa]
-            virtual const dimensionedScalar p0() const = 0;
+            virtual const volScalarField& pRef() const = 0;
             
-            //- Specific Latent Heat of Water [J/kg]
-            virtual const dimensionedScalar Lv() const = 0;
+            //- Reference Density [Pa]
+            //  Non-const access allowed for assignment
+            virtual volScalarField& rhoRef() = 0;
             
-
+            //- Reference Density [Pa]
+            virtual const volScalarField& rhoRef() const = 0;
+            
         // Access to Mixture Specie Information
         
-            //- Specific Humidity [kg/kg]
-            //  Non-const access allowed for transport equations
-            virtual volScalarField& q();
-
-            //- Specific Humidity [kg/kg]
-            // Const access allowed for transport equations
-            virtual const volScalarField& q() const;
-            
-        
         // Derived variables from available references (see above) 
-            //- Poisson Constant poConst (R/Cp) []
-            virtual tmp<volScalarField> poConst() const;
 
-            //- Virtual Potential Temperature [K]
-            //  Non-const access allowed for transport equations
-            virtual tmp<volScalarField> theta_v() const;
-
-            //- Liquid Water Potential Temperature [K]
-            //  Non-const access allowed for transport equations
-            virtual tmp<volScalarField> theta_l() const;
+            //- Buoyancy [kg m-2 s-2]
+            // Note: Buoyancy is defined in its most fundamental form
+            // as the product of density variation with gravity
+            virtual const volVectorField& b() const =  0;
+            virtual volVectorField& b() =  0;
             
-            //- Total Specific Humidity
-            //  Non-const access allowed for transport equations
-            virtual tmp<volScalarField> qw() const;
-
-            //- Liquid Water Content (LWC) [kg m-3]
-            // implemented in rhoAtmThermo for rho access
-            virtual tmp<volScalarField> lwc() const = 0;
-       
-            //- Mixing Ratio []
-            virtual tmp<volScalarField> r() const;
-
-            //- Liquid Mixing Ratio []
-            // Mass of liquid over Mass of Dry Air (similar to mixing ratio) 
-            virtual tmp<volScalarField> rl() const;
-
-            //- Return the partial pressure for a specie given by index
-            virtual tmp<volScalarField> pp(const label specie) const;
-
-            //- Return the partial pressure for a specie given by name
-            virtual tmp<volScalarField> pp(const word& specieName) const;
-            //- Return the saturation vapor pressure
-            virtual tmp<volScalarField> es() const;
 };
 /*---------------------------------------------------------------------------*\
                      Class fluidReactionThermo Declaration
@@ -201,22 +137,10 @@ protected:
         // Model Parameters
 
             //- Reference Pressure [Pa]
-            dimensionedScalar  p0_;
+            volScalarField  pRef_;
 
-            //- Specific Latent Heat of Vaporization [J/kg]
-            dimensionedScalar Lv_;
-        // Fields
-
-            //- Potential Temperature [K]
-            volScalarField theta_;
-            
-            //- Specific Liquid Water Content
-            // [Note] ql is initialized to zero assuming non-saturated
-            // moist air. For saturated air, liquid water content is updated
-            // from application level, either by solving theta_l-ql relation 
-            // or by multi-phase flow system (PBM or LCM)
-            volScalarField ql_;
-            
+            //- Gravitational Acceleration
+            uniformDimensionedVectorField g_;
 
 public:
 
@@ -232,25 +156,12 @@ public:
 
         // Access to thermodynamic state variables
 
-            //- Potential Temperature [K]
+            //- Reference Pressure [K]
             //  Non-const access allowed for transport equations
-            virtual volScalarField& theta();
-
-            //- Potential Temperature [K]
-            virtual const volScalarField& theta() const;
-            
-            //- Specific Liquid Water Content
-            //  Non-const access allowed for transport equations
-            virtual volScalarField& ql();
-
-            //- Specific Liquid Water Content
-            virtual const volScalarField& ql() const;
+            virtual volScalarField& pRef();
 
             //- Reference Pressure [K]
-            virtual const dimensionedScalar p0() const;
-
-            //- Specific Latent Heat of Water [J/kg]
-            virtual const dimensionedScalar Lv() const;
+            virtual const volScalarField& pRef() const;
             
 };
 

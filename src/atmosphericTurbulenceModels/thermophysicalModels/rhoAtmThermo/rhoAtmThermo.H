@@ -109,6 +109,13 @@ class rhoAtmThermo::implementation
 :
     virtual public rhoAtmThermo
 {
+    // Protected data
+
+        //- Reference Density
+        volScalarField rhoRef_;
+
+        //- Buoyancy [kg m-2 s-2]
+        volVectorField b_;
 
 public:
 
@@ -127,8 +134,16 @@ public:
         //- Disallow default bitwise assignment
         void operator=(const implementation&) = delete;
 
-        //- Liquid Water Content (LWC) [kg m-3]
-        virtual tmp<volScalarField> lwc() const;
+        //- Reference Density [K]
+        //  Non-const access allowed for transport equations
+        virtual volScalarField& rhoRef();
+
+        //- Potential Temperature [K]
+        virtual const volScalarField& rhoRef() const;
+        
+        //- Buoyancy [kg m-2 s-2]
+        virtual const volVectorField& b() const;
+        virtual volVectorField& b();
 };
 
 
