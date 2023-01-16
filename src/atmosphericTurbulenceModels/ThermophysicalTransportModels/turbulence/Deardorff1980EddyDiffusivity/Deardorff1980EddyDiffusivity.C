@@ -40,35 +40,29 @@ correctl()
 {
     // Load variable data into space
     const volScalarField& k(turbulence_.k()());
-    uniformDimensionedVectorField& g
-    (
-        turbulence_.mesh()
-        . lookupObjectRef<uniformDimensionedVectorField>("g")
-    );
-    uniformDimensionedScalarField& theta0
-    (
-        turbulence_.mesh()
-        . lookupObjectRef<uniformDimensionedScalarField>("theta0")
-    );
 
-    tmp<volScalarField> tdthetadz
-    (
-      fvc::grad(thermo_.theta())->component(2)
+    volVectorField& b
+    (turbulence_.mesh()
+        .lookupObjectRef<volVectorField>("b")
     );
-    const volScalarField& dthetadz(tdthetadz.ref());
+    tmp<volScalarField> tdbdz
+    (
+      fvc::grad(b)->component(8)
+    );
+    const volScalarField& dbdz(tdbdz.ref());
+
     
     // Testing Stage
-    forAll(dthetadz, celli)
+    forAll(dbdz, celli)
     {
-      if (dthetadz[celli] <= 0)
+      if (dbdz[celli] >= 0)
       {
          l_[celli] = delta_[celli];
       }
       else 
       {
           l_[celli] = 0.76 
-            * sqrt(k[celli] * theta0[celli]
-                 / mag(g[celli] / dthetadz[celli]));
+            * sqrt((-1) * k[celli] / dbdz[celli]);
 
           if (l_[celli] > delta_[celli])
           {
