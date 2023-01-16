@@ -65,14 +65,6 @@ Foam::fv::boussinesqBuoyancyKSource::boussinesqBuoyancyKSource
 :
     fvModel(name, modelType, dict, mesh),
     phaseName_(word::null),
-    theta0_
-    (
-      mesh.lookupObjectRef<uniformDimensionedScalarField>("theta0")
-    ),
-    g_
-    (
-      mesh.lookupObjectRef<uniformDimensionedVectorField>("g")
-    ),
     thermo_
     (
       mesh.lookupObjectRef<fluidAtmThermo>("thermophysicalProperties")
@@ -99,10 +91,10 @@ void Foam::fv::boussinesqBuoyancyKSource::addSup
     const word& fieldName
 ) const
 {
-    tmp<volVectorField> tgradTheta(fvc::grad(thermo_.theta_v()));
-    const volVectorField& gradTheta(tgradTheta.ref());
+    tmp<volScalarField> tgradb(fvc::grad(thermo_.bByRho())->component(8));
+    const volScalarField& gradb(tgradb.ref());
     // Warning: Doesn't work in incompressible mode since alphat has rho in it
-    eqn += alphat_ * g_ & gradTheta / theta0_;
+    eqn += - alphat_ * gradb;
 }
 
 
@@ -114,10 +106,9 @@ void Foam::fv::boussinesqBuoyancyKSource::addSup
 ) const
 {
     Info << "[boussinesqBuoyancyKSource.C] runing addSup with rho and theta" << endl;
-    tmp<volVectorField> tgradTheta(fvc::grad(thermo_.theta()));
-    const volVectorField& gradTheta(tgradTheta.ref());
-
-    eqn += alphat_ * g_ & gradTheta / theta0_;
+    tmp<volScalarField> tgradb(fvc::grad(thermo_.b())->component(8));
+    const volScalarField& gradb(tgradb.ref());
+    eqn += - alphat_ * gradb / rho;
 }
 
 
@@ -129,9 +120,9 @@ void Foam::fv::boussinesqBuoyancyKSource::addSup
     const word& fieldName
 ) const
 {
-    tmp<volVectorField> tgradTheta(fvc::grad(thermo_.theta_v()));
-    const volVectorField& gradTheta(tgradTheta.ref());
-    eqn += alpha * alphat_ * g_ & gradTheta / theta0_;
+    tmp<volScalarField> tgradb(fvc::grad(thermo_.b())->component(8));
+    const volScalarField& gradb(tgradb.ref());
+    eqn += - alpha * alphat_ * gradb/ rho;
 }
 
 

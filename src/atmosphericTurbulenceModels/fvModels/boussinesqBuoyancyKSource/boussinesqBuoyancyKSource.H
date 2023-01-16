@@ -71,12 +71,6 @@ class boussinesqBuoyancyKSource
         //- Optional phase name
         word phaseName_;
 
-        //- Reference Temperature
-        const uniformDimensionedScalarField& theta0_;
-
-        //- Gravitational Acceleration
-        const uniformDimensionedVectorField& g_;
-
         //- thermo model
         const fluidAtmThermo& thermo_;
         
