@@ -3,8 +3,10 @@ thermophysicalModels/rhoAtmThermo/rhoAtmThermo.C
 thermophysicalModels/rhoAtmThermo/rhoAtmThermos.C
 
 fvModels/geostrophicForce/geostrophicForce.C
-fvModels/boussinesqBuoyancyForce/boussinesqBuoyancyForce.C
+# fvModels/boussinesqBuoyancyForce/boussinesqBuoyancyForce.C
 fvModels/boussinesqBuoyancyKSource/boussinesqBuoyancyKSource.C
+
+# functionObjects/field/horizontalAverage/horizontalAverage.C
 
 MomentumTransportModels/LES/dynamicMomentumTransportModels.C
 
