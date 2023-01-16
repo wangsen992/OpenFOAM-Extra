@@ -121,6 +121,7 @@ public:
             // as the product of density variation with gravity
             virtual const volVectorField& b() const =  0;
             virtual volVectorField& b() =  0;
+            virtual tmp<volVectorField> bByRho() const = 0;
             
 };
 /*---------------------------------------------------------------------------*\

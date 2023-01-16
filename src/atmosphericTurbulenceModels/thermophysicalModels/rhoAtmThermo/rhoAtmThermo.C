@@ -116,4 +116,26 @@ const Foam::volVectorField& Foam::rhoAtmThermo::implementation::b() const
     return b_;
 }
 
+Foam::tmp<Foam::volVectorField> Foam::rhoAtmThermo::implementation::bByRho() const
+{
+    tmp<volVectorField> bByRho
+    (
+        new volVectorField
+        (
+            IOobject
+            (
+                "bByRho",
+                b_.mesh().time().timeName(),
+                b_.mesh(),
+                IOobject::NO_READ,
+                IOobject::AUTO_WRITE
+            ),
+            b_.mesh(),
+            dimAcceleration
+        )
+    );
+
+    return bByRho;
+}
+
 // ************************************************************************* //
