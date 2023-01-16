@@ -1,4 +1,7 @@
 #include "createRDeltaT.H"
+#include "readGravitationalAcceleration.H"
+#include "readhRef.H"
+#include "gh.H"
 
 Info<< "Reading thermophysical properties\n" << endl;
 
@@ -37,9 +40,6 @@ volVectorField U
 
 
 
-#include "readGravitationalAcceleration.H"
-#include "readhRef.H"
-#include "gh.H"
 #include "readpRef.H"
 
 
@@ -57,6 +57,7 @@ volScalarField p_rgh
     mesh
 );
 
+Info << "Reading pressure reference.\n" << endl;
 pressureReference pressureReference
 (
     p,
@@ -67,11 +68,11 @@ pressureReference pressureReference
 
 mesh.setFluxRequired(p_rgh.name());
 
+Info << "Hydrostatic initialization.\n" << endl;
 atmHydrostaticInitialisation
 (
     p_rgh,
     rho,
-    thermo.theta(),
     U,
     gh,
     ghf,
@@ -79,6 +80,10 @@ atmHydrostaticInitialisation
     thermo,
     pimple.dict()
 );
+Info << "Update Reference p and rho.\n" << endl;
+// Update reference values for p and rho
+thermo.pRef() = p-p_rgh;
+thermo.rhoRef() = thermo.rho();
 
 Info<< "Creating field dpdt\n" << endl;
 volScalarField dpdt
@@ -97,19 +102,6 @@ Info<< "Creating field kinetic energy K\n" << endl;
 volScalarField K("K", 0.5*magSqr(U));
 
 dimensionedScalar initialMass = fvc::domainIntegrate(rho);
-
-Info<< "\nReading theta0" << endl;
-uniformDimensionedScalarField theta0
-(
-    IOobject
-    (
-        "theta0",
-        runTime.constant(),
-        mesh,
-        IOobject::MUST_READ,
-        IOobject::NO_WRITE
-    )
-);
 
 // Phi creation is moved after hydrostatic initialization
 #include "compressibleCreatePhi.H"

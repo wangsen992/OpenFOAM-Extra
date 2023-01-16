@@ -40,7 +40,6 @@ void Foam::atmHydrostaticInitialisation
 (
     volScalarField& p_rgh,
     volScalarField& rho,
-    volScalarField& theta,
     const volVectorField& U,
     const volScalarField& gh,
     const surfaceScalarField& ghf,
@@ -51,6 +50,7 @@ void Foam::atmHydrostaticInitialisation
 {
     if (dict.lookupOrDefault<bool>("atmHydrostaticInitialisation", false))
     {
+        Info << "Starting atmHydrostaticInitialisation.\n" << endl;
         const fvMesh& mesh = p_rgh.mesh();
 
         volScalarField& ph_rgh = regIOobject::store
@@ -71,9 +71,9 @@ void Foam::atmHydrostaticInitialisation
 
         if (!mesh.time().restart())
         {
-            thermo.correct();
             volScalarField& p = thermo.p();
             p = ph_rgh + rho*gh + pRef;
+            thermo.correct();
             rho = thermo.rho();
             label nCorr
             (
@@ -102,6 +102,9 @@ void Foam::atmHydrostaticInitialisation
                 p = ph_rgh + rho*gh + pRef;
                 thermo.correct();
                 rho = thermo.rho();
+
+                Info<< "Hydrostatic pressure variation "
+                    << (max(ph_rgh) - min(ph_rgh)).value() << endl;
             }
 
             ph_rgh.write();
