@@ -144,7 +144,7 @@ public:
         //- Buoyancy [kg m-2 s-2]
         virtual const volVectorField& b() const;
         virtual volVectorField& b();
-        virtual tmp<volVectorField> bByRho() const = 0;
+        virtual tmp<volVectorField> bByRho() const;
 };
 
 
