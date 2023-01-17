@@ -44,6 +44,7 @@ Description
 #include "pimpleControl.H"
 #include "pressureReference.H"
 #include "atmHydrostaticInitialisation.H"
+#include "referenceStateInitialisation.H"
 #include "CorrectPhi.H"
 #include "fvModels.H"
 #include "fvConstraints.H"

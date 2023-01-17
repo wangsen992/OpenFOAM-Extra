@@ -68,7 +68,19 @@ pressureReference pressureReference
 
 mesh.setFluxRequired(p_rgh.name());
 
-Info << "Hydrostatic initialization.\n" << endl;
+Info << "Reference state initialisation.\n" << endl;
+referenceStateInitialisation
+(
+    rho,
+    U,
+    gh,
+    ghf,
+    pRef,
+    thermo,
+    pimple.dict()
+);
+
+Info << "Hydrostatic initialisation.\n" << endl;
 atmHydrostaticInitialisation
 (
     p_rgh,

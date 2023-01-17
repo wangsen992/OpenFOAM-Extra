@@ -42,8 +42,8 @@ SourceFiles
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef atmHydrostaticInitialisation_H
-#define atmHydrostaticInitialisation_H
+#ifndef referenceStateInitialisation_H
+#define referenceStateInitialisation_H
 
 #include "volFieldsFwd.H"
 #include "surfaceFieldsFwd.H"
@@ -55,9 +55,8 @@ namespace Foam
 {
     class fluidAtmThermo;
 
-    void atmHydrostaticInitialisation
+    void referenceStateInitialisation
     (
-        volScalarField& p_rgh,
         volScalarField& rho,
         const volVectorField& U,
         const volScalarField& gh,
@@ -66,21 +65,7 @@ namespace Foam
         fluidAtmThermo& thermo,
         const dictionary& dict
     );
-
-    void referenceStateInitialization
-    (
-        volScalarField& p_rgh,
-        volScalarField& rho,
-        const volVectorField& U,
-        const volScalarField& gh,
-        const surfaceScalarField& ghf,
-        const uniformDimensionedScalarField& pRef,
-        fluidAtmThermo& thermo,
-        const dictionary& dict
-    );
-        
 }
-
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
