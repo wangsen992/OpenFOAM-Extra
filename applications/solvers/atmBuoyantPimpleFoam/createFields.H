@@ -93,9 +93,6 @@ atmHydrostaticInitialisation
     pimple.dict()
 );
 Info << "Update Reference p and rho.\n" << endl;
-// Update reference values for p and rho
-thermo.pRef() = p-p_rgh;
-thermo.rhoRef() = thermo.rho();
 
 Info<< "Creating field dpdt\n" << endl;
 volScalarField dpdt

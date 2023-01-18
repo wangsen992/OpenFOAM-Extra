@@ -69,16 +69,22 @@ void Foam::referenceStateInitialisation
 
         if (!mesh.time().restart())
         {
+            volScalarField& p = thermo.p();
+            p = ph_rgh + rho*gh + pRef;
             // Enforce temperature in thermo to compute hydrostatic reference
             // state
             volScalarField T_orig = thermo.T();
+            volScalarField he_orig = thermo.he();
             dimensionedScalar Tb = average(T_orig);
-            //- Enforce temperature profile
-            thermo.T() = Tb + gh / thermo.Cp();
+            //- Enforce temperature and energy profile
+            // Note energy must be enforced as temperature is 
+            // derived from temperature. 
+            volScalarField& T = thermo.T();
+            volScalarField& he = thermo.he();
+            T = Tb + gh / thermo.Cp();
+            he = thermo.he(p, T);
 
             // Update steps
-            volScalarField& p = thermo.p();
-            p = ph_rgh + rho*gh + pRef;
             thermo.correct();
             rho = thermo.rho();
             label nCorr
@@ -117,7 +123,8 @@ void Foam::referenceStateInitialisation
 
             thermo.pRef() = p - rho*gh;
             thermo.rhoRef() = rho;
-            thermo.T() = T_orig;
+            T = T_orig;
+            he = he_orig;
         }
         else
         {
