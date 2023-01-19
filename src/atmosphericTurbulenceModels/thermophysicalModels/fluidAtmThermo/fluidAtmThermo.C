@@ -49,7 +49,7 @@ Foam::fluidAtmThermo::implementation::implementation
          "p0",
          mesh.time().constant(),
          mesh,
-         IOobject::NO_READ,
+         IOobject::READ_IF_PRESENT,
          IOobject::AUTO_WRITE
       ),
       mesh,

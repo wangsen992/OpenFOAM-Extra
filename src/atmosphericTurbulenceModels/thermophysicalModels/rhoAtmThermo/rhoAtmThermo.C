@@ -49,7 +49,7 @@ Foam::rhoAtmThermo::implementation::implementation
        "rhoref",
        mesh.time().constant(),
        mesh,
-       IOobject::NO_READ,
+       IOobject::READ_IF_PRESENT,
        IOobject::AUTO_WRITE
     ),
     mesh,
@@ -62,7 +62,7 @@ Foam::rhoAtmThermo::implementation::implementation
        "b",
        mesh.time().timeName(),
        mesh,
-       IOobject::NO_READ,
+       IOobject::READ_IF_PRESENT,
        IOobject::AUTO_WRITE
     ),
     mesh,
