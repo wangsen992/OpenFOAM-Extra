@@ -106,11 +106,13 @@ void Foam::fv::boussinesqBuoyancyKSource::addSup
 ) const
 {
     Info << "[boussinesqBuoyancyKSource.C] runing addSup with rho and theta" << endl;
-    tmp<volScalarField> tgradb(fvc::grad(thermo_.b())->component(8));
-    const volScalarField& gradb(tgradb.ref());
-    eqn += - alphat_ * gradb / rho;
+    eqn += fvc::reconstruct
+           (
+              ( 
+                fvc::snGrad(thermo_.b().component(2))
+              ) * thermo_.b().mesh().magSf()
+            )->component(2) *  (-alphat_ / rho);
 }
-
 
 void Foam::fv::boussinesqBuoyancyKSource::addSup
 (
