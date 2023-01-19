@@ -133,9 +133,9 @@ autoPtr<fluidAtmThermophysicalTransportModel> thermophysicalTransport
     fluidAtmThermophysicalTransportModel::New(turbulence(), thermo)
 );
 
-Info << "Correct nut and alphat based on prescribed U and T values.\n" << endl;
-turbulence->correct();
-thermophysicalTransport->correct();
+// Info << "Correct nut and alphat based on prescribed U and T values.\n" << endl;
+// turbulence->correct();
+// thermophysicalTransport->correct();
 
 #include "createMRF.H"
 #include "createFvModels.H"
