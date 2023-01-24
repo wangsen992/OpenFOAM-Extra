@@ -42,6 +42,7 @@ SourceFiles
 
 #include "dynamicMomentumTransportModel.H"
 #include "fluidAtmThermo.H"
+#include "fvMesh.H"
 
 #ifndef Deardorff1980EddyDiffusivity_H
 #define Deardorff1980EddyDiffusivity_H
@@ -70,13 +71,12 @@ protected:
         // Model coefficients
 
         // Fields
+          
+            //- mesh
+            const fvMesh& mesh_;
 
             //- Turbulent thermal diffusivity of enthalpy [kg/m/s]
             volScalarField alphat_;
-
-            //- Turbulence Transport Model
-            const fluidAtmThermo&     thermo_;
-            const compressible::momentumTransportModel&    turbulence_;
             
             // Subgrid-scale mixing length
             volScalarField& l_;

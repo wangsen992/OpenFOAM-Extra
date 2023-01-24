@@ -46,7 +46,7 @@ Foam::rhoAtmThermo::implementation::implementation
   (
     IOobject
     (
-       "rhoref",
+       phasePropertyName("rhoref", phaseName),
        mesh.time().constant(),
        mesh,
        IOobject::READ_IF_PRESENT,
@@ -59,7 +59,7 @@ Foam::rhoAtmThermo::implementation::implementation
   (
     IOobject
     (
-       "b",
+       phasePropertyName("b", phaseName),
        mesh.time().timeName(),
        mesh,
        IOobject::READ_IF_PRESENT,
@@ -124,7 +124,7 @@ Foam::tmp<Foam::volVectorField> Foam::rhoAtmThermo::implementation::bByRho() con
         (
             IOobject
             (
-                "bByRho",
+                phasePropertyName("bByRho", phaseName()),
                 b_.mesh().time().timeName(),
                 b_.mesh(),
                 IOobject::NO_READ,

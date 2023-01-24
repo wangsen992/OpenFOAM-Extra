@@ -36,6 +36,8 @@ if (fluid.found("pMin"))
         << pimple.dict().name() << endl;
 }
 
+#include "readpRef.H"
+
 pressureReference pressureReference
 (
     p,
@@ -46,11 +48,13 @@ pressureReference pressureReference
 
 if (fluid.incompressible())
 {
+    Info << "Running p init 1" << endl;
     p = p_rgh + fluid.rho()*gh;
 }
 
 if (p_rgh.needReference() && fluid.incompressible())
 {
+    Info << "Running p init 2" << endl;
     p += dimensionedScalar
     (
         "p",
@@ -60,9 +64,84 @@ if (p_rgh.needReference() && fluid.incompressible())
     );
 }
 
-p_rgh = p - fluid.rho()*gh;
-
 mesh.setFluxRequired(p_rgh.name());
+
+// thermo initialisation
+forAll(fluid.movingPhases(), movingPhasei)
+{
+    phaseModel& phase = fluid.movingPhases()[movingPhasei];
+
+    if (phase.name() == "air")
+    {
+
+        volVectorField U_air
+        (
+            IOobject
+            (
+                "U_air",
+                runTime.timeName(),
+                mesh,
+                IOobject::NO_READ,
+                IOobject::NO_WRITE
+            ),
+            phase.U()
+        );
+
+        // Cast to custom fluidThermo type for init
+        Info << phase.type() << endl;
+        fluidAtmThermo & thermo
+        (
+          dynamic_cast<fluidAtmThermo&>(phase.thermoRef())
+        );
+
+        volScalarField rho_air
+        (
+            IOobject
+            (
+                "rhoairTest",
+                runTime.timeName(),
+                mesh,
+                IOobject::NO_READ,
+                IOobject::AUTO_WRITE
+            ),
+            phase.thermo().rho()
+        );
+
+
+        Info << "Reference state initialisation on phase " 
+             << phase.name() 
+             << "\n" << endl;
+
+        referenceStateInitialisation
+        (
+            rho_air,
+            phase.U(),
+            gh,
+            ghf,
+            pRef,
+            thermo,
+            pimple.dict()
+        );
+
+        Info << "Hydrostatic initialisation on phase " 
+             << phase.name() 
+             << "\n" << endl;
+
+        atmHydrostaticInitialisation
+        (
+            p_rgh,
+            rho_air,
+            phase.U(),
+            gh,
+            ghf,
+            pRef,
+            thermo,
+            pimple.dict()
+        );
+
+      }    
+}
+// p_rgh = p - fluid.rho()*gh;
 
 PtrList<volScalarField> rAUs;
 PtrList<surfaceScalarField> rAUfs;

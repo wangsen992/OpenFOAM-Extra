@@ -1,4 +1,7 @@
 thermophysicalModels/fluidAtmThermo/fluidAtmThermo.C
+thermophysicalModels/fluidAtmThermo/atmHydrostaticInitialisation.C
+thermophysicalModels/fluidAtmThermo/referenceStateInitialisation.C
+
 thermophysicalModels/rhoAtmThermo/rhoAtmThermo.C
 thermophysicalModels/rhoAtmThermo/rhoAtmThermos.C
 
@@ -6,25 +9,13 @@ fvModels/geostrophicForce/geostrophicForce.C
 # fvModels/boussinesqBuoyancyForce/boussinesqBuoyancyForce.C
 fvModels/boussinesqBuoyancyKSource/boussinesqBuoyancyKSource.C
 
-# functionObjects/field/horizontalAverage/horizontalAverage.C
-
-MomentumTransportModels/LES/dynamicMomentumTransportModels.C
+MomentumTransportModels/dynamicMomentumTransportModels.C
+MomentumTransportModels/phaseDynamicMomentumTransportModels.C
 
 ThermophysicalTransportModels/fluidAtmThermo/fluidAtmThermophysicalTransportModels.C
+ThermophysicalTransportModels/phaseFluidAtmThermo/phaseFluidAtmThermophysicalTransportModels.C
 
-# urbanModels/treeModels/treeCanopyModels/canopyPhysicsModel/canopyPhysicsModel.C
-# urbanModels/treeModels/treeCanopyModels/dragCanopyPhysicsModel/dragCanopyPhysicsModel.C
-# urbanModels/treeModels/treeCanopyModels/canopySurfaceModel/canopySurfaceModel.C
-# urbanModels/treeModels/canopyModels/basic/basicCanopy/basicCanopy.C
-# urbanModels/treeModels/canopyModels/basic/dragCanopy/dragCanopy.C
-# urbanModels/treeModels/canopyModels/basic/triSurfaceDragCanopy/triSurfaceDragCanopys.C
-# 
-# # urbanModels/treeModels/treeCanopyModels/canopyPhysicsModel/canopyPhysicsModel.C
-# # urbanModels/treeModels/treeCanopyModels/dragCanopyPhysicsModel/dragCanopyPhysicsModel.C
-# # urbanModels/treeModels/treeCanopyModels/canopySurfaceModel/canopySurfaceModel.C
-# urbanModels/treeModels/canopyModels/basic/basicCanopy/basicCanopy.C
-# urbanModels/treeModels/canopyModels/basic/dragCanopy/dragCanopy.C
-# urbanModels/treeModels/canopyModels/basic/triSurfaceDragCanopy/triSurfaceDragCanopys.C
+phaseSystems/phaseModel/phaseModel/phaseModels.C
+phaseSystems/multiphaseSystems/multiphaseSystems.C
 
 LIB = $(FOAM_USER_LIBBIN)/libatmosphericTurbulenceModels
-

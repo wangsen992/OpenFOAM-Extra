@@ -59,7 +59,7 @@ while (pimple.correct())
     volScalarField rho("rho", fluid.rho());
 
     // Correct p_rgh for consistency with p and the updated densities
-    p_rgh = p - rho*gh;
+    p_rgh = p - rho*gh - pRef;
 
     // Correct fixed-flux BCs to be consistent with the velocity BCs
     fluid.correctBoundaryFlux();
@@ -331,7 +331,7 @@ while (pimple.correct())
     }
 
     // Update and limit the static pressure
-    p = p_rgh + rho*gh;
+    p = p_rgh + rho*gh + pRef;
     fvConstraints.constrain(p);
 
     // Account for static pressure reference
@@ -347,7 +347,7 @@ while (pimple.correct())
     }
 
     // Limit p_rgh
-    p_rgh = p - rho*gh;
+    p_rgh = p - rho*gh - pRef;
 
     // Update densities from change in p_rgh
     forAll(phases, phasei)
@@ -358,7 +358,7 @@ while (pimple.correct())
 
     // Correct p_rgh for consistency with p and the updated densities
     rho = fluid.rho();
-    p_rgh = p - rho*gh;
+    p_rgh = p - rho*gh - pRef;
     p_rgh.correctBoundaryConditions();
 }
 

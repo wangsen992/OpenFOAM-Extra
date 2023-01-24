@@ -135,7 +135,7 @@ incompressibleKEqn<BasicMomentumTransportModel>::incompressibleKEqn
     (
         IOobject
         (
-            IOobject::groupName("delta", this->alphaRhoPhi_.group()),
+            "delta",
             this->runTime_.constant(), // for non-adaptive mesh
             this->mesh_,
             IOobject::NO_READ,

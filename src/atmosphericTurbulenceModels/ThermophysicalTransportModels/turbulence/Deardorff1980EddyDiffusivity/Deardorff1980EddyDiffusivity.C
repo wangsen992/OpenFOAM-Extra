@@ -39,11 +39,18 @@ void Deardorff1980EddyDiffusivity<TurbulenceThermophysicalTransportModel>::
 correctl()
 {
     // Load variable data into space
-    const volScalarField& k(turbulence_.k()());
+    const volScalarField& k(this->momentumTransport().k()());
 
     volVectorField& b
-    (turbulence_.mesh()
-        .lookupObjectRef<volVectorField>("b")
+    (
+      mesh_.lookupObjectRef<volVectorField>
+      (
+        IOobject::groupName
+        (
+          "b",
+          this->momentumTransport().alphaRhoPhi().group()
+        )
+      )
     );
     tmp<volScalarField> tdbdz
     (
@@ -120,7 +127,7 @@ Deardorff1980EddyDiffusivity
         momentumTransport,
         thermo
     ),
-
+    mesh_(momentumTransport.mesh()),
     alphat_
     (
         IOobject
@@ -137,15 +144,20 @@ Deardorff1980EddyDiffusivity
         ),
         momentumTransport.mesh()
     ),
-    thermo_(thermo),
-    turbulence_(momentumTransport),
     l_
     (
-      turbulence_.mesh().lookupObjectRef<volScalarField>("l")
+      mesh_.lookupObjectRef<volScalarField>
+      (
+        IOobject::groupName
+        (
+            "l",
+            this->momentumTransport().alphaRhoPhi().group()
+        )
+      )
     ),
     delta_
     (
-      turbulence_.mesh().lookupObjectRef<volScalarField>("delta")
+      mesh_.lookupObjectRef<volScalarField>("delta")
     )
 {
 }

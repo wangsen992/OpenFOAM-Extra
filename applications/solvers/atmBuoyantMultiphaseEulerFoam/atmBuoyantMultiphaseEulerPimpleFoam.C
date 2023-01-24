@@ -41,6 +41,9 @@ Description
 #include "pressureReference.H"
 #include "localEulerDdtScheme.H"
 #include "fvcSmooth.H"
+#include "fluidAtmThermo.H"
+#include "atmHydrostaticInitialisation.H"
+#include "referenceStateInitialisation.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -71,6 +74,7 @@ int main(int argc, char *argv[])
     );
 
     #include "createRDeltaTf.H"
+
 
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

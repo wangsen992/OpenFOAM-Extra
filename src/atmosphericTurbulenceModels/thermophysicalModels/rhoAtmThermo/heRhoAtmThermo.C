@@ -160,6 +160,10 @@ void Foam::heRhoAtmThermo<BasicRhoThermo, MixtureType>::calculate()
 
     // Update buoyancy
     Info << "Update Buoyancy" << endl;
+    Info << max(this->rho_) << nl
+          << min(this->rho_) << nl
+         << max(this->rhoRef()) << nl
+          << min(this->rhoRef()) << endl;
     this->b() = this->g_ * (this->rho_ - this->rhoRef());
     Info << "Update Buoyancy Complete" << endl;
 }
