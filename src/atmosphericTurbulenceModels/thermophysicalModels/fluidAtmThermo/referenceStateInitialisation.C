@@ -34,6 +34,7 @@ License
 #include "constrainPressure.H"
 #include "uniformDimensionedFields.H"
 
+#include "specie.H"
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 void Foam::referenceStateInitialisation
@@ -77,6 +78,41 @@ void Foam::referenceStateInitialisation
             volScalarField T_orig = thermo.T();
             volScalarField he_orig = thermo.he();
             dimensionedScalar Tb = average(T_orig);
+
+            // Enforce empty species concentration for reference state
+            // calculation
+            PtrList<volScalarField> Y_orig
+            (
+              thermo.composition().species().size()
+            );
+
+            forAll(thermo.composition().species(), speciei)
+            { 
+                
+                Y_orig.set
+                (
+                  speciei,
+                  new volScalarField
+                  (
+                    thermo.composition().Y()[speciei]
+                  )
+                );
+
+                if (thermo.composition().defaultSpecie() != speciei)
+                {
+                    Info << "Set non default specie " << thermo.composition().Y()[speciei].name() << "to 0." << endl;
+                    thermo.composition().Y()[speciei] = 0;
+                }
+                else
+                {
+                    Info << "Set default specie " << thermo.composition().Y()[speciei].name() << "to 1." << endl;
+                    thermo.composition().Y()[speciei] = 1;
+                }
+                    
+            }
+
+            thermo.correct();
+
             //- Enforce temperature and energy profile
             // Note energy must be enforced as temperature is 
             // derived from temperature. 
@@ -120,12 +156,18 @@ void Foam::referenceStateInitialisation
                     << (max(ph_rgh) - min(ph_rgh)).value() << endl;
             }
 
-            ph_rgh.write();
+            // ph_rgh.write();
 
             thermo.pRef() = p - rho*gh;
             thermo.rhoRef() = rho;
             T = T_orig;
             he = he_orig;
+
+            forAll(thermo.composition().species(), speciei)
+            { 
+              thermo.composition().Y()[speciei] = Y_orig[speciei];
+            }
+            thermo.correct();
         }
         else
         {

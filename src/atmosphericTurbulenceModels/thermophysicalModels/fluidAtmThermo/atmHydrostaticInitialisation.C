@@ -107,8 +107,6 @@ void Foam::atmHydrostaticInitialisation
                     << (max(ph_rgh) - min(ph_rgh)).value() << endl;
             }
 
-            ph_rgh.write();
-
             p_rgh = ph_rgh;
         }
         else
