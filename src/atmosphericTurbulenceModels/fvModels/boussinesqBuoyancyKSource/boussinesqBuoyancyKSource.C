@@ -49,7 +49,6 @@ namespace fv
 
 void Foam::fv::boussinesqBuoyancyKSource::readCoeffs()
 {
-    phaseName_ = coeffs().lookupOrDefault<word>("phase", word::null);
 
 }
 
@@ -64,14 +63,28 @@ Foam::fv::boussinesqBuoyancyKSource::boussinesqBuoyancyKSource
 )
 :
     fvModel(name, modelType, dict, mesh),
-    phaseName_(word::null),
+    phaseName_(coeffs().lookupOrDefault<word>("phase", word::null)),
     thermo_
     (
-      mesh.lookupObjectRef<fluidAtmThermo>("thermophysicalProperties")
+      mesh.lookupObjectRef<fluidAtmThermo>
+      (
+        IOobject::groupName
+        (
+          "thermophysicalProperties",
+          phaseName_
+        )
+      )
     ),
     alphat_
     (
-      mesh.lookupObjectRef<volScalarField>("alphat")
+      mesh.lookupObjectRef<volScalarField>
+      (
+        IOobject::groupName
+        (
+          "alphat",
+          phaseName_
+        )
+      )
     )
 {
     readCoeffs();
@@ -81,7 +94,7 @@ Foam::fv::boussinesqBuoyancyKSource::boussinesqBuoyancyKSource
 
 Foam::wordList Foam::fv::boussinesqBuoyancyKSource::addSupFields() const
 {
-    return wordList(1, "k");
+    return wordList(1, IOobject::groupName("k", phaseName_));
 }
 
 
@@ -105,7 +118,6 @@ void Foam::fv::boussinesqBuoyancyKSource::addSup
     const word& fieldName
 ) const
 {
-    Info << "[boussinesqBuoyancyKSource.C] runing addSup with rho and theta" << endl;
     eqn += fvc::reconstruct
            (
               ( 
@@ -122,9 +134,12 @@ void Foam::fv::boussinesqBuoyancyKSource::addSup
     const word& fieldName
 ) const
 {
-    tmp<volScalarField> tgradb(fvc::grad(thermo_.b())->component(8));
-    const volScalarField& gradb(tgradb.ref());
-    eqn += - alpha * alphat_ * gradb/ rho;
+    eqn += fvc::reconstruct
+           (
+              ( 
+                fvc::snGrad(thermo_.b().component(2))
+              ) * thermo_.b().mesh().magSf()
+            )->component(2) *  (- alpha * alphat_ / rho);
 }
 
 
