@@ -141,7 +141,19 @@ forAll(fluid.movingPhases(), movingPhasei)
 
       }    
 }
-// p_rgh = p - fluid.rho()*gh;
 
 PtrList<volScalarField> rAUs;
 PtrList<surfaceScalarField> rAUfs;
+
+volScalarField rho
+(
+    IOobject
+    (
+        "rho",
+        runTime.timeName(),
+        mesh,
+        IOobject::NO_READ,
+        IOobject::AUTO_WRITE
+    ),
+    fluid.rho()
+);
