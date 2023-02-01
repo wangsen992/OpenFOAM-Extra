@@ -23,6 +23,7 @@ License
 
 \*---------------------------------------------------------------------------*/
 
+#include "Ostream.H"
 #include "incompressibleKEqn.H"
 #include "bound.H"
 #include "fvModels.H"
@@ -143,11 +144,11 @@ incompressibleKEqn<BasicMomentumTransportModel>::incompressibleKEqn
         ),
         this->delta()
     ),
-    kTransport_
+    kTransportAdv_
     (
         IOobject
         (
-            IOobject::groupName("kTransport", this->alphaRhoPhi_.group()),
+            IOobject::groupName("kTransportAdv", this->alphaRhoPhi_.group()),
             this->runTime_.timeName(), // for non-adaptive mesh
             this->mesh_,
             IOobject::NO_READ,
@@ -157,11 +158,37 @@ incompressibleKEqn<BasicMomentumTransportModel>::incompressibleKEqn
         dimVelocity * dimVelocity * dimDensity / dimTime
         
     ),
-    kProd_
+    kTransportDiff_
     (
         IOobject
         (
-            IOobject::groupName("kProd", this->alphaRhoPhi_.group()),
+            IOobject::groupName("kTransportDiff", this->alphaRhoPhi_.group()),
+            this->runTime_.timeName(), // for non-adaptive mesh
+            this->mesh_,
+            IOobject::NO_READ,
+            IOobject::AUTO_WRITE
+        ),
+        this->mesh(),
+        dimVelocity * dimVelocity * dimDensity / dimTime
+    ),
+    kProdShear_
+    (
+        IOobject
+        (
+            IOobject::groupName("kProdShear", this->alphaRhoPhi_.group()),
+            this->runTime_.timeName(), // for non-adaptive mesh
+            this->mesh_,
+            IOobject::NO_READ,
+            IOobject::AUTO_WRITE
+        ),
+        this->mesh(),
+        dimVelocity * dimVelocity * dimDensity / dimTime
+    ),
+    kProdDilate_
+    (
+        IOobject
+        (
+            IOobject::groupName("kProdDilate", this->alphaRhoPhi_.group()),
             this->runTime_.timeName(), // for non-adaptive mesh
             this->mesh_,
             IOobject::NO_READ,
@@ -260,10 +287,20 @@ void incompressibleKEqn<BasicMomentumTransportModel>::correct()
     LESeddyViscosity<BasicMomentumTransportModel>::correct();
 
     volScalarField divU(fvc::div(fvc::absolute(this->phi(), U)));
+    volScalarField divalphaRhoPhi(fvc::div(fvc::absolute(alphaRhoPhi, U)));
 
     tmp<volTensorField> tgradU(fvc::grad(U));
     volScalarField G(this->GName(), nut*(tgradU() && dev(twoSymm(tgradU()))));
     tgradU.clear();
+    
+    // IO K equation contributors
+    kTransportAdv_ = -fvc::div(alphaRhoPhi, k_);
+    kTransportDiff_ = fvc::laplacian(alpha*rho*DkEff(), k_);
+    
+    kProdShear_ = alpha*rho*G;
+    kProdDilate_ = - fvc::SuSp((2.0/3.0)*alpha*rho*divU, k_);
+    kDissipation_ = - Ceps_ * alpha * rho * pow(k_, 1.5) / l_;
+    kDissipation_.boundaryFieldRef() = 0;
 
     tmp<fvScalarMatrix> kEqn
     (
@@ -283,11 +320,6 @@ void incompressibleKEqn<BasicMomentumTransportModel>::correct()
     fvConstraints.constrain(k_);
     bound(k_, this->kMin_);
 
-    // IO K equation contributors
-    kTransport_ = -fvc::div(alphaRhoPhi, k_) + fvc::laplacian(alpha*rho*DkEff(), k_);
-    kProd_ = alpha*rho*G - fvc::SuSp((2.0/3.0)*alpha*rho*divU, k_);
-    // kDissipation_ = - fvc::Sp(Ceps_*alpha*rho*sqrt(k_)/l_, k_);
-    kDissipation_ = - Ceps_ * alpha * rho * pow(k_, 1.5) / l_;
     correctCeps();
     correctNut();
 }

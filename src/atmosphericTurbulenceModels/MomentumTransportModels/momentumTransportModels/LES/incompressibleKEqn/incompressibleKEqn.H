@@ -85,11 +85,12 @@ protected:
             volScalarField delta_;
 
             //- Diagnostic Variables
-            volScalarField kTransport_;
-            volScalarField kProd_;
+            volScalarField kTransportAdv_;
+            volScalarField kTransportDiff_;
+            volScalarField kProdShear_;
+            volScalarField kProdDilate_;
             volScalarField kDissipation_;
             volScalarField kSource_;
-
 
         // Model constants
 
