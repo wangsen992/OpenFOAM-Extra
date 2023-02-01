@@ -65,6 +65,7 @@ int main(int argc, char *argv[])
     #include "createFields.H"
     #include "createFieldRefs.H"
     #include "createRhoUfIfPresent.H"
+    #include "createDebugFields.H"
 
     turbulence->validate();
 
@@ -199,7 +200,7 @@ int main(int argc, char *argv[])
         }
 
         rho = thermo.rho();
-
+        #include "setDebugFields.H"
         runTime.write();
 
         Info<< "ExecutionTime = " << runTime.elapsedCpuTime() << " s"
