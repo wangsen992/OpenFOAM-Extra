@@ -57,6 +57,8 @@ int main(int argc, char *argv[])
     #include "createDyMControls.H"
     #include "createFields.H"
     #include "createFieldRefs.H"
+    #include "createDebugFields.H"
+
 
     if (!LTS)
     {
@@ -191,6 +193,7 @@ int main(int argc, char *argv[])
                     fvModels.correct();
                 }
 
+
                 fluid.solve(rAUs, rAUfs);
                 fluid.correct();
                 fluid.correctContinuityError();
@@ -218,9 +221,18 @@ int main(int argc, char *argv[])
                     if (pimple.thermophysics())
                     {
                         #include "EEqns.H"
+
                     }
 
-                    #include "pU/pEqn.H"
+                    #include "pU/pEqnTest.H"
+                
+                    // Include another round of correction to enforce 
+                    // mass conservation (alphaRhoPhi conservation)
+                    fluid.solve(rAUs, rAUfs);
+                    fluid.correct();
+                    fluid.correctContinuityError();
+
+                    #include "setDebugFields.H"
                 }
 
                 fluid.correctKinematics();
@@ -228,6 +240,7 @@ int main(int argc, char *argv[])
                 if (pimple.turbCorr())
                 {
                     fluid.correctTurbulence();
+                    fluid.correctEnergyTransport();
                 }
             }
         }
