@@ -13,6 +13,8 @@ EXE_INC = \
     -I$(LIB_SRC)/transportModels/lnInclude \
     -I$(LIB_SRC)/radiationModels/lnInclude \
     -I$(LIB_SRC)/triSurface/lnInclude \
+    -I../surfaceMeshTools/lnInclude \
+    -I../atmosphericTurbulenceModels/lnInclude \
     -L$(FOAM_USER_LIBBIN)
 
 LIB_LIBS = \
@@ -31,4 +33,5 @@ LIB_LIBS = \
     -lfvModels \
     -lfvConstraints \
     -lradiationModels \
-    -ltriSurface 
+    -ltriSurface \
+    -lsurfaceMeshTools

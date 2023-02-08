@@ -49,14 +49,11 @@ SourceFiles
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef treeModel_H
-#define treeModel_H
+#ifndef treeModelSource_H
+#define treeModelSource_H
 
 #include "fvModel.H"
 #include "treeModel.H"
-#include "MomentumTransportModel.H"
-#include "thermophysicalTransportModel.H"
-#include "radiationModel.H"
 
 namespace Foam
 {
@@ -71,38 +68,14 @@ class treeModelSource
     public fvModel
 {
     // Private Data
-    
-        //- Optional phase name
-        word phaseName_;
 
-        //- Name of the velocity field
-        word UName_;
-
-        //- Reference to embedded models
-        momentumTransportModel& turbulence_;
-        thermophysicalTransportModel& transport_;
-        radiationModel& radiation_;
-
-        //- Pointer list of tree models to ingest into transport equation
-        PtrList<treeModel> treeModelList_;
+        const fvMesh& mesh_;
+        IOdictionary urbanDict_;
+        autoPtr<treeModel> tree_;
 
     // Private Member Functions
-
-        //- Non-virtual read
-        void readCoeffs();
-
-        //- Validate compatibility with existing turbulence model
-        bool validate_turb();
-
-        // Apply treeModels to equation
-        void apply
-        (
-          const volScalarField& rho,
-          fvMatrix<scalar>& eqn
-        );
-
-        //- construct tree model 
-        treeModel constructTreeModel(dictionary& dict);
+    
+        dimensionedScalarCellSet getScalarSource(const word&) const;
 
 public:
 
@@ -135,53 +108,55 @@ public:
 
         // Evaluate
 
-            //- Add explicit contribution to incompressible momentum equation
-            virtual void addSup
-            (
-                fvMatrix<vector>& eqn,
-                const word& fieldName
-            ) const;
+             //- Add explicit contribution to incompressible momentum equation
+             virtual void addSup
+             (
+                 fvMatrix<vector>& eqn,
+                 const word& fieldName
+             ) const;
+ 
+             //- Add explicit contribution to compressible momentum equation
+             virtual void addSup
+             (
+                 const volScalarField& rho,
+                 fvMatrix<vector>& eqn,
+                 const word& fieldName
+             ) const;
+ 
+             //- Add explicit contribution to phase momentum equation
+             virtual void addSup
+             (
+                 const volScalarField& alpha,
+                 const volScalarField& rho,
+                 fvMatrix<vector>& eqn,
+                 const word& fieldName
+             ) const;
+ 
+             //- Add explicit contribution to incompressible scalar equation
+             virtual void addSup
+             (
+                 fvMatrix<scalar>& eqn,
+                 const word& fieldName
+             ) const;
+ 
+             //- Add explicit contribution to compressible scalar equation
+             virtual void addSup
+             (
+                 const volScalarField& rho,
+                 fvMatrix<scalar>& eqn,
+                 const word& fieldName
+             ) const;
+ 
+             //- Add explicit contribution to phase scalar equation
+             virtual void addSup
+             (
+                 const volScalarField& alpha,
+                 const volScalarField& rho,
+                 fvMatrix<scalar>& eqn,
+                 const word& fieldName
+             ) const;
 
-            //- Add explicit contribution to compressible momentum equation
-            virtual void addSup
-            (
-                const volScalarField& rho,
-                fvMatrix<vector>& eqn,
-                const word& fieldName
-            ) const;
-
-            //- Add explicit contribution to phase momentum equation
-            virtual void addSup
-            (
-                const volScalarField& alpha,
-                const volScalarField& rho,
-                fvMatrix<vector>& eqn,
-                const word& fieldName
-            ) const;
-
-            //- Add explicit contribution to incompressible momentum equation
-            virtual void addSup
-            (
-                fvMatrix<scalar>& eqn,
-                const word& fieldName
-            ) const;
-
-            //- Add explicit contribution to compressible momentum equation
-            virtual void addSup
-            (
-                const volScalarField& rho,
-                fvMatrix<scalar>& eqn,
-                const word& fieldName
-            ) const;
-
-            //- Add explicit contribution to phase momentum equation
-            virtual void addSup
-            (
-                const volScalarField& alpha,
-                const volScalarField& rho,
-                fvMatrix<scalar>& eqn,
-                const word& fieldName
-            ) const;
+             virtual void correct();
 
         // IO
 

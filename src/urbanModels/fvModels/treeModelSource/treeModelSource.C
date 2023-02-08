@@ -47,48 +47,21 @@ namespace fv
 
 
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
-
-void Foam::fv::treeModelSource::readCoeffs()
+dimensionedScalarCellSet Foam::fv::treeModelSource::getScalarSource(const word& fieldName) const
 {
-    phaseName_ = coeffs().lookupOrDefault<word>("phase", word::null);
-
-    UName_ =
-        coeffs().lookupOrDefault<word>
-        (
-            "U",
-            IOobject::groupName("U", phaseName_)
-        );
-}
-
-bool Foam::fv::treeModelSource::validate_turb()
-{
-  return false;    
-}
-
-void Foam::fv::treeModelSource::apply
-(
-  const volScalarField& rho,
-  fvMatrix<scalar>& eqn
-)
-{
-    if (debug)
+    dimensionedScalarCellSet Fi(tree_->canopy().canopyCells().size());
+    if (fieldName == "k")
     {
-        Info<< type() << ": applying source to " << eqn.psi().name() << endl;
+        Fi.clear();
+        Fi = tree_->canopy().Fturb("k");
+    }
+    else if (fieldName == "epsilon")
+    {
+        Fi.clear();
+        Fi = tree_->canopy().Fturb("k");
     }
 
-    if (eqn.psi().dimensions() == dimTemperature)
-    {
-        // eqn -= L/Cp*(fvc::ddt(rho, alpha1_));
-    }
-    else
-    {
-        // eqn -= L*(fvc::ddt(rho, alpha1_));
-    }
-}
-
-Foam::treeModel Foam::fv::treeModelSource::constructTreeModel
-(dictionary& dict)
-{
+    return Fi;
 }
 
 
@@ -103,11 +76,28 @@ Foam::fv::treeModelSource::treeModelSource
 )
 :
     fvModel(name, modelType, dict, mesh),
-    phaseName_(word::null),
-    UName_(word::null),
-    treeModelList_(1)
+    mesh_(mesh),
+    urbanDict_
+    (
+      IOobject
+      (
+        "urbanModelProperties",
+        mesh.time().constant(),
+        mesh,
+        IOobject::MUST_READ,
+        IOobject::NO_WRITE
+      )
+    ),
+    tree_
+    (
+      treeModel::New
+      (
+        mesh, 
+        urbanDict_.subDict("tree")
+      )
+    )
 {
-    readCoeffs();
+    Info << "[debug] treeModelSource Init: " << endl;
 }
 
 
@@ -115,13 +105,10 @@ Foam::fv::treeModelSource::treeModelSource
 
 Foam::wordList Foam::fv::treeModelSource::addSupFields() const
 {
-    
-    const basicThermo& thermo =
-        mesh().lookupObject<basicThermo>(basicThermo::dictName);
-
-    return wordList({UName_, thermo.he().name()});
+    Info << "treeModelSource addSupFields: " << endl;
+    wordList supFields = tree_->canopy().addSupFields();
+    return supFields;
 }
-
 
 void Foam::fv::treeModelSource::addSup
 (
@@ -129,6 +116,13 @@ void Foam::fv::treeModelSource::addSup
     const word& fieldName
 ) const
 {
+    Info << "treeModelSource addSup: " << endl;
+    vectorField& Usource =  eqn.source();
+    const dimensionedVectorCellSet& Fu = tree_->canopy().Fu();
+    forAllConstIter(labelHashSet, tree_->canopy().canopyCells(), iter)
+    {
+        Usource[iter.key()] = Fu[iter.key()].value() * mesh_.V()[iter.key()];
+    }
 }
 
 
@@ -139,6 +133,13 @@ void Foam::fv::treeModelSource::addSup
     const word& fieldName
 ) const
 {
+    Info << "treeModelSource addRhoSup: " << endl;
+    vectorField& Usource =  eqn.source();
+    const dimensionedVectorCellSet& Fu = tree_->canopy().Fu();
+    forAllConstIter(labelHashSet, tree_->canopy().canopyCells(), iter)
+    {
+        Usource[iter.key()] = rho[iter.key()] * Fu[iter.key()].value() * mesh_.V()[iter.key()];
+    }
 }
 
 
@@ -150,14 +151,77 @@ void Foam::fv::treeModelSource::addSup
     const word& fieldName
 ) const
 {
+    Info << "treeModelSource addAlphaRhoSup: " << endl;
+    vectorField& Usource =  eqn.source();
+    const dimensionedVectorCellSet& Fu = tree_->canopy().Fu();
+    forAllConstIter(labelHashSet, tree_->canopy().canopyCells(), iter)
+    {
+        Usource[iter.key()] = alpha[iter.key()] * rho[iter.key()] * Fu[iter.key()].value() * mesh_.V()[iter.key()];
+    }
 }
 
+// Correcting all scalar equations
+void Foam::fv::treeModelSource::addSup
+(
+    fvMatrix<scalar>& eqn,
+    const word& fieldName
+) const
+{
+    Info << "treeModelSource addSupS: " << endl;
+    scalarField& source =  eqn.source();
+    dimensionedScalarCellSet Fi = getScalarSource(fieldName);
+    forAllConstIter(labelHashSet, tree_->canopy().canopyCells(), iter)
+    {
+        source[iter.key()] = Fi[iter.key()].value() * mesh_.V()[iter.key()];
+    }
+        
+}
+
+
+void Foam::fv::treeModelSource::addSup
+(
+    const volScalarField& rho,
+    fvMatrix<scalar>& eqn,
+    const word& fieldName
+) const
+{
+    Info << "treeModelSource addRhoSupC: " << endl;
+    scalarField& source =  eqn.source();
+    dimensionedScalarCellSet Fi = getScalarSource(fieldName);
+    forAllConstIter(labelHashSet, tree_->canopy().canopyCells(), iter)
+    {
+        source[iter.key()] = rho[iter.key()] * Fi[iter.key()].value() * mesh_.V()[iter.key()];
+    }
+}
+
+
+void Foam::fv::treeModelSource::addSup
+(
+    const volScalarField& alpha,
+    const volScalarField& rho,
+    fvMatrix<scalar>& eqn,
+    const word& fieldName
+) const
+{
+    Info << "treeModelSource addAlphaRhoSupC: " << endl;
+    scalarField& source =  eqn.source();
+    dimensionedScalarCellSet Fi = getScalarSource(fieldName);
+    forAllConstIter(labelHashSet, tree_->canopy().canopyCells(), iter)
+    {
+        source[iter.key()] = alpha[iter.key()] * rho[iter.key()] * Fi[iter.key()].value() * mesh_.V()[iter.key()];
+    }
+}
+
+void Foam::fv::treeModelSource::correct()
+{
+    Info << "TreeModelSource Correcting.." << endl;
+    tree_->canopy().correctMomentumTransfer();
+}
 
 bool Foam::fv::treeModelSource::read(const dictionary& dict)
 {
     if (fvModel::read(dict))
     {
-        readCoeffs();
         return true;
     }
     else
