@@ -121,7 +121,7 @@ void Foam::fv::treeModelSource::addSup
     const dimensionedVectorCellSet& Fu = tree_->canopy().Fu();
     forAllConstIter(labelHashSet, tree_->canopy().canopyCells(), iter)
     {
-        Usource[iter.key()] = Fu[iter.key()].value() * mesh_.V()[iter.key()];
+        Usource[iter.key()] -= Fu[iter.key()].value() * mesh_.V()[iter.key()];
     }
 }
 
@@ -138,7 +138,7 @@ void Foam::fv::treeModelSource::addSup
     const dimensionedVectorCellSet& Fu = tree_->canopy().Fu();
     forAllConstIter(labelHashSet, tree_->canopy().canopyCells(), iter)
     {
-        Usource[iter.key()] = rho[iter.key()] * Fu[iter.key()].value() * mesh_.V()[iter.key()];
+        Usource[iter.key()] -= rho[iter.key()] * Fu[iter.key()].value() * mesh_.V()[iter.key()];
     }
 }
 
@@ -156,7 +156,7 @@ void Foam::fv::treeModelSource::addSup
     const dimensionedVectorCellSet& Fu = tree_->canopy().Fu();
     forAllConstIter(labelHashSet, tree_->canopy().canopyCells(), iter)
     {
-        Usource[iter.key()] = alpha[iter.key()] * rho[iter.key()] * Fu[iter.key()].value() * mesh_.V()[iter.key()];
+        Usource[iter.key()] -= alpha[iter.key()] * rho[iter.key()] * Fu[iter.key()].value() * mesh_.V()[iter.key()];
     }
 }
 
@@ -172,7 +172,7 @@ void Foam::fv::treeModelSource::addSup
     dimensionedScalarCellSet Fi = getScalarSource(fieldName);
     forAllConstIter(labelHashSet, tree_->canopy().canopyCells(), iter)
     {
-        source[iter.key()] = Fi[iter.key()].value() * mesh_.V()[iter.key()];
+        source[iter.key()] -= Fi[iter.key()].value() * mesh_.V()[iter.key()];
     }
         
 }
@@ -190,7 +190,7 @@ void Foam::fv::treeModelSource::addSup
     dimensionedScalarCellSet Fi = getScalarSource(fieldName);
     forAllConstIter(labelHashSet, tree_->canopy().canopyCells(), iter)
     {
-        source[iter.key()] = rho[iter.key()] * Fi[iter.key()].value() * mesh_.V()[iter.key()];
+        source[iter.key()] -= rho[iter.key()] * Fi[iter.key()].value() * mesh_.V()[iter.key()];
     }
 }
 
@@ -208,7 +208,7 @@ void Foam::fv::treeModelSource::addSup
     dimensionedScalarCellSet Fi = getScalarSource(fieldName);
     forAllConstIter(labelHashSet, tree_->canopy().canopyCells(), iter)
     {
-        source[iter.key()] = alpha[iter.key()] * rho[iter.key()] * Fi[iter.key()].value() * mesh_.V()[iter.key()];
+        source[iter.key()] -= alpha[iter.key()] * rho[iter.key()] * Fi[iter.key()].value() * mesh_.V()[iter.key()];
     }
 }
 

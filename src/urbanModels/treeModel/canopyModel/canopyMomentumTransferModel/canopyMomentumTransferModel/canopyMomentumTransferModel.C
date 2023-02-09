@@ -70,7 +70,7 @@ void Foam::canopyMomentumTransferModel<BaseCanopyModel>::correctMomentumTransfer
          dimensionedVector
          (
             dimVelocity/dimTime,
-            Cd_ * cmptMultiply(ladi, magUi * Ui)
+            - Cd_ * cmptMultiply(ladi, magUi * Ui)
          )
         );
     }
