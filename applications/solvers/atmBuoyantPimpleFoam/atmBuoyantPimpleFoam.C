@@ -177,6 +177,10 @@ int main(int argc, char *argv[])
                     Info << "Applying acoustic damping with gamma_d = 0.1." << endl;
                     p_rgh = p_rgh + 0.1 * (p_rgh - p_rgh.prevIter());
                 }
+                if (pimple.thermophysics())
+                {
+                    #include "YEqn.H"
+                }
                 #include "UEqn.H"
 
                 if (pimple.thermophysics())
