@@ -30,9 +30,11 @@ Description
 
 #include "IOobject.H"
 #include "fvCFD.H"
+#include "treeModelList.H"
 #include "treeModel.H"
 #include "canopyModel.H"
 #include "fluidAtmThermo.H"
+#include "radiationModel.H"
 #include "dynamicMomentumTransportModel.H"
 #include "fvMesh.H"
 #include "typeInfo.H"
@@ -102,6 +104,13 @@ int main(int argc, char *argv[])
     );
     compressible::momentumTransportModel& turbulence = tturbulence();
 
+
+    autoPtr<radiationModel> tradiation
+    (
+      radiationModel::New(tThermo->T())
+    );
+
+
     IOdictionary urbanDict
     (
       IOobject
@@ -114,90 +123,71 @@ int main(int argc, char *argv[])
       )
     );
 
-    dictionary treeDict(urbanDict.subDict("tree"));
-    autoPtr<treeModel> tTree
-    (
-      treeModel::New(mesh, treeDict)
-    );
 
-    Info << "Tree creation complete. " << endl;
+    treeModelList treelist(mesh, urbanDict.subDict("treeList"));
 
-
-    autoPtr<canopyModel> tCanopy(tTree->canopy());
-    dimensionedVectorCellSet& lad(tCanopy->lad());
-
-    volVectorField ladV
+    canopyModel& canopy(treelist[0].canopy());
+    dimensionedScalarCellSet& FheCanopy(canopy.Fhe());
+    dimensionedScalarCellSet& FqCanopy(canopy.Fq());
+    volScalarField Ru
     (
       IOobject
       (
-        "lad",
-        runTime.constant(),
+        "Ru",
+        runTime.timeName(),
         mesh,
         IOobject::NO_READ,
         IOobject::AUTO_WRITE
       ),
       mesh,
-      dimensionedVector(dimArea/dimVolume, vector(0,0,0))
+      tradiation->Ru()->dimensions()
     );
-    Info << "Loading Fu.." << endl;
-    volVectorField Fu
+    volScalarField Fhe
     (
       IOobject
       (
-        "Fu",
-        runTime.constant(),
+        "Fhe",
+        runTime.timeName(),
         mesh,
         IOobject::NO_READ,
         IOobject::AUTO_WRITE
       ),
       mesh,
-      dimensionedVector(dimVelocity/dimTime, vector(0,0,0))
+      dimensionedScalar(dimEnergy/dimTime, 0)
     );
-    Info << "Loading Fk.." << endl;
-    volScalarField Fk
+    volScalarField Fle
     (
       IOobject
       (
-        "Fk",
-        runTime.constant(),
+        "Fle",
+        runTime.timeName(),
         mesh,
         IOobject::NO_READ,
         IOobject::AUTO_WRITE
       ),
       mesh,
-      dimensionedScalar(dimVelocity*dimVelocity/dimTime, 0)
+      dimensionedScalar(dimEnergy/dimTime, 0)
     );
 
-    Info << "Loading Feps.." << endl;
-    volScalarField Feps
-    (
-      IOobject
-      (
-        "Feps",
-        runTime.constant(),
-        mesh,
-        IOobject::NO_READ,
-        IOobject::AUTO_WRITE
-      ),
-      mesh,
-      dimensionedScalar(dimVelocity*dimVelocity/dimTime, 0)
-    );
-
-    Info << "assigning values to volFields.." << endl;
-    forAllConstIter(labelHashSet, tCanopy->canopyCells(), iter)
+    while (runTime.loop())
     {
-        ladV[iter.key()] = lad[iter.key()].value();
-        Fu[iter.key()] = tCanopy->Fu()[iter.key()].value();
-        Fk[iter.key()] = tCanopy->Fturb("k")[iter.key()].value();
-        Feps[iter.key()] = tCanopy->Fturb("epsilon")[iter.key()].value();
-    }
-    
-    // Test momentumTransferModel
-    // tCanopy->correctMomentumTransfer();
-     
-    // This is used to validate the type of turbulence model
-    Info << isA<RASModels::kEpsilon<compressible::momentumTransportModel>>(turbulence) << endl;
+      Info << "Time: " << runTime.timeName() << endl;
 
-    runTime.writeNow();
+      tThermo->correct();
+      treelist.correct();
+      tradiation->correct();
+
+
+      Ru.field() = tradiation->Ru();
+      Info << "assigning values to volFields.." << endl;
+      forAllConstIter(labelHashSet, canopy.canopyCells(), iter)
+      {
+          Fhe[iter.key()] = FheCanopy[iter.key()].value();
+          Fle[iter.key()] = 1.2 * pow(10,6) * FqCanopy[iter.key()].value();
+      }
+
+      runTime.writeNow();
+    }
+
     return 0;
 }
