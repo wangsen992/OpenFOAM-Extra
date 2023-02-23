@@ -42,6 +42,9 @@ SourceFiles
 #include "canopySurfaceModel.H"
 #include "canopyTriSurfaceModel.H"
 #include "canopyKEpsilonModel.H"
+
+#include "canopyEnergyTransferModel.H"
+
 #include "compressibleMomentumTransportModel.H"
 #include "addToRunTimeSelectionTable.H"
 
@@ -50,7 +53,19 @@ SourceFiles
 namespace Foam
 {
 
-typedef canopyKEpsilonModel<canopyTriSurfaceModel<canopyModel>, HiraokakEpsSourceModel> triSurfaceKEpsilonCanopyModel;
+typedef 
+  canopyEnergyTransferModel
+  <
+    canopyKEpsilonModel
+    <
+      canopyTriSurfaceModel
+      <
+        canopyModel
+      >, 
+      HiraokakEpsSourceModel
+    >
+  > 
+    triSurfaceKEpsilonCanopyModel;
 
 addNamedToRunTimeSelectionTable
 (

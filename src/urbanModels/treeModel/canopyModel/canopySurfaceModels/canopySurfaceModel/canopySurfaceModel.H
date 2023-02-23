@@ -56,7 +56,20 @@ class canopySurfaceModel
 
         //- Leaf area density
         dimensionedVectorCellSet lad_;
+        
+        //- Total Leaf Area
+        dimensionedScalarCellSet la_;
 
+        //- Total Sunlit Leaf Area
+        dimensionedScalarCellSet laLit_;
+
+        //- Leaf coverage ratio for each cell (between 0 and 1);
+        dimensionedScalarCellSet laCov_;
+
+        //- Cell-Averaged Leave Diameter
+        // Note: Currently assume all leaves are spherical!!
+        dimensionedScalarCellSet ldia_;
+        
     // Private Member Functions
 
 
@@ -87,6 +100,17 @@ public:
             //- reference to leaf area density
             virtual dimensionedVectorCellSet& lad() {return lad_;};
             virtual const dimensionedVectorCellSet& lad() const {return lad_;};
+
+            virtual dimensionedScalarCellSet& la() {return la_;};
+            virtual const dimensionedScalarCellSet& la() const {return la_;};
+
+            virtual dimensionedScalarCellSet& laLit() {return laLit_;};
+            virtual const dimensionedScalarCellSet& laLit() const {return laLit_;};
+            virtual dimensionedScalarCellSet& laCov() {return laCov_;};
+            virtual const dimensionedScalarCellSet& laCov() const {return laCov_;};
+            
+            virtual dimensionedScalarCellSet& ldia() {return ldia_;};
+            virtual const dimensionedScalarCellSet& ldia() const {return ldia_;};
 };
 }
 

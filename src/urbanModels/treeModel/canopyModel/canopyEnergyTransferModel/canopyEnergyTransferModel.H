@@ -24,9 +24,12 @@ Class
     Foam::canopyMomentumTransferModel
 
 Description
-    Base class to provide momentumTransport (include velocity, and associated turbulence
-    parameters. 
-    
+    Base class to provide thermo-related transfer model (include temperature, and)
+
+    Leaf properties names are referenced from here (partially): 
+
+    https://www.researchgate.net/figure/Thermal-properties-of-seven-species-of-plant-leaves_tbl1_215452202#:~:text=The%20specific%20heat%20capacity%20of%20fresh%20leaves%20varies%20from%201255,leaves%20is%20necessary.%20...
+
 SourceFiles
     canopyMomentumTransferModel.C
 \*---------------------------------------------------------------------------*/
@@ -36,20 +39,62 @@ SourceFiles
 
 #include "treeModel.H"
 #include "fluidAtmThermo.H"
+#include "radiationModel.H"
 #include "cellSetHashTables.H"
 
 namespace Foam
 {
-namespace urban
-{
 
 template<class BaseCanopyModel>
 class canopyEnergyTransferModel
+  :
+      public BaseCanopyModel
 {
+
+protected:
     
-    dimensionedScalarCellSet  Tleaf;
-    dimensionedScalarCellSet  Cpleaf;
     
+        //- Dictionary for momentumTransfer
+        dictionary energyTransferDict_;
+
+        //- Reference to fluidAtmThermo
+        fluidAtmThermo& thermo_;
+
+        //- Reference to Radiation model
+        radiationModel& radiation_;
+
+        dimensionedScalarCellSet Fhe_;
+        dimensionedScalarCellSet Fq_;
+
+        // Radiation related
+        dimensionedScalarCellSet a_;
+        dimensionedScalarCellSet e_;
+        dimensionedScalarCellSet E_;
+
+        //- Properties of leaves of cell
+        
+          // Temperature of leaves
+          dimensionedScalarCellSet  Tleaf_;
+          
+          // Heat capacity of leaves
+          dimensionedScalarCellSet  Cleaf_;
+
+          // Leaf thickness
+          dimensionedScalarCellSet  hleaf_;
+
+          // Leaf density
+          dimensionedScalarCellSet  rholeaf_;
+
+          // Leaf Aerodynamic Resistance
+          dimensionedScalarCellSet  rb_;
+
+          // Leaf Stomatal Resistance
+          dimensionedScalarCellSet  rs_;
+
+          
+
+private: 
+          void init();
 
 public:
       
@@ -58,14 +103,32 @@ public:
       const treeModel& tree
     );
 
-    virtual ~canopyEnergyTransferModel();
+    virtual ~canopyEnergyTransferModel(){};
 
-    void addCanopySupEnergy(fvScalarMatrix&);
+    //- Member Functions
+    virtual dimensionedScalarCellSet& Fhe(){return Fhe_;};
+    virtual const dimensionedScalarCellSet& Fhe() const{return Fhe_;};
+    virtual dimensionedScalarCellSet& Fq(){return Fq_;};
+    virtual const dimensionedScalarCellSet& Fq() const{return Fq_;};
+    virtual dimensionedScalarCellSet& Tleaf() {return Tleaf_;};
+    virtual const dimensionedScalarCellSet& Tleaf() const {return Tleaf_;};
 
+    //- Radiation related 
+    virtual dimensionedScalarCellSet& a(){return a_;};
+    virtual const dimensionedScalarCellSet& a() const{return a_;};
+    virtual dimensionedScalarCellSet& e(){return e_;};
+    virtual const dimensionedScalarCellSet& e() const{return e_;};
+    virtual dimensionedScalarCellSet& E(){return E_;};
+    virtual const dimensionedScalarCellSet& E() const{return E_;};
+
+    virtual void correctEnergyTransfer();
 };
 
 }
-}
+
+#ifdef NoRepository
+  #include "canopyEnergyTransferModel.C"
+#endif
 
 #endif
 

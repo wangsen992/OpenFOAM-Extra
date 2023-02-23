@@ -33,6 +33,8 @@ Description
     The code structure (using templates and apply function) is borrowed from
     solidificationMeltingSource in the original source. 
 
+    
+
 Usage
     Example usage:
     \verbatim
@@ -54,6 +56,7 @@ SourceFiles
 
 #include "fvModel.H"
 #include "treeModel.H"
+#include "treeModelList.H"
 
 namespace Foam
 {
@@ -71,7 +74,8 @@ class treeModelSource
 
         const fvMesh& mesh_;
         IOdictionary urbanDict_;
-        autoPtr<treeModel> tree_;
+        treeModelList treeList_;
+        treeModel& tree_;
 
     // Private Member Functions
     

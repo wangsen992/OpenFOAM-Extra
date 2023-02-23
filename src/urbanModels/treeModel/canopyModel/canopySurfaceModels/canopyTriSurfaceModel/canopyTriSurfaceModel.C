@@ -29,27 +29,47 @@ Class
 #include "canopyTriSurfaceModel.H"
 #include "dimensionedScalarFwd.H"
 #include "triSurfaceSearch.H"
+#include "pointIndexHit.H"
 #include "surfaceMeshTools.H"
+#include "ListOps.H"
+#include "cell.H"
+
+#include "IOstreams.H"
 
 namespace Foam
 {
 
 template<class BaseCanopyModel>
-dimensionedVectorCellSet canopyTriSurfaceModel<BaseCanopyModel>::calcLAD
-(
-    const polyMesh& mesh,
-    const triSurface& surface,
-    const labelHashSet& cellsIndex
-)
+void canopyTriSurfaceModel<BaseCanopyModel>::init()
 {
+    const polyMesh& mesh = BaseCanopyModel::tree().mesh();
     // Compute the total area of leaves within a mesh cell
-    const pointField& surfacePoints = surface.points();
-    const faceList& faces = surface.faces();
-    HashTable<vector, label> cellLeafArea(cellsIndex.size());
-
-    forAll(cellsIndex, celli)
+    const pointField& surfacePoints = surface_.points();
+    const faceList& faces = surface_.faces();
+    // Correct the intersected cells by the leafy surface
+    labelHashSet canopyCellsIndex = surfaceMeshTools::findSurfaceCutCells(mesh, surface_);
+    
+    if (Pstream::parRun())
     {
-        cellLeafArea.set(cellsIndex.toc()[celli], vector(0,0,0));
+      Info << "Parallel Run..." << endl;
+      Info << "Pstream::masterNo() =  "  << Pstream::masterNo() <<  endl;
+      Pout << "Pstream::myProcNo() =  "  << Pstream::myProcNo() <<  endl;
+      Pout << "mesh.cells().size() = "  << mesh.cells().size() << endl;
+      Pout <<  "canopyCellsIndex.size() = " << canopyCellsIndex.size() << endl;
+    }
+    else
+    {
+      Info << "Serial Run..." << endl;
+    }
+
+    this->canopyCells() = canopyCellsIndex;
+    HashTable<vector, label> cellLeafArea(canopyCellsIndex.size());
+    HashTable<scalarField, label> cellDiameterList(canopyCellsIndex.size());
+
+    forAll(canopyCellsIndex, celli)
+    {
+        cellLeafArea.set(canopyCellsIndex.toc()[celli], vector(0,0,0));
+        cellDiameterList.set(canopyCellsIndex.toc()[celli], scalarField());
     }
 
     Info << "calculating cellLeafArea..." << endl;
@@ -60,21 +80,37 @@ dimensionedVectorCellSet canopyTriSurfaceModel<BaseCanopyModel>::calcLAD
     {
         faceCenter = faces[i].centre(surfacePoints);
         celli = mesh.findCell(faceCenter);
-        faceArea = surface.faceAreas()[i];
+
+        if (celli == -1){continue;}
+
+        faceArea = surface_.faceAreas()[i];
         cellLeafArea[celli] += vector
                               (
                                 sqrt(sqr(faceArea.x())),
                                 sqrt(sqr(faceArea.y())),
                                 sqrt(sqr(faceArea.z()))
                               );
+        cellDiameterList[celli].append
+        (
+          sqrt(mag(faceArea) / (2 * constant::mathematical::pi))
+        );
     } 
     Info << "Computing leafAreaDensity..." << endl;
-    HashTable<dimensionedVector, label> leafAreaDensity(cellsIndex.size());
+    HashTable<dimensionedVector, label> leafAreaDensity(canopyCellsIndex.size());
 
     labelList cellList = cellLeafArea.toc();
     forAll(cellList, i)
     {
-        leafAreaDensity.set
+        this->la().set
+        (
+          cellList[i], 
+          dimensionedScalar
+          (
+            dimArea/dimVolume, 
+            mag(cellLeafArea[cellList[i]])
+          )
+        );
+        this->lad().set
         (
           cellList[i], 
           dimensionedVector
@@ -83,10 +119,268 @@ dimensionedVectorCellSet canopyTriSurfaceModel<BaseCanopyModel>::calcLAD
             cellLeafArea[cellList[i]] / mesh.cellVolumes()[cellList[i]]
           )
         );
+        this->ldia().set
+        (
+          cellList[i], 
+          dimensionedScalar
+          (
+            dimLength, 
+            average(cellDiameterList[cellList[i]])
+          )
+        );
+    }
+}
+template<class BaseCanopyModel>
+dimensionedScalarCellSet canopyTriSurfaceModel<BaseCanopyModel>::calcLaCov
+(
+    const polyMesh& mesh,
+    const triSurface& surface,
+    const labelHashSet& canopyCellsIndex,
+    vector direction
+)
+{
+    // Loading surface
+    triSurfaceSearch ts(surface);
+    scalar zmax = max(mesh.points().component(2));
+    Info << "zmax = " << zmax << endl;
+    vector testDirection = (-1) * direction;
+    Info << "testDirection" << testDirection << endl;
+
+    // Find faces in each cell
+    const faceList& faces = surface.faces(); 
+    scalarField faceAreas = mag(surface.faceAreas())();
+    const pointField& faceCs = surface.faceCentres();
+    Info << "Number of pointIndexHits: " << faceCs.size() << endl;
+    dimensionedScalarCellSet laCov(canopyCellsIndex.size());
+    HashTable<List<face>,label> facesCellList(canopyCellsIndex.size());
+    HashTable<pointField,label> faceCsCellList(canopyCellsIndex.size());
+    forAllConstIter(labelHashSet, canopyCellsIndex, iter)
+    {
+        laCov.set
+        (
+          iter.key(),
+          dimensionedScalar(dimless, 0)
+        );
+        facesCellList.set   
+        (
+          iter.key(),
+          List<face>()
+        );
+        faceCsCellList.set
+        (
+          iter.key(),
+          pointField()
+        );
+
     }
 
-    return leafAreaDensity;
+    // Aggregate the surface face index to each cell index
+    Info << "Aggregating surface face index to each cell index" << endl;
+    label celli;
+    // [TODO] Iterate to populate the HashTables
+    forAll(faceCs, i)
+    {
+        celli = mesh.findCell(faceCs[i]);
+        if (celli == -1){continue;}
+        facesCellList[celli].append(faces[i]);
+        faceCsCellList[celli].append(faceCs[i]);
+    }
+
+    // Find leaf coverage ratio
+    Info << "Calculating leaf coverage ratios for direction " 
+         << direction
+         << endl;
+    forAllConstIter(labelHashSet, canopyCellsIndex, iter)
+    {
+        // Projected area of cell at this direction
+        // Projected area is calculated by computing the dot product of
+        // each face area with the negative of incoming direction vector.
+        // If the dot product is negative, then don't add as it will be
+        // invisible
+        
+        cell cellIter = mesh.cells()[iter.key()];
+        vector testVector = testDirection * 2 * mag(mesh.cellVolumes()[iter.key()]);
+
+        scalar ACell = 0;
+        forAll(cellIter, i)
+        {
+            face facei = mesh.faces()[cellIter[i]];
+            label faceOwner = mesh.faceOwner()[cellIter[i]];
+            scalar Afacei
+            (
+                // Face area vector
+                // Note: face::area<pointField> is used instead of 
+                // facei.area() as the latter gives (0 0 0) for some faces,
+                // reasons unknown for now
+                face::area<pointField>(facei.points(mesh.points())) 
+                // aligned to the test direction
+                & normalised(testDirection)
+                // correct with owner
+                * ( faceOwner == iter.key() ? 1 : (-1) )             
+            );
+            ACell += Afacei > 0 ? Afacei : 0;
+        }
+
+        // Compute projected leaf area of canopy
+        faceList cellFaces = facesCellList[iter.key()];
+        pointField startPts = (faceCsCellList[iter.key()] + normalised(testDirection) * 0.01)() ;
+        pointField endPts = (startPts + testVector)();
+
+        List<labelledTri> cellFacesTri(cellFaces.size());
+        forAll(cellFaces, i)
+        {
+            cellFacesTri[i] = 
+            labelledTri
+              (
+                cellFaces[i][0],
+                cellFaces[i][1],
+                cellFaces[i][2],
+                0
+              )
+            ;
+
+        }
+        triSurface cellTriSurface(cellFacesTri, surface.points());
+
+        triSurfaceSearch ts(cellTriSurface);
+        List<pointIndexHit> hits(startPts.size());
+        ts.findLine(startPts, endPts, hits);
+
+        scalar ALeaves = 0;
+        forAll(hits, i)
+        {
+          if (!hits[i].hit())
+          {
+            // Which side of the leaf is lit doesn't matter
+            ALeaves += 
+              mag
+              (
+                  normalised(testDirection) 
+                & face::area<pointField>
+                  (
+                    cellFaces[i].points(surface.points())
+                  )
+              );
+          }
+        }
+      
+      laCov[iter.key()].value() = ALeaves / ACell;
+    }
+
+    return laCov;
+    
 }
+
+template<class BaseCanopyModel>
+dimensionedScalarCellSet canopyTriSurfaceModel<BaseCanopyModel>::calcLaLit
+(
+    const polyMesh& mesh,
+    const triSurface& surface,
+    const labelHashSet& canopyCellsIndex,
+    vector direction
+)
+{
+    triSurfaceSearch ts(surface);
+    scalar zmax = max(mesh.points().component(2));
+    Info << "zmax = " << zmax << endl;
+    vector testDirection = (-1) * direction;
+    Info << "testDirection" << testDirection << endl;
+
+    // Iterate over each leaf, 
+    scalarField faceAreas = mag(surface.faceAreas())();
+    const pointField& faceCs = surface.faceCentres();
+    pointField startPts = (faceCs + normalised(testDirection) * 0.01)();
+    const pointField endPts
+    (
+      startPts + testDirection * (zmax - startPts.component(2))
+    );
+    // Info << endPts << endl;
+
+    Info << "Number of pointIndexHits: " << faceCs.size() << endl;
+    dimensionedScalarCellSet laLit(canopyCellsIndex.size());
+    forAllConstIter(labelHashSet, canopyCellsIndex, iter)
+    {
+        laLit.set
+        (
+          iter.key(),
+          dimensionedScalar(dimArea, 0)
+        );
+    }
+    List<pointIndexHit> hits(startPts.size());
+    ts.findLine(startPts, endPts, hits);
+
+    label cellj;
+    forAll(hits, j)
+    {
+        if (hits[j].hit())
+        {
+        }
+        else 
+        {
+            cellj = mesh.findCell(faceCs[j]);
+            if (cellj == -1){continue;}
+            laLit[cellj].value() += faceAreas[j];
+        }
+    }
+    return laLit;
+}
+
+
+
+
+// template<class BaseCanopyModel>
+// dimensionedVectorCellSet canopyTriSurfaceModel<BaseCanopyModel>::calcLAD
+// (
+//     const polyMesh& mesh,
+//     const triSurface& surface,
+//     const labelHashSet& cellsIndex
+// )
+// {
+//     // Compute the total area of leaves within a mesh cell
+//     const pointField& surfacePoints = surface.points();
+//     const faceList& faces = surface.faces();
+//     HashTable<vector, label> cellLeafArea(cellsIndex.size());
+// 
+//     forAll(cellsIndex, celli)
+//     {
+//         cellLeafArea.set(cellsIndex.toc()[celli], vector(0,0,0));
+//     }
+// 
+//     Info << "calculating cellLeafArea..." << endl;
+//     label celli;
+//     point faceCenter;
+//     vector faceArea;
+//     forAll(faces, i)
+//     {
+//         faceCenter = faces[i].centre(surfacePoints);
+//         celli = mesh.findCell(faceCenter);
+//         faceArea = surface.faceAreas()[i];
+//         cellLeafArea[celli] += vector
+//                               (
+//                                 sqrt(sqr(faceArea.x())),
+//                                 sqrt(sqr(faceArea.y())),
+//                                 sqrt(sqr(faceArea.z()))
+//                               );
+//     } 
+//     Info << "Computing leafAreaDensity..." << endl;
+//     HashTable<dimensionedVector, label> leafAreaDensity(cellsIndex.size());
+// 
+//     labelList cellList = cellLeafArea.toc();
+//     forAll(cellList, i)
+//     {
+//         leafAreaDensity.set
+//         (
+//           cellList[i], 
+//           dimensionedVector
+//           (
+//             dimArea/dimVolume, 
+//             cellLeafArea[cellList[i]] / mesh.cellVolumes()[cellList[i]]
+//           )
+//         );
+//     }
+// 
+//     return leafAreaDensity;
+// }
 
 template<class BaseCanopyModel>
 canopyTriSurfaceModel<BaseCanopyModel>::canopyTriSurfaceModel
@@ -97,18 +391,23 @@ canopyTriSurfaceModel<BaseCanopyModel>::canopyTriSurfaceModel
     canopySurfaceModel<BaseCanopyModel>(tree),
     surface_(fileName(this->surfaceModelDict().lookup("file")))
 {
-    
-    // Correct the intersected cells by the leafy surface
-    labelHashSet canopyCellsIndex = surfaceMeshTools::findSurfaceCutCells(tree.mesh(), surface_);
-    this->canopyCells() = canopyCellsIndex;
-    
-    // Compute the leaf area density
-    dimensionedVectorCellSet ladCalc
-    (
-      calcLAD(tree.mesh(), surface_, this->canopyCells())
-    );
-    // set leafy area density to LAD
-    this->lad() = ladCalc;
+    init();
+    // Testing find lalit
+    vector defaultDirection(1, 1, -1);
+    this->laLit() = calcLaLit
+                    (
+                      tree.mesh(), 
+                      surface_, 
+                      this->canopyCells(),
+                      defaultDirection
+                    );
+    this->laCov() = calcLaCov
+                    (
+                      tree.mesh(), 
+                      surface_, 
+                      this->canopyCells(),
+                      defaultDirection
+                    );
 };
 
 } 

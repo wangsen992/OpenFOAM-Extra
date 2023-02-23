@@ -39,7 +39,10 @@ canopySurfaceModel<BaseCanopyModel>::canopySurfaceModel
     BaseCanopyModel(tree),
     surfaceModelDict_(BaseCanopyModel::dict().subDict("surface")),
     canopyCellsIndex_(),
-    lad_()
+    lad_(),
+    la_(),
+    laLit_(),
+    ldia_()
 {
 };
 
