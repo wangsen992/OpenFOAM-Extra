@@ -23,4 +23,4 @@ fvModels/treeModelSource/treeModelSource.C
 radiationModels/absorptionEmissionModels/canopyAbsorptionEmission/canopyAbsorptionEmission.C
 radiationModels/absorptionEmissionModels/binaryWideBand/binaryWideBand.C
 
-LIB = $(FOAM_USER_LIBBIN)/liburbanModels-Dev
+LIB = $(FOAM_USER_LIBBIN)/liburbanModels

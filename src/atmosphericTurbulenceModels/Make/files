@@ -18,4 +18,9 @@ ThermophysicalTransportModels/phaseFluidAtmThermo/phaseFluidAtmThermophysicalTra
 phaseSystems/phaseModel/phaseModel/phaseModels.C
 phaseSystems/multiphaseSystems/multiphaseSystems.C
 
+radiationModels/radiationModels/atmRadiationModel/atmRadiationModel.C
+radiationModels/radiationModels/atmRadiationModel/atmRadiationModelNew.C
+radiationModels/absorptionEmissionModels/atmAbsorptionEmissionModel/atmAbsorptionEmissionModel.C
+radiationModels/absorptionEmissionModels/atmAbsorptionEmissionModel/atmAbsorptionEmissionModelNew.C
+
 LIB = $(FOAM_USER_LIBBIN)/libatmosphericTurbulenceModels
