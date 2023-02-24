@@ -58,6 +58,7 @@ class canopyModel
     
     // Private Member Data
     
+protected:
       //- Reference to the treeModel 
       const treeModel& tree_;
 
@@ -126,7 +127,14 @@ public:
 
             virtual const dimensionedVectorCellSet& lad() const = 0;
             virtual dimensionedVectorCellSet& lad() = 0;
+            virtual const dimensionedScalarCellSet& la() const = 0;
+            virtual dimensionedScalarCellSet& la() = 0;
+            virtual const dimensionedScalarCellSet& laLit() const = 0;
+            virtual dimensionedScalarCellSet& laLit() = 0;
+            virtual const dimensionedScalarCellSet& ldia() const = 0;
+            virtual dimensionedScalarCellSet& ldia() = 0;
 
+            virtual dimensionedScalarCellSet correctLaCov(vector direction)=0;
         // Momentum
 
             //- Return the source term to momentumTransport
@@ -136,12 +144,29 @@ public:
             virtual const dimensionedScalarCellSet& Fturb(const word&) const = 0;
             virtual void correctMomentumTransfer() = 0;
             //
-//         // Thermo
-//             //- Return the source term to Energy
-//             virtual tmp<volScalarField> SupHe() = 0;
-//             virtual tmp<volScalarField> SupRhoHe() = 0;
-// 
-// 
+         // Energy
+            //- Return the source term to Energy
+            virtual dimensionedScalarCellSet& Fhe() = 0;
+            virtual const dimensionedScalarCellSet& Fhe() const = 0;
+            virtual dimensionedScalarCellSet& Fq() = 0;
+            virtual const dimensionedScalarCellSet& Fq() const = 0;
+
+            //- Thermo related
+            virtual dimensionedScalarCellSet& Tleaf() = 0;
+            virtual const dimensionedScalarCellSet& Tleaf() const = 0;
+
+            //- Radiation related 
+            virtual dimensionedScalarCellSet& a() = 0;
+            virtual const dimensionedScalarCellSet& a() const = 0;
+            virtual dimensionedScalarCellSet& e() = 0;
+            virtual const dimensionedScalarCellSet& e() const = 0;
+            virtual dimensionedScalarCellSet& E() = 0;
+            virtual const dimensionedScalarCellSet& E() const = 0;
+
+            virtual void correctEnergyTransfer() = 0;
+
+ 
+ 
 //         // Species
 //             //- Return the source term to Yi
 //             virtual tmp<volScalarField> SupYi(const word& name) = 0;

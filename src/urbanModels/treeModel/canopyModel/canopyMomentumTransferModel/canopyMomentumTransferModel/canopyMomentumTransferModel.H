@@ -51,6 +51,7 @@ class canopyMomentumTransferModel
 {
     
     // private data
+protected:
 
         //- constant drag coffient
         scalar Cd_;
@@ -81,10 +82,12 @@ public:
     //- Return a list of field names that will be impacted
     virtual wordList addSupFields() const {return {"U"};};
 
-    volVectorField& U(){return U_;}
+    const volVectorField& U() const {return U_;}
     scalar Cd(){return Cd_;}
     dictionary& momentumTransferDict(){return momentumTransferDict_;}
     virtual dimensionedVectorCellSet& Fu(){return Fu_;};
+    virtual dimensionedScalarCellSet& Fturb(const word&);
+    virtual const dimensionedScalarCellSet& Fturb(const word&) const;
     virtual const dimensionedVectorCellSet& Fu() const {return Fu_;};
     virtual void correctMomentumTransfer();
 

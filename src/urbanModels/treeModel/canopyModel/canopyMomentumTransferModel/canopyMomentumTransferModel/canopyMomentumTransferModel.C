@@ -76,3 +76,14 @@ void Foam::canopyMomentumTransferModel<BaseCanopyModel>::correctMomentumTransfer
     }
 }
 
+
+template<class BaseCanopyModel>
+dimensionedScalarCellSet& Foam::canopyMomentumTransferModel<BaseCanopyModel>::Fturb(const word& name)
+{
+    NotImplemented;
+}
+template<class BaseCanopyModel>
+const dimensionedScalarCellSet& Foam::canopyMomentumTransferModel<BaseCanopyModel>::Fturb(const word& name) const
+{
+    NotImplemented;
+}

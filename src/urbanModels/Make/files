@@ -3,6 +3,8 @@
 # fvModels/treeModelSource/treeModelSource.C
 # fvModels/treeModelSource/treeModelSourceTemplates.C
 
+treeModel/treeModelList/treeModelList.C
+
 treeModel/treeModel/treeModel.C
 treeModel/treeModel/treeModelNew.C
 
@@ -18,4 +20,7 @@ treeModel/trunkModel/trunkModel/trunkModels.C
 
 fvModels/treeModelSource/treeModelSource.C
 
-LIB = $(FOAM_USER_LIBBIN)/liburbanModels
+radiationModels/absorptionEmissionModels/canopyAbsorptionEmission/canopyAbsorptionEmission.C
+radiationModels/absorptionEmissionModels/binaryWideBand/binaryWideBand.C
+
+LIB = $(FOAM_USER_LIBBIN)/liburbanModels-Dev

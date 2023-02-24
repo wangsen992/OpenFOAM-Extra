@@ -59,12 +59,32 @@ class canopyTriSurfaceModel
 
     // Private Member Functions
 
-        static dimensionedVectorCellSet calcLAD
+        void init();
+
+        // Compute total leaf area lit in each cell with incoming 
+        // light direction
+        static dimensionedScalarCellSet calcLaLit
         (
             const polyMesh& mesh,
             const triSurface& surface,
-            const labelHashSet& cellsIndex
+            const labelHashSet& canopyCellsIndex,
+            vector direction
         );
+          
+        static dimensionedScalarCellSet calcLaCov
+        (
+            const polyMesh& mesh,
+            const triSurface& surface,
+            const labelHashSet& canopyCellsIndex,
+            vector direction
+        );
+            
+        // static dimensionedVectorCellSet calcLAD
+        // (
+        //     const polyMesh& mesh,
+        //     const triSurface& surface,
+        //     const labelHashSet& cellsIndex
+        // );
 
 public: 
     
@@ -80,6 +100,11 @@ public:
         ~canopyTriSurfaceModel(){};
 
     // Member Functions
+        
+        virtual dimensionedScalarCellSet correctLaCov
+        (
+          vector direction
+        );
 
 };
 }

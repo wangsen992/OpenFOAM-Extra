@@ -177,6 +177,27 @@ int main(int argc, char *argv[])
                     Info << "Applying acoustic damping with gamma_d = 0.1." << endl;
                     p_rgh = p_rgh + 0.1 * (p_rgh - p_rgh.prevIter());
                 }
+                if (pimple.thermophysics())
+                {
+                    // #include "YEqn.H"
+                    UPtrList<volScalarField>& Y = thermo.composition().Y();
+                    forAll(Y, i)
+                    {
+                        fvScalarMatrix YiEqn
+                        (
+                            fvm::ddt(rho, Y[i])
+                          + fvm::div(phi, Y[i])
+                          + thermophysicalTransport->divj(Y[i])
+                        ==
+                          fvModels.source(rho, Y[i])
+                        );
+
+                        YiEqn.relax();
+                        YiEqn.solve("Yi."+Y[i].name());
+                    }
+
+                    thermo.composition().normalise();
+                }
                 #include "UEqn.H"
 
                 if (pimple.thermophysics())

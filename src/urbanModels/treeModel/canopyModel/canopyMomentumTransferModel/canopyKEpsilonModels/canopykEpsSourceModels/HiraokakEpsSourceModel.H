@@ -66,7 +66,7 @@ public:
       scalar Cd
     )
     {
-        return U & Fu;
+        return U & ((-1) * Fu);
     }
 
     dimensionedScalar Feps

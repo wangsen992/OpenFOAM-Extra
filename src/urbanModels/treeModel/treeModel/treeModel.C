@@ -49,7 +49,8 @@ Foam::treeModel::treeModel
     trunk_
     (
       trunkModel::New(*this)
-    )
+    ),
+    thermo_(mesh_.lookupObjectRef<fluidAtmThermo>(fluidAtmThermo::dictName))
 {
 }
     

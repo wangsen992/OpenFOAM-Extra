@@ -61,6 +61,8 @@ labelHashSet surfaceMeshTools::findSurfaceCutCells
         
         faceCenter = faces[i].centre(surfacePoints);
         celli = mesh.findCell(faceCenter);
+        // Defend against celli == -1
+        if (celli == -1){continue;}
         dynList.append(celli);
     } 
 

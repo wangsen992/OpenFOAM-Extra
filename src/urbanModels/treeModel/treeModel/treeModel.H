@@ -37,6 +37,7 @@ SourceFiles
 #include "fvCFD.H"
 #include "canopyModel.H"
 #include "trunkModel.H"
+#include "fluidAtmThermo.H"
 
 namespace Foam
 {
@@ -53,9 +54,12 @@ class treeModel
         //- Dictionary
         const dictionary treeModelDict_;
     
-        //- Reference to components of trees
+        //- Pointers to components of trees
         autoPtr<canopyModel> canopy_;
         autoPtr<trunkModel>  trunk_;
+
+        //- Reference to embedded models
+        fluidAtmThermo& thermo_;
 
     // Private Member Functions
 
@@ -94,6 +98,9 @@ public:
 
     trunkModel& trunk() {return trunk_();}
     const trunkModel& trunk() const {return trunk_();}
+
+    fluidAtmThermo& thermo() {return thermo_;}
+    const fluidAtmThermo& thermo() const {return thermo_;}
 };
 
 }
