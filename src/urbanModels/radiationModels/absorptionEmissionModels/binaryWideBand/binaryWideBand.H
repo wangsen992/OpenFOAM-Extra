@@ -36,6 +36,9 @@ SourceFiles
 #define binary_H
 
 #include "absorptionEmissionModel.H"
+#include "Vector2D.H"
+#include "Table.H"
+#include "dimensionedScalar.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -111,6 +114,25 @@ public:
 
                 //- Emission contribution for continuous phase
                 virtual tmp<volScalarField> EDisp(const label bandI = 0) const;
+
+        //- Lower and uppwer limit fo band i
+        // Note: This must be included so blackbody module can work
+        inline const Vector2D<scalar>& bands(const label bandi) const
+        {
+          if (model1_->bands(bandi) != Vector2D<scalar>::one)
+          {
+              return model1_->bands(bandi);
+          }
+          else if (model2_->bands(bandi) != Vector2D<scalar>::one)
+          {
+              return model2_->bands(bandi);
+          }
+          else
+          {
+              return Vector2D<scalar>::one;
+          }
+        }
+
         //- Const access to the number of bands 
         virtual label nBands() const 
         {return max(model2_->nBands(), model1_->nBands());}
