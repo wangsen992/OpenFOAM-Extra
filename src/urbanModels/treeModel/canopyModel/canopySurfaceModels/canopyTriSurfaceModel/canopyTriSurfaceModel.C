@@ -297,6 +297,7 @@ dimensionedScalarCellSet canopyTriSurfaceModel<BaseCanopyModel>::calcLaLit
     vector direction
 )
 {
+    // [TODO] Subset the surface bounded by the domain bbox to reduce work load
     triSurfaceSearch ts(surface);
     scalar zmax = max(mesh.points().component(2));
     vector testDirection = (-1) * direction;

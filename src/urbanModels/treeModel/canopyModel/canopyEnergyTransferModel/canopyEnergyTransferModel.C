@@ -164,24 +164,6 @@ void canopyEnergyTransferModel<BaseCanopyModel>::correctEnergyTransfer()
     const volVectorField& U = BaseCanopyModel::U();
     const volScalarField& G = dom_.G();
 
-    // Obtain shortwave intensity
-    tmp<volScalarField> tGs
-    (
-        volScalarField::New
-        (
-          "Gs",
-          BaseCanopyModel::tree().mesh(),
-          G.dimensions()
-        )
-    );
-    volScalarField& Gs = tGs.ref();
-    for (label rayI = 0; rayI < dom_.nRay(); rayI++)
-    {
-        Info << "max ray " << rayI << " = " << max(dom_.IRayLambda(rayI, 0))
-             << endl;
-        Gs += dom_.IRayLambda(rayI, 0);
-    }
-
     // Moisture related variables
     const volScalarField& q = thermo_.composition().Y("H2O");
     label qIndex = thermo_.composition().index(q);
@@ -210,7 +192,6 @@ void canopyEnergyTransferModel<BaseCanopyModel>::correctEnergyTransfer()
         scalar hleafCell = hleaf_[iter.key()].value();
         scalar rholeafCell = rholeaf_[iter.key()].value();
         scalar GCell = G[iter.key()];
-        scalar GsCell = Gs[iter.key()];
         scalar laleafCell = BaseCanopyModel::la()[iter.key()].value();
         scalar laCovCell = BaseCanopyModel::laCov()[iter.key()].value();
         scalar ldiaCell = BaseCanopyModel::ldia()[iter.key()].value();
@@ -227,7 +208,7 @@ void canopyEnergyTransferModel<BaseCanopyModel>::correctEnergyTransfer()
           //- Convective heat transport from leaves to air
           scalar FheConv = 2 * laleafCell * CpCell * rhoCell * (TleafCell - TCell) / rbleafCell;
           //- Stomatal resistance (Meyers & Paw, 1987)
-          scalar rsleafCell = rsmean * (1 + phi_rs / (GsCell+1));
+          scalar rsleafCell = rsmean * (1 + phi_rs / (GCell+1));
           
           //- Bolton 1980 for saturation vapor pressure
           //- Convert temperature to degree celcius
@@ -270,7 +251,7 @@ void canopyEnergyTransferModel<BaseCanopyModel>::correctEnergyTransfer()
           //- rfcLeaf is applied to account for the reflectance of leaves, 
           //  however, it should be noted that reflectance should be correctly
           //  accounted for in the scattering model.
-          scalar Ruleaf = C_ru * rfcLeaf * laCovCell * GsCell ;
+          scalar Ruleaf = C_ru * rfcLeaf * laCovCell * GCell ;
 
         scalar dleaf =  (Ruleaf - (FheConv + FheLeConv + EleafCell)) /  (CleafCell * rholeafCell * laleafCell * hleafCell);
 
