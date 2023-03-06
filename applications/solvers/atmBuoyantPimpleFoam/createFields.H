@@ -39,6 +39,8 @@ volVectorField U
 );
 
 
+#include "compressibleCreatePhi.H"
+
 
 #include "readpRef.H"
 
@@ -111,9 +113,6 @@ Info<< "Creating field kinetic energy K\n" << endl;
 volScalarField K("K", 0.5*magSqr(U));
 
 dimensionedScalar initialMass = fvc::domainIntegrate(rho);
-
-// Phi creation is moved after hydrostatic initialization
-#include "compressibleCreatePhi.H"
 
 Info<< "Creating turbulence model\n" << endl;
 autoPtr<compressible::momentumTransportModel> turbulence

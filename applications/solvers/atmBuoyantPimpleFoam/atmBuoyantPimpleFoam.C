@@ -179,7 +179,6 @@ int main(int argc, char *argv[])
                 }
                 if (pimple.thermophysics())
                 {
-                    // #include "YEqn.H"
                     UPtrList<volScalarField>& Y = thermo.composition().Y();
                     forAll(Y, i)
                     {

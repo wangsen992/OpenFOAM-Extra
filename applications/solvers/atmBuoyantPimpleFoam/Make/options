@@ -31,4 +31,4 @@ EXE_LIBS = \
     -lfvModels \
     -lfvConstraints \
     -L$(FOAM_USER_LIBBIN) \
-    -latmosphericTurbulenceModels-Dev
+    -latmosphericTurbulenceModels
