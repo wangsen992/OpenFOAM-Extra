@@ -117,8 +117,6 @@ Foam::fv::treeModelSource::treeModelSource
 
 Foam::wordList Foam::fv::treeModelSource::addSupFields() const
 {
-    Pout << "Total number of canopyCells: " << tree_.canopy().canopyCells().size() << endl;
-    Info << "treeModelSource addSupFields: " << endl;
     wordList supFields = tree_.canopy().addSupFields();
     supFields.append(tree_.thermo().he().name());
     supFields.append("H2O");
@@ -131,7 +129,7 @@ void Foam::fv::treeModelSource::addSup
     const word& fieldName
 ) const
 {
-    Info << "treeModelSource addSup: " << endl;
+    Info << "treeModelSource addSup: " << fieldName << endl;
     vectorField& Usource =  eqn.source();
     const dimensionedVectorCellSet& Fu = tree_.canopy().Fu();
     forAllConstIter(labelHashSet, tree_.canopy().canopyCells(), iter)
@@ -148,7 +146,7 @@ void Foam::fv::treeModelSource::addSup
     const word& fieldName
 ) const
 {
-    Info << "treeModelSource addRhoSup: " << endl;
+    Info << "treeModelSource addRhoSup: " << fieldName << endl;
     vectorField& Usource =  eqn.source();
     const dimensionedVectorCellSet& Fu = tree_.canopy().Fu();
     forAllConstIter(labelHashSet, tree_.canopy().canopyCells(), iter)
@@ -166,7 +164,7 @@ void Foam::fv::treeModelSource::addSup
     const word& fieldName
 ) const
 {
-    Info << "treeModelSource addAlphaRhoSup: " << endl;
+    Info << "treeModelSource addAlphaRhoSup: " << fieldName << endl;
     vectorField& Usource =  eqn.source();
     const dimensionedVectorCellSet& Fu = tree_.canopy().Fu();
     forAllConstIter(labelHashSet, tree_.canopy().canopyCells(), iter)
@@ -182,7 +180,7 @@ void Foam::fv::treeModelSource::addSup
     const word& fieldName
 ) const
 {
-    Info << "treeModelSource addSupS: " << endl;
+    Info << "treeModelSource addSupS: "<< fieldName  << endl;
     scalarField& source =  eqn.source();
     dimensionedScalarCellSet Fi = getScalarSource(fieldName);
     forAllConstIter(labelHashSet, tree_.canopy().canopyCells(), iter)
@@ -200,7 +198,7 @@ void Foam::fv::treeModelSource::addSup
     const word& fieldName
 ) const
 {
-    Info << "treeModelSource addRhoSupC: " << endl;
+    Info << "treeModelSource addRhoSupC: " << fieldName << endl;
     scalarField& source =  eqn.source();
     dimensionedScalarCellSet Fi = getScalarSource(fieldName);
     forAllConstIter(labelHashSet, tree_.canopy().canopyCells(), iter)
@@ -218,7 +216,7 @@ void Foam::fv::treeModelSource::addSup
     const word& fieldName
 ) const
 {
-    Info << "treeModelSource addAlphaRhoSupC: " << endl;
+    Info << "treeModelSource addAlphaRhoSupC: "<< fieldName  << endl;
     scalarField& source =  eqn.source();
     dimensionedScalarCellSet Fi = getScalarSource(fieldName);
     forAllConstIter(labelHashSet, tree_.canopy().canopyCells(), iter)

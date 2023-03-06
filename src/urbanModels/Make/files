@@ -19,8 +19,11 @@ treeModel/trunkModel/trunkModel/trunkModelNew.C
 treeModel/trunkModel/trunkModel/trunkModels.C
 
 fvModels/treeModelSource/treeModelSource.C
+fvModels/fvDom/fvDomRadiation.C
 
 radiationModels/absorptionEmissionModels/canopyAbsorptionEmission/canopyAbsorptionEmission.C
 radiationModels/absorptionEmissionModels/binaryWideBand/binaryWideBand.C
+radiationModels/derivedFvPatchFields/solarRadiation/solarRadiationMixedFvPatchScalarField.C
 
-LIB = $(FOAM_USER_LIBBIN)/liburbanModels-Dev
+derivedFvPatchFields/energyBalanceHeatFluxTemperature/energyBalanceHeatFluxTemperatureFvPatchScalarField.C
+LIB = $(FOAM_USER_LIBBIN)/liburbanModels
