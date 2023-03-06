@@ -25,6 +25,8 @@ Application
     testThermo
 
 Description
+    This test is a simple model that does not solve dynamics, but only radiation
+    and thermo correction
 
 \*---------------------------------------------------------------------------*/
 
@@ -149,46 +151,7 @@ int main(int argc, char *argv[])
         IOobject::AUTO_WRITE
       ),
       mesh,
-      dom.qr().dimensions()
-    );
-    volScalarField Ru
-    (
-      IOobject
-      (
-        "Ru",
-        runTime.timeName(),
-        mesh,
-        IOobject::NO_READ,
-        IOobject::AUTO_WRITE
-      ),
-      mesh,
-      dom.Ru()->dimensions()
-    );
-    volScalarField Fhe
-    (
-      IOobject
-      (
-        "Fhe",
-        runTime.timeName(),
-        mesh,
-        IOobject::NO_READ,
-        IOobject::AUTO_WRITE
-      ),
-      mesh,
-      dimensionedScalar(dimEnergy/dimTime, 0)
-    );
-    volScalarField Fle
-    (
-      IOobject
-      (
-        "Fle",
-        runTime.timeName(),
-        mesh,
-        IOobject::NO_READ,
-        IOobject::AUTO_WRITE
-      ),
-      mesh,
-      dimensionedScalar(dimEnergy/dimTime, 0)
+      dimensionedScalar(dom.qr().dimensions(), 0)
     );
 
     volScalarField& aTree = mesh.lookupObjectRef<volScalarField>("aTree");
@@ -197,109 +160,43 @@ int main(int argc, char *argv[])
 
     // RunTime Starts
 
-    // delta value for radiation direction
-    label nSteps = 48;
-    label nCounter = 1;
+    // dom properties
+    radiationModels::blackBodyEmission& blackbody = const_cast<radiationModels::blackBodyEmission&>(dom.blackBody());
+    radiationModels::absorptionEmissionModel& absorptionEmission = const_cast<radiationModels::absorptionEmissionModel&>(dom.absorptionEmission());
 
     while (runTime.loop())
     {
       Info << "Time: " << runTime.timeName() << endl;
 
       tThermo->correct();
-      treelist.correct();
+      // treelist.correct();
 
-      // Replace dom.correct() with actually correct each ray
-      // dom.correct();
-      d0.x() = -std::cos(constant::mathematical::pi / nSteps * nCounter);
-      d0.y() = 0.3;
-      d0.z() = -std::sin(constant::mathematical::pi / nSteps * nCounter);
-      nCounter++;
-
-      tensor rotation = rotationTensor(dom.IRay(bandI0).d(), normalised(d0));
-
-      radiationModels::blackBodyEmission& blackbody = const_cast<radiationModels::blackBodyEmission&>(dom.blackBody());
       for (label i = 0; i < dom.nLambda(); i++)
       {
         blackbody.correct(i, dom.absorptionEmission().bands(i));
       }
 
+      // Rotate the solid angles
       for(label i = 0; i < dom.nRay(); i++)
       {
           radiationModels::radiativeIntensityRay& ray = const_cast<radiationModels::radiativeIntensityRay&>(dom.IRay(i));
 
-          // rotate rays to prescribed angle
-          vector& rayd = const_cast<vector&>(ray.d());
-          vector& raydAve = const_cast<vector&>(ray.dAve());
-          rayd = rotation & rayd;
-          raydAve = rotation & raydAve;
-          Info << "Ray " << i << " d(): " << ray.d() << endl;
-          Info << "Ray " << i << " dAve(): " << ray.dAve() << endl;
-
-          // When the two z's are opposite sign, divergence happens
-          // This is prone to happen when z is close to zero
-          if (rayd.z() * raydAve.z() < 0)
-          {
-              raydAve.z() = (-1) * raydAve.z();
-          }
-          // Given periodic horizontal boundary condition, z close to zero will
-          // cause divergence
-          if (mag(raydAve.z()) < pow(0.1,3))
-          {
-              Info << "raydAve.z() = " << raydAve.z() << endl;
-              raydAve.z() = (-1) * 0.1 / dom.nTheta();
-          }
-
-          // Update absorption coefficient
-          // [Note] Disabled this part to speed up the test
-          // dimensionedScalarCellSet LaCov = treelist[0].canopy().correctLaCov(rayd);
-          // forAllConstIter(labelHashSet, treelist[0].canopy().canopyCells(), iter)
-          // {
-          //   aTree[iter.key()] = LaCov[iter.key()].value();
-          // }
-
-          // // Constraining upward shortwave radiation at boundary patch floor
-          volScalarField& rayI = const_cast<volScalarField&>(ray.ILambda(0));
-          scalarField& Ibfi = rayI.boundaryFieldRef()[3];
-          forAll(rayI.boundaryFieldRef(), patchi)
-          {
-              if (rayI.boundaryFieldRef()[patchi].patch().name() == "floor" && rayd.z() > 0)
-              {
-                Info << "Constraining floor side upward shortwave radiation to zero" << endl;
-                Ibfi = rayI.boundaryFieldRef()[patchi];
-                Ibfi = 0.0;
-              }
-          }
-              
           dom.absorptionEmission().correct(a, aLambda);
           ray.correct();
-          
-          // // Do another round to save results
-          // // Constraining upward shortwave radiation at boundary patch floor
-          // forAll(rayI.boundaryFieldRef(), patchi)
-          // {
-          //     if (rayI.boundaryFieldRef()[patchi].patch().name() == "floor" && rayd.z() > 0)
-          //     {
-          //       Info << "Constraining floor side upward shortwave radiation to zero" << endl;
-          //       Ibfi = rayI.boundaryFieldRef()[patchi];
-          //       Ibfi = 0.0;
-          //     }
-          // }
-          Info << "Floor shortwave I value mean = " << average(Ibfi) << endl;
       }
       dom.updateG();
       // Update direction
+      Info << "Floor average_qin : " 
+           << runTime.timeName() << "," 
+           << dom.qin().boundaryField()[0].patch().name() << ", "
+           << average(dom.qin().boundaryField()[0]) << endl;
+      Info << "Floor average_qem : " 
+           << runTime.timeName() << "," 
+           << dom.qin().boundaryField()[0].patch().name() << ", "
+           << average(dom.qem().boundaryField()[0]) << endl;
 
-      Ru.field() = dom.Ru();
-      Info << "assigning values to volFields.." << endl;
-      forAllConstIter(labelHashSet, canopy.canopyCells(), iter)
-      {
-          Fhe[iter.key()] = FheCanopy[iter.key()].value();
-          Fle[iter.key()] = 1.2 * pow(10,6) * FqCanopy[iter.key()].value();
-      }
 
       runTime.writeNow();
-      if (nCounter == nSteps){break;}
-
     }
 
     return 0;
