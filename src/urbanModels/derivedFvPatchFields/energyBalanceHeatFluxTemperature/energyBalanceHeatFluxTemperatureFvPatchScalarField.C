@@ -196,9 +196,6 @@ void Foam::energyBalanceHeatFluxTemperatureFvPatchScalarField::updateCoeffs()
     refValue() += (qr - qEff) / (2400 * 0.1 * 880);
     valueFraction() = 1.0;
 
-    scalarField bfNbr(this->patchNeighbourField());
-
-
     mixedFvPatchScalarField::updateCoeffs();
 
     if (debug)

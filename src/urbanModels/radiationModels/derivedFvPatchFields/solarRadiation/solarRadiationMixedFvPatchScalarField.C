@@ -250,10 +250,7 @@ void Foam::solarRadiationMixedFvPatchScalarField::updateCoeffs()
     {
       // Temporary setting for night radiation
       const scalar R_dN = 150;
-      I0_0 = 0.0;
-      Idefault_0 = 0.0;
       // Night time diffusive longwave to reduce the cooling speed
-      I0_1 = R_dN / nAveDown;
       Idefault_1 = R_dN / nAveDown;
     }
 
@@ -328,10 +325,22 @@ void Foam::solarRadiationMixedFvPatchScalarField::updateCoeffs()
     {
         if (rayId == i0)
         {
-            refValue() = I0_1;
-            valueFraction() = 1.0;
-            refGrad() = 0.0;
-            qem += refValue() * nAve;
+            // Treat the main direction as the else condition here to avoid
+            // wrongly assigned value
+            if (d0.z() < 0)
+            {
+              refValue() = I0_1;
+              valueFraction() = 1.0;
+              refGrad() = 0.0;
+              qem += refValue() * nAve;
+            }
+            else
+            {
+              refValue() = 0.0;
+              valueFraction() = 0.0;
+              refGrad() = 0.0;
+              qin = 0;
+            }
         }
         else if (findIndex(downRayList, rayId) != -1)
         {
