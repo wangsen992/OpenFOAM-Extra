@@ -55,9 +55,10 @@ int main(int argc, char *argv[])
     #include "createTime.H"
     #include "createDynamicFvMesh.H"
     #include "createDyMControls.H"
-    #include "createFields.H"
+    // #include "createFields.H"
+    #include "createFieldsTest.H"
     #include "createFieldRefs.H"
-    #include "createDebugFields.H"
+    // #include "createDebugFields.H"
 
 
     if (!LTS)
@@ -77,6 +78,8 @@ int main(int argc, char *argv[])
 
     #include "createRDeltaTf.H"
 
+    Info << "[solver]" << "max(p)" << max(p) << "; ";
+    Info << "[solver] max poinit : " << mesh.C()[findMax(p)] << endl;
 
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -125,6 +128,7 @@ int main(int argc, char *argv[])
                     fluid.correctContinuityError();
 
                     #include "YEqns.H"
+
                     #include "EEqns.H"
                     #include "pEqnComps.H"
 
@@ -193,7 +197,6 @@ int main(int argc, char *argv[])
                     fvModels.correct();
                 }
 
-
                 fluid.solve(rAUs, rAUfs);
                 fluid.correct();
                 fluid.correctContinuityError();
@@ -216,23 +219,35 @@ int main(int argc, char *argv[])
                 }
                 else
                 {
+                    Info << "[Debug] Header ----------------------" << endl;
                     #include "pU/UEqns.H"
 
                     if (pimple.thermophysics())
                     {
                         #include "EEqns.H"
-
                     }
 
                     #include "pU/pEqnTest.H"
+                    forAll(phases, phasei)
+                    {
+                        phaseModel& phase = phases[phasei];
+
+                        Info<< "[Solver] time : " << runTime.timeName() << ";" 
+                          <<phase.name() << " min/max T "
+                            << min(phase.thermo().T()).value()
+                            << " - "
+                            << max(phase.thermo().T()).value()
+                            << endl;
+                    }
+                    // #include "pU/pEqn.H"
                 
                     // Include another round of correction to enforce 
                     // mass conservation (alphaRhoPhi conservation)
-                    fluid.solve(rAUs, rAUfs);
-                    fluid.correct();
-                    fluid.correctContinuityError();
+                    // fluid.solve(rAUs, rAUfs);
+                    // fluid.correct();
+                    // fluid.correctContinuityError();
 
-                    #include "setDebugFields.H"
+                    // #include "setDebugFields.H"
                 }
 
                 fluid.correctKinematics();
@@ -243,7 +258,9 @@ int main(int argc, char *argv[])
                     fluid.correctEnergyTransport();
                 }
             }
-        }
+        }    
+
+        he = phases[0].thermoRef().he();
 
         runTime.write();
 
@@ -251,6 +268,7 @@ int main(int argc, char *argv[])
             << runTime.elapsedCpuTime()
             << " s\n\n" << endl;
     }
+
 
     Info<< "End\n" << endl;
 

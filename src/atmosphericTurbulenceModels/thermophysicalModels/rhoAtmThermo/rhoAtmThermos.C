@@ -77,9 +77,9 @@ namespace Foam
 
     forGases(makeRhoAtmThermo, singleComponentMixture);
 
-    // forCoeffLiquids(makeRhoAtmThermos, coefficientMultiComponentMixture);
+    forCoeffLiquids(makeRhoAtmThermos, coefficientMultiComponentMixture);
     // forLiquids(makeRhoAtmThermos, valueMultiComponentMixture);
-    // forLiquids(makeRhoAtmThermo, singleComponentMixture);
+    forLiquids(makeRhoAtmThermo, singleComponentMixture);
 
     // forTabulated(makeRhoAtmThermos, valueMultiComponentMixture);
     // forTabulated(makeRhoAtmThermo, singleComponentMixture);

@@ -28,9 +28,12 @@ License
 #include "OneResistanceHeatTransferPhaseSystem.H"
 #include "TwoResistanceHeatTransferPhaseSystem.H"
 #include "PhaseTransferPhaseSystem.H"
-#include "InterfaceCompositionPhaseChangePhaseSystem.H"
+// #include "InterfaceCompositionPhaseChangePhaseSystem.H"
+#include "atmInterfaceCompositionPhaseChangePhaseSystem.H"
 #include "PopulationBalancePhaseSystem.H"
 #include "ThermalPhaseChangePhaseSystem.H"
+// #include "DropletNucleationPhaseChangePhaseSystem.H"
+#include "atmThermalPhaseChangePhaseSystem.H"
 
 #include "addToRunTimeSelectionTable.H"
 
@@ -38,134 +41,129 @@ License
 
 namespace Foam
 {
-    // typedef
-    //     PhaseTransferPhaseSystem
-    //     <
-    //         OneResistanceHeatTransferPhaseSystem
-    //         <
-    //             MomentumTransferPhaseSystem<phaseSystem>
-    //         >
-    //     >
-    //     basicMultiphaseSystem;
 
-    // addNamedToRunTimeSelectionTable
-    // (
-    //     phaseSystem,
-    //     basicMultiphaseSystem,
-    //     dictionary,
-    //     basicMultiphaseSystem
-    // );
+    typedef
+        atmThermalPhaseChangePhaseSystem
+        <
+            PhaseTransferPhaseSystem
+            <
+                TwoResistanceHeatTransferPhaseSystem
+                <
+                    MomentumTransferPhaseSystem<phaseSystem>
+                >
+            >
+        >
+        atmThermalPhaseChangeMultiphaseSystem;
 
-    // typedef
-    //     InterfaceCompositionPhaseChangePhaseSystem
-    //     <
-    //         PhaseTransferPhaseSystem
-    //         <
-    //             TwoResistanceHeatTransferPhaseSystem
-    //             <
-    //                 MomentumTransferPhaseSystem<phaseSystem>
-    //             >
-    //         >
-    //     >
-    //     interfaceCompositionPhaseChangeMultiphaseSystem;
+    addNamedToRunTimeSelectionTable
+    (
+        phaseSystem,
+        atmThermalPhaseChangeMultiphaseSystem,
+        dictionary,
+        atmThermalPhaseChangeMultiphaseSystem
+    );
 
-    // addNamedToRunTimeSelectionTable
-    // (
-    //     phaseSystem,
-    //     interfaceCompositionPhaseChangeMultiphaseSystem,
-    //     dictionary,
-    //     interfaceCompositionPhaseChangeMultiphaseSystem
-    // );
+    typedef
+        atmInterfaceCompositionPhaseChangePhaseSystem
+        <
+          atmThermalPhaseChangePhaseSystem
+          <
+              PhaseTransferPhaseSystem
+              <
+                  TwoResistanceHeatTransferPhaseSystem
+                  <
+                      MomentumTransferPhaseSystem<phaseSystem>
+                  >
+              >
+          >
+        >
+        interfaceCompositionAtmThermalPhaseChangeMultiphaseSystem;
 
-    // typedef
-    //     ThermalPhaseChangePhaseSystem
-    //     <
-    //         PhaseTransferPhaseSystem
-    //         <
-    //             TwoResistanceHeatTransferPhaseSystem
-    //             <
-    //                 MomentumTransferPhaseSystem<phaseSystem>
-    //             >
-    //         >
-    //     >
-    //     thermalPhaseChangeMultiphaseSystem;
+    addNamedToRunTimeSelectionTable
+    (
+        phaseSystem,
+        interfaceCompositionAtmThermalPhaseChangeMultiphaseSystem,
+        dictionary,
+        interfaceCompositionAtmThermalPhaseChangeMultiphaseSystem
+    );
 
-    // addNamedToRunTimeSelectionTable
-    // (
-    //     phaseSystem,
-    //     thermalPhaseChangeMultiphaseSystem,
-    //     dictionary,
-    //     thermalPhaseChangeMultiphaseSystem
-    // );
+    typedef
+          atmThermalPhaseChangePhaseSystem
+          <
+            PopulationBalancePhaseSystem
+            <
+                PhaseTransferPhaseSystem
+                <
+                    TwoResistanceHeatTransferPhaseSystem
+                    <
+                        MomentumTransferPhaseSystem<phaseSystem>
+                    >
+              >
+            >
+          >
+        atmThermalPhaseChangePopulationBalanceMultiphaseSystem;
 
-    // typedef
-    //     PopulationBalancePhaseSystem
-    //     <
-    //         PhaseTransferPhaseSystem
-    //         <
-    //             OneResistanceHeatTransferPhaseSystem
-    //             <
-    //                 MomentumTransferPhaseSystem<phaseSystem>
-    //             >
-    //         >
-    //     >
-    //     populationBalanceMultiphaseSystem;
+    addNamedToRunTimeSelectionTable
+    (
+        phaseSystem,
+        atmThermalPhaseChangePopulationBalanceMultiphaseSystem,
+        dictionary,
+        atmThermalPhaseChangePopulationBalanceMultiphaseSystem
+    );
 
-    // addNamedToRunTimeSelectionTable
-    // (
-    //     phaseSystem,
-    //     populationBalanceMultiphaseSystem,
-    //     dictionary,
-    //     populationBalanceMultiphaseSystem
-    // );
+    typedef
+        atmInterfaceCompositionPhaseChangePhaseSystem
+        <
+          atmThermalPhaseChangePhaseSystem
+          <
+            PopulationBalancePhaseSystem
+            <
+                PhaseTransferPhaseSystem
+                <
+                    TwoResistanceHeatTransferPhaseSystem
+                    <
+                        MomentumTransferPhaseSystem<phaseSystem>
+                    >
+              >
+            >
+          >
+        >
+        interfaceCompositionAtmThermalPhaseChangePopulationBalanceMultiphaseSystem;
 
+    addNamedToRunTimeSelectionTable
+    (
+        phaseSystem,
+        interfaceCompositionAtmThermalPhaseChangePopulationBalanceMultiphaseSystem,
+        dictionary,
+        interfaceCompositionAtmThermalPhaseChangePopulationBalanceMultiphaseSystem
+    );
     // typedef
     //     InterfaceCompositionPhaseChangePhaseSystem
     //     <
     //         PopulationBalancePhaseSystem
     //         <
-    //             PhaseTransferPhaseSystem
-    //             <
-    //                 TwoResistanceHeatTransferPhaseSystem
-    //                 <
-    //                     MomentumTransferPhaseSystem<phaseSystem>
-    //                 >
-    //             >
+    //           DropletNucleationPhaseChangePhaseSystem
+    //           <
+    //               PhaseTransferPhaseSystem
+    //               <
+    //                   TwoResistanceHeatTransferPhaseSystem
+    //                   <
+    //                       MomentumTransferPhaseSystem<phaseSystem>
+    //                   >
+    //               >
+    //           >
     //         >
     //     >
-    //     interfaceCompositionPhaseChangePopulationBalanceMultiphaseSystem;
+    //     interfaceCompositionPhaseChangePopulationBalanceDropletMultiphaseSystem;
 
     // addNamedToRunTimeSelectionTable
     // (
     //     phaseSystem,
-    //     interfaceCompositionPhaseChangePopulationBalanceMultiphaseSystem,
+    //     interfaceCompositionPhaseChangePopulationBalanceDropletMultiphaseSystem,
     //     dictionary,
-    //     interfaceCompositionPhaseChangePopulationBalanceMultiphaseSystem
+    //     interfaceCompositionPhaseChangePopulationBalanceDropletMultiphaseSystem
     // );
 
-    // typedef
-    //     ThermalPhaseChangePhaseSystem
-    //     <
-    //         PopulationBalancePhaseSystem
-    //         <
-    //             PhaseTransferPhaseSystem
-    //             <
-    //                 TwoResistanceHeatTransferPhaseSystem
-    //                 <
-    //                     MomentumTransferPhaseSystem<phaseSystem>
-    //                 >
-    //             >
-    //         >
-    //     >
-    //     thermalPhaseChangePopulationBalanceMultiphaseSystem;
-
-    // addNamedToRunTimeSelectionTable
-    // (
-    //     phaseSystem,
-    //     thermalPhaseChangePopulationBalanceMultiphaseSystem,
-    //     dictionary,
-    //     thermalPhaseChangePopulationBalanceMultiphaseSystem
-    // );
 }
 
 

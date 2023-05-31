@@ -158,8 +158,27 @@ void Foam::heRhoAtmThermo<BasicRhoThermo, MixtureType>::calculate()
         }
     }
 
-    // Update buoyancy
-    this->b() = this->g_ * (this->rho_ - this->rhoRef());
+    // Update buoyancy (buoyancy force, used for case where rho is included for
+    // conservation equation) 
+    // Buoyancy is computed in compressible form
+    this->b() = this->g_ * (this->rho_ - this->rhoRef()) / this->rhoRef();
+
+    // [Note] Bottom section is used for non reference based buoyancy
+    // volScalarField& rho = this->rho_;
+    // Info << "average(rh0)=" << average(rho) << endl;
+    // Info << "heRhoAtmThermo correction done" << endl;
+
+    // // [Test]
+    // this->b() = this->g_ * 
+    //             fvc::reconstruct
+    //             (
+    //               (
+    //                 this->T_.mesh().Cf().component(2) 
+    //               * fvc::snGrad(rho)
+    //               ) * this->T_.mesh().magSf()
+    //             )->component(2) / rho;
+    
+    // this->b() = this->g_ * this->T_.mesh().C().component(2) * fvc::grad(rho)->component(2) / rho;
 }
 
 

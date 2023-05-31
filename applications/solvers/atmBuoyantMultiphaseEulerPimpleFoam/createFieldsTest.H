@@ -107,6 +107,20 @@ forAll(fluid.movingPhases(), movingPhasei)
             ),
             phase.thermo().rho()
         );
+        Info << "Reference state initialisation on phase " 
+             << phase.name() 
+             << "\n" << endl;
+        referenceStateInitialisation
+        (
+            rho_air,
+            phase.U(),
+            gh,
+            ghf,
+            pRef,
+            thermo,
+            pimple.dict()
+        );
+
 
         Info << "Hydrostatic initialisation on phase " 
              << phase.name() 

@@ -98,11 +98,11 @@ public:
     // Member Functions
 
         // Access to thermodynamic state variables
-
             //- Reference Pressure [Pa]
-            virtual volScalarField& pRef ()= 0;
+            //  Non-const access allowed for assignment
+            virtual volScalarField& pRef() = 0;
             
-            //- Reference Pressure [Pa]
+            //- Reference pressure [Pa]
             virtual const volScalarField& pRef() const = 0;
             
             //- Reference Density [Pa]
@@ -137,8 +137,8 @@ protected:
 
         // Model Parameters
 
-            //- Reference Pressure [Pa]
-            volScalarField  pRef_;
+            //- Reference Pressure
+            volScalarField pRef_;
 
             //- Gravitational Acceleration
             uniformDimensionedVectorField g_;
@@ -156,14 +156,12 @@ public:
     // Member Functions
 
         // Access to thermodynamic state variables
-
-            //- Reference Pressure [K]
-            //  Non-const access allowed for transport equations
+            //  Non-const access allowed for assignment
             virtual volScalarField& pRef();
-
-            //- Reference Pressure [K]
-            virtual const volScalarField& pRef() const;
             
+            //- Reference pressure [Pa]
+            virtual const volScalarField& pRef() const;
+
 };
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

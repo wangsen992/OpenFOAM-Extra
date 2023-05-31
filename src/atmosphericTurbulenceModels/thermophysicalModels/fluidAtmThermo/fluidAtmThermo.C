@@ -46,11 +46,11 @@ Foam::fluidAtmThermo::implementation::implementation
     (
       IOobject
       (
-         "p0",
-         mesh.time().constant(),
-         mesh,
-         IOobject::READ_IF_PRESENT,
-         IOobject::NO_WRITE
+          "p0",
+          mesh.time().constant(),
+          mesh,
+          IOobject::READ_IF_PRESENT,
+          IOobject::NO_WRITE
       ),
       mesh,
       dimPressure
@@ -95,4 +95,3 @@ const Foam::volScalarField& Foam::fluidAtmThermo::implementation::pRef() const
 {
     return pRef_;
 }
-

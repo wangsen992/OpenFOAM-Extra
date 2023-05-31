@@ -47,13 +47,13 @@ Foam::rhoAtmThermo::implementation::implementation
     IOobject
     (
        phasePropertyName("rhoref", phaseName),
-       mesh.time().constant(),
+       mesh.time().timeName(),
        mesh,
        IOobject::READ_IF_PRESENT,
-       IOobject::NO_WRITE
+       IOobject::AUTO_WRITE
     ),
     mesh,
-    dimDensity
+    dimensionedScalar(dimDensity, 1)
   ),
   b_
   (
@@ -66,9 +66,10 @@ Foam::rhoAtmThermo::implementation::implementation
        IOobject::AUTO_WRITE
     ),
     mesh,
-    dimDensity * dimAcceleration
+    dimAcceleration
   )
 {
+  rhoRef_.field() = 1;
 }
 
 
@@ -131,7 +132,7 @@ Foam::tmp<Foam::volVectorField> Foam::rhoAtmThermo::implementation::bByRho() con
                 IOobject::AUTO_WRITE
             ),
             b_.mesh(),
-            dimAcceleration
+            dimAcceleration / dimDensity
         )
     );
 

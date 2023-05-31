@@ -43,8 +43,10 @@ SourceFiles
 #define rhoAtmThermo_H
 
 #include "rhoThermo.H"
+#include "rhoReactionThermo.H"
 #include "fluidAtmThermo.H"
 
+typedef rhoReactionThermo BaseRhoThermo;
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
@@ -56,7 +58,7 @@ namespace Foam
 
 class rhoAtmThermo
 :
-    virtual public rhoThermo,
+    virtual public BaseRhoThermo,
     virtual public fluidAtmThermo
 {
 public:
@@ -157,6 +159,7 @@ class rhoAtmThermo::composite
     public basicThermo::implementation,
     public fluidThermo::implementation,
     public rhoThermo::implementation,
+    public rhoReactionThermo::implementation,
     public fluidAtmThermo::implementation,
     public rhoAtmThermo::implementation
 {
@@ -174,6 +177,7 @@ public:
             basicThermo::implementation(mesh, phaseName),
             fluidThermo::implementation(mesh, phaseName),
             rhoThermo::implementation(mesh, phaseName),
+            rhoReactionThermo::implementation(mesh, phaseName),
             fluidAtmThermo::implementation(mesh, phaseName),
             rhoAtmThermo::implementation(mesh, phaseName)
         {}

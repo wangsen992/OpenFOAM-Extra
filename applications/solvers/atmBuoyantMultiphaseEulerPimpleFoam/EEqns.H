@@ -1,6 +1,21 @@
+
+Info << "[EEqn] Constructing Energy Equations. " << endl;
+forAll(phases, phasei)
+{
+    phaseModel& phase = phases[phasei];
+
+    Info<< "[EEqn] time : " << runTime.timeName() << ";" 
+      <<phase.name() << " min/max T "
+        << min(phase.thermo().T()).value()
+        << " - "
+        << max(phase.thermo().T()).value()
+        << endl;
+}
 for (int Ecorr=0; Ecorr<nEnergyCorrectors; Ecorr++)
 {
+    Info << "[EEqn] Corret energy transport " << endl;
     fluid.correctEnergyTransport();
+    Info << "[EEqn] Corret energy transport complete" << endl;
 
     autoPtr<phaseSystem::heatTransferTable>
         heatTransferPtr(fluid.heatTransfer());
@@ -10,6 +25,7 @@ for (int Ecorr=0; Ecorr<nEnergyCorrectors; Ecorr++)
     forAll(fluid.anisothermalPhases(), anisothermalPhasei)
     {
         phaseModel& phase = fluid.anisothermalPhases()[anisothermalPhasei];
+        Info << "[EEqn] Iter for phase " << phase.name() << endl;
 
         const volScalarField& alpha = phase;
         tmp<volScalarField> tRho = phase.rho();
@@ -29,10 +45,10 @@ for (int Ecorr=0; Ecorr<nEnergyCorrectors; Ecorr++)
         EEqn.relax();
         fvConstraints.constrain(EEqn);
         EEqn.solve();
-        fvConstraints.constrain(phase.thermoRef().he());
     }
 
     fluid.correctThermo();
+
     fluid.correctContinuityError();
 }
 
@@ -41,7 +57,8 @@ forAll(phases, phasei)
 {
     phaseModel& phase = phases[phasei];
 
-    Info<< phase.name() << " min/max T "
+    Info<< "[EEqn] time : " << runTime.timeName() << ";" 
+      <<phase.name() << " min/max T "
         << min(phase.thermo().T()).value()
         << " - "
         << max(phase.thermo().T()).value()

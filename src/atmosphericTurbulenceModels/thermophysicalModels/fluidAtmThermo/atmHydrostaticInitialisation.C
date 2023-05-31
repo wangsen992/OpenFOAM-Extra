@@ -71,43 +71,132 @@ void Foam::atmHydrostaticInitialisation
 
         if (!mesh.time().restart())
         {
-            volScalarField& p = thermo.p();
-            p = ph_rgh + rho*gh + pRef;
-            thermo.correct();
-            rho = thermo.rho();
-            label nCorr
-            (
-                dict.lookupOrDefault<label>("nHydrostaticCorrectors", 5)
-            );
+            word atmHydrostaticInitialisationMode(dict.lookupOrDefault<word>("atmHydrostaticInitialisationMode", word("dryFixedT")));
 
-            for (label i=0; i<nCorr; i++)
+            if (atmHydrostaticInitialisationMode == "dryFixedT")
             {
-                surfaceScalarField rhof("rhof", fvc::interpolate(rho));
+              // Original value must be cached for energy setting
+              volScalarField T_orig = thermo.T();
+              volScalarField& p = thermo.p();
+              volScalarField& he = thermo.he();
+              p = ph_rgh + rho*gh + pRef;
+              thermo.correct();
+              rho = thermo.rho();
+              label nCorr
+              (
+                  dict.lookupOrDefault<label>("nHydrostaticCorrectors", 5)
+              );
 
-                surfaceScalarField phig
-                (
-                    "phig",
-                    -rhof*ghf*fvc::snGrad(rho)*mesh.magSf()
-                );
+              for (label i=0; i<nCorr; i++)
+              {
+                  surfaceScalarField rhof("rhof", fvc::interpolate(rho));
 
-                // Update the pressure BCs to ensure flux consistency
-                constrainPressure(ph_rgh, rho, U, phig, rhof);
+                  surfaceScalarField phig
+                  (
+                      "phig",
+                      -rhof*ghf*fvc::snGrad(rho)*mesh.magSf()
+                  );
 
-                fvScalarMatrix ph_rghEqn
-                (
-                    fvm::laplacian(rhof, ph_rgh) == fvc::div(phig)
-                );
+                  // Update the pressure BCs to ensure flux consistency
+                  constrainPressure(ph_rgh, rho, U, phig, rhof);
+                  // [Temporary fix]
+                  // ph_rgh = ph_rgh - max(ph_rgh);
+                  // This is to fix the max value of ph_rgh to zero
+                  Pout << "gMax(ph_rgh) = " << max(ph_rgh) << endl;
+                  Pout << "gMax(ph_rgh) = " << gMax(ph_rgh) << endl;
+                  ph_rgh.primitiveFieldRef() = ph_rgh.primitiveField() - gMax(ph_rgh);
 
-                ph_rghEqn.solve();
-                p = ph_rgh + rho*gh + pRef;
-                thermo.correct();
-                rho = thermo.rho();
+                  fvScalarMatrix ph_rghEqn
+                  (
+                      fvm::laplacian(rhof, ph_rgh) == fvc::div(phig)
+                  );
 
-                Info<< "Hydrostatic pressure variation "
-                    << (max(ph_rgh) - min(ph_rgh)).value() << endl;
+                  Info << "ph_rghEqn eqn symmetric? " << ph_rghEqn.symmetric() << endl;
+
+
+                  SolverPerformance<scalar> sp = ph_rghEqn.solve();
+                  p = ph_rgh + rho*gh + pRef;
+                  he = thermo.he(p, T_orig);
+                  thermo.correct();
+                  rho = thermo.rho();
+
+                  Info<< "Hydrostatic pressure variation "
+                      << (max(p) - min(p)).value() << endl;
+                  Info << "[hydroInit]" << "max(p)" << max(p) << "; ";
+                  Info << "[hydroInit] max poinit : " << mesh.C()[findMax(p)] << endl;
+              }
+
+              Info<< "Final Hydrostatic pressure variation "
+                  << (max(p) - min(p)).value() << endl;
+              p_rgh = ph_rgh;
             }
+            else if (atmHydrostaticInitialisationMode == "wetTheta") 
+            {
+              // Original value must be cached for energy setting
+              volScalarField T_orig = thermo.T();
+              volScalarField qv_orig = thermo.composition().Y("H2O");
+              tmp<volScalarField> trv = qv_orig / (1 - qv_orig);
 
-            p_rgh = ph_rgh;
+              // Load water volume fraction and subsequent water mixing ratio
+              // This will be updated at the end
+              volScalarField& alphaWater(mesh.lookupObjectRef<volScalarField>("alpha.water"));
+              volScalarField& alphaAir(mesh.lookupObjectRef<volScalarField>("alpha.air"));
+              // Load preset rt and wetTheta from dictionary
+              dimensionedScalar rt("rt", dimless, dict.lookupOrDefault<scalar>("rt", 0.02));
+              dimensionedScalar wetTheta("wetTheta", dimTemperature, dict.lookupOrDefault<scalar>("wetTheta", 320));
+              
+              volScalarField& T = thermo.T();
+              volScalarField& p = thermo.p();
+              volScalarField& qv = thermo.composition().Y("H2O");
+              volScalarField& he = thermo.he();
+              p = ph_rgh + rho*gh + pRef;
+              thermo.correct();
+              rho = thermo.rho();
+              label nCorr
+              (
+                  dict.lookupOrDefault<label>("nHydrostaticCorrectors", 5)
+              );
+
+
+              for (label i=0; i<nCorr; i++)
+              {
+                  for (label j=0; j<nCorr; j++)
+                  {
+                    surfaceScalarField rhof("rhof", fvc::interpolate(rho));
+
+                    surfaceScalarField phig
+                    (
+                        "phig",
+                        -rhof*ghf*fvc::snGrad(rho)*mesh.magSf()
+                    );
+
+                    // Update the pressure BCs to ensure flux consistency
+                    constrainPressure(ph_rgh, rho, U, phig, rhof);
+                    // [Temporary fix]
+
+                    fvScalarMatrix ph_rghEqn
+                    (
+                        fvm::laplacian(rhof, ph_rgh) == fvc::div(phig)
+                    );
+
+                    SolverPerformance<scalar> sp = ph_rghEqn.solve();
+                    p = ph_rgh + rho*gh + pRef;
+                    he = thermo.he(p, T_orig);
+                    thermo.correct();
+                    rho = thermo.rho();
+
+                    Info<< "Hydrostatic pressure variation "
+                        << (gMax(p) - gMin(p)) << endl;
+                    Info << "[hydroInit]" << "max(p)" << max(p) << "; ";
+                    Info << "[hydroInit] max poinit : " << mesh.C()[findMax(p)] << endl;
+                  }
+              }
+
+              Info<< "Final Hydrostatic pressure variation "
+                        << (gMax(p) - gMin(p)) << endl;
+              p_rgh = ph_rgh;
+                
+            }
         }
         else
         {

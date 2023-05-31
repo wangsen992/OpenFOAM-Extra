@@ -22,13 +22,16 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::AtmMovingPhaseModel
+    Foam::PassiveMovingPhaseModel
 
 Description
-    Class which represents a moving fluid phase. Holds the velocity, fluxes and
+    Class which represents a passively moving fluid phase. Holds the velocity, 
+    fluxes and
     turbulence model and can generate the momentum equation. The interface is
     quite restrictive as it also has to support an equivalent stationary model,
     which does not store motion fields or a turbulence model.
+
+    This model holds a reference carrier phase that will update its velocity with.
 
     Possible future extensions include separating the turbulent functionality
     into another layer.
@@ -41,14 +44,15 @@ SourceFiles
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef AtmMovingPhaseModel_H
-#define AtmMovingPhaseModel_H
+#ifndef PassiveMovingPhaseModel_H
+#define PassiveMovingPhaseModel_H
 
 #include "phaseModel.H"
 #include "PhaseThermophysicalTransportModel.H"
 #include "phaseDynamicMomentumTransportModel.H"
-#include "rhoAtmThermo.H"
+#include "rhoThermo.H"
 
+#include "PassiveMovingPhaseModel.H"
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
@@ -59,12 +63,18 @@ namespace Foam
 // fluid-type thermo.
 
 template<class ThermoModel>
-struct AtmMovingPhaseModelTransportThermoModel;
+struct PassiveMovingPhaseModelTransportThermoModel;
 
 template<>
-struct AtmMovingPhaseModelTransportThermoModel<rhoAtmThermo>
+struct PassiveMovingPhaseModelTransportThermoModel<rhoThermo>
 {
-    typedef fluidAtmThermo type;
+    typedef fluidThermo type;
+};
+
+template<>
+struct PassiveMovingPhaseModelTransportThermoModel<rhoReactionThermo>
+{
+    typedef fluidReactionThermo type;
 };
 
 /*---------------------------------------------------------------------------*\
@@ -72,7 +82,7 @@ struct AtmMovingPhaseModelTransportThermoModel<rhoAtmThermo>
 \*---------------------------------------------------------------------------*/
 
 template<class BasePhaseModel>
-class AtmMovingPhaseModel
+class PassiveMovingPhaseModel
 :
     public BasePhaseModel
 {
@@ -82,7 +92,7 @@ protected:
 
         //- Thermo type for the thermophysical transport model
         typedef
-            typename AtmMovingPhaseModelTransportThermoModel
+            typename PassiveMovingPhaseModelTransportThermoModel
             <
                 typename BasePhaseModel::thermoModel
             >::type
@@ -134,6 +144,9 @@ protected:
         //- Kinetic Energy
         mutable tmp<volScalarField> K_;
 
+        //- Carrier Phase
+        word carrierPhaseName_;
+
 
 private:
 
@@ -147,7 +160,7 @@ public:
 
     // Constructors
 
-        AtmMovingPhaseModel
+        PassiveMovingPhaseModel
         (
             const phaseSystem& fluid,
             const word& phaseName,
@@ -157,7 +170,7 @@ public:
 
 
     //- Destructor
-    virtual ~AtmMovingPhaseModel();
+    virtual ~PassiveMovingPhaseModel();
 
 
     // Member Functions
@@ -277,7 +290,7 @@ public:
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 #ifdef NoRepository
-    #include "AtmMovingPhaseModel.C"
+    #include "PassiveMovingPhaseModel.C"
 #endif
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

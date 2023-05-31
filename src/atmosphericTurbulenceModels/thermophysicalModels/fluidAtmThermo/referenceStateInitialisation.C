@@ -33,6 +33,7 @@ License
 #include "surfaceInterpolate.H"
 #include "constrainPressure.H"
 #include "uniformDimensionedFields.H"
+#include "meshSearch.H"
 
 #include "specie.H"
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -59,7 +60,7 @@ void Foam::referenceStateInitialisation
             (
                 IOobject
                 (
-                    "ph_rgh",
+                    "ph_rgh0",
                     "0",
                     mesh,
                     IOobject::MUST_READ,
@@ -69,15 +70,21 @@ void Foam::referenceStateInitialisation
             )
         );
 
-        if (!mesh.time().restart())
-        {
+        //if (!mesh.time().restart())
+        //{
             volScalarField& p = thermo.p();
             p = ph_rgh + rho*gh + pRef;
+
             // Enforce temperature in thermo to compute hydrostatic reference
-            // state
+            // state, which is T = T_0 - g/cp * z
+            // For the perfect gas case, cp is constant and set in dict
             volScalarField T_orig = thermo.T();
             volScalarField he_orig = thermo.he();
-            dimensionedScalar Tb = average(T_orig);
+            volScalarField p_orig = thermo.p();
+
+            // Use average temeprature, Tb
+            dimensionedScalar Tb = dimensionedScalar(dimTemperature, 290);
+            volScalarField T_neutral(Tb + gh / thermo.Cp());
 
             // Enforce empty species concentration for reference state
             // calculation
@@ -118,10 +125,11 @@ void Foam::referenceStateInitialisation
             // derived from temperature. 
             volScalarField& T = thermo.T();
             volScalarField& he = thermo.he();
-            T = Tb + gh / thermo.Cp();
-            he = thermo.he(p, T);
+            T = T_neutral;
+            he = thermo.he(p, T_neutral);
 
             // Update steps
+            // After thermo correction, get the updated density
             thermo.correct();
             rho = thermo.rho();
             label nCorr
@@ -142,39 +150,49 @@ void Foam::referenceStateInitialisation
                 // Update the pressure BCs to ensure flux consistency
                 constrainPressure(ph_rgh, rho, U, phig, rhof);
 
+                // [Temporary fix]
+                ph_rgh = ph_rgh - max(ph_rgh);
                 fvScalarMatrix ph_rghEqn
                 (
                     fvm::laplacian(rhof, ph_rgh) == fvc::div(phig)
                 );
 
                 ph_rghEqn.solve();
+
+                // Compute pressure using updated values of p_rgh, hydrostatic
+                // pressure and reference base pressure value
                 p = ph_rgh + rho*gh + pRef;
+
+                // Energy value is updated with the updated pressure 
+                he = thermo.he(p, T_neutral);
                 thermo.correct();
                 rho = thermo.rho();
 
-                Info<< "Reference hydrostatic pressure variation "
+                Info<< "Reference hydrostatic pressure variation"
                     << (max(ph_rgh) - min(ph_rgh)).value() << endl;
             }
 
-            // ph_rgh.write();
-
-            thermo.pRef() = p - rho*gh;
+            thermo.pRef() = p;
             thermo.rhoRef() = rho;
+
+            // Reset the temperature and energy field as before
             T = T_orig;
             he = he_orig;
+            thermo.p() = p_orig;
 
             forAll(thermo.composition().species(), speciei)
             { 
               thermo.composition().Y()[speciei] = Y_orig[speciei];
             }
-            thermo.correct();
-        }
-        else
-        {
-            Info << "Restart condition of atmHydrostaticInitialisation.." << endl;
-            thermo.correct();
-            rho = thermo.rho();
-        }
+            // thermo.correct();
+
+        // }
+        // else
+        // {
+        //     Info << "Restart condition of atmHydrostaticInitialisation.." << endl;
+        //     thermo.correct();
+        //     rho = thermo.rho();
+        // }
     }
     else
     {

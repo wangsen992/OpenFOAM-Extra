@@ -35,3 +35,4 @@ PtrList<fvVectorMatrix> UEqns(phases.size());
         fvConstraints.constrain(U);
     }
 }
+Info<< "Complete momentum equations" << endl;

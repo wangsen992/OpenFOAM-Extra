@@ -17,6 +17,7 @@ ThermophysicalTransportModels/phaseFluidAtmThermo/phaseFluidAtmThermophysicalTra
 
 phaseSystems/phaseModel/phaseModel/phaseModels.C
 phaseSystems/multiphaseSystems/multiphaseSystems.C
+phaseSystems/populationBalanceModel/nucleationModels/dropletActivation/dropletActivation.C
 
 # radiationModels/radiationModels/atmRadiationModel/atmRadiationModel.C
 # radiationModels/radiationModels/atmRadiationModel/atmRadiationModelNew.C

@@ -1,5 +1,5 @@
-Info << "max(p)" << max(p) << endl;
-Info << "Running pEqnTest.H" << endl;
+Info << "[pEqn]" << "max(p)" << max(p) << "; ";
+Info << "[pEqn] max poinit : " << mesh.C()[findMax(p)] << endl;
 // Face volume fractions
 PtrList<surfaceScalarField> alphafs(phases.size());
 forAll(phases, phasei)
@@ -19,6 +19,7 @@ forAll(fluid.movingPhases(), movingPhasei)
 {
     phaseModel& phase = fluid.movingPhases()[movingPhasei];
     const volScalarField& alpha = phase;
+
 
     rAUs.set
     (
@@ -58,10 +59,9 @@ PtrList<surfaceScalarField> phiFs(fluid.phiFs(rAUs));
 // --- Pressure corrector loop
 while (pimple.correct())
 {
-    volScalarField rho("rho", fluid.rho());
-
     // Correct p_rgh for consistency with p and the updated densities
     p_rgh = p - rho*gh - pRef;
+
 
     // Correct fixed-flux BCs to be consistent with the velocity BCs
     fluid.correctBoundaryFlux();
@@ -234,6 +234,7 @@ while (pimple.correct())
 
     // Compressible pressure equations
     #include "pEqnCompsTest.H"
+    // #include "pEqnComps.H"
 
     // Cache p prior to solve for density update
     volScalarField p_rgh_0(p_rgh);
@@ -252,21 +253,39 @@ while (pimple.correct())
         //{
             fvScalarMatrix pEqn(pEqnIncomp);
 
+            // [This is where to start] Disabled compressible pEqn terms for now
+            // This is where the failture of setReference is rooted.
+            // Need to check against each term
+            // FOUND THE TERM!!!!: dmdts[phasei]/rho
+            // [ISSUE] although previous solution works for 2D, but in 3D this
+            // happens again
             forAll(phases, phasei)
             {
                 pEqn += pEqnComps[phasei];
             }
 
-            if (fluid.incompressible())
-            {
-                pEqn.setReference
-                (
-                    pressureReference.refCell(),
-                    pressureReference.refValue()
-                );
-            }
+            // if (fluid.incompressible())
+            // {
+            //pEqn.setReference
+            //(
+            //    pressureReference.refCell(),
+            //    0
+            //    // pressureReference.refValue()
+            //);
+            // }
 
             pEqn.solve();
+
+            // [Note] This is an ad hoc solution as an alternative to
+            // pressureReference
+            // p_rgh.primitiveFieldRef() -= gMax(p_rgh);
+            // p_rgh.primitiveFieldRef() = 
+            //         p_rgh.primitiveField() 
+            //      -  (
+            //           getRefCellValue(p_rgh, pressureReference.refCell()) 
+            //         - pressureReference.refValue()
+            //         );
+            
         //}
 
         // Correct fluxes and velocities on last non-orthogonal iteration
@@ -359,10 +378,12 @@ while (pimple.correct())
     }
 
     // Correct p_rgh for consistency with p and the updated densities
-    fluid.correctThermo();
+    // fluid.correctThermo();
     rho = fluid.rho();
     p_rgh = p - rho*gh - pRef;
     p_rgh.correctBoundaryConditions();
+    Info << "[pEqn]" << "max(p)" << max(p) << "; ";
+    Info << "[pEqn] max poinit : " << mesh.C()[findMax(p)] << endl;
 }
 
 if (!fluid.implicitPhasePressure())

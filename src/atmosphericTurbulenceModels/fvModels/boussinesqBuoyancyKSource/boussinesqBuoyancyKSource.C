@@ -104,7 +104,7 @@ void Foam::fv::boussinesqBuoyancyKSource::addSup
     const word& fieldName
 ) const
 {
-    tmp<volScalarField> tgradb(fvc::grad(thermo_.bByRho())->component(8));
+    tmp<volScalarField> tgradb(fvc::grad(thermo_.b())->component(8));
     const volScalarField& gradb(tgradb.ref());
     // Warning: Doesn't work in incompressible mode since alphat has rho in it
     eqn += - alphat_ * gradb;
@@ -123,7 +123,7 @@ void Foam::fv::boussinesqBuoyancyKSource::addSup
               ( 
                 fvc::snGrad(thermo_.b().component(2))
               ) * thermo_.b().mesh().magSf()
-            )->component(2) *  (-alphat_ / rho);
+            )->component(2) *  (-alphat_);
 }
 
 void Foam::fv::boussinesqBuoyancyKSource::addSup
@@ -134,12 +134,37 @@ void Foam::fv::boussinesqBuoyancyKSource::addSup
     const word& fieldName
 ) const
 {
-    eqn += fvc::reconstruct
-           (
-              ( 
-                fvc::snGrad(thermo_.b().component(2))
-              ) * thermo_.b().mesh().magSf()
-            )->component(2) *  (- alpha * alphat_ / rho);
+    // [Note] Not sure exactly why, but the commented block will cause
+    // oscillation which travels downwards. From local 2D stationary flow test, 
+    // adding KSource directly to eqn.source() seems to solve this problem.
+
+    // This problem reappeared
+    // Also, need to define the buoyancy flux source properly now, as 
+    // there is a discrepancy of g2/c2 at the setting of neutral
+    tmp<volScalarField> tKSource = 
+        (
+           fvc::reconstruct
+             (
+                ( 
+                  fvc::snGrad(thermo_.b().component(2))
+                ) * thermo_.b().mesh().magSf()
+             )->component(2) 
+        )
+
+           * (- alpha * alphat_)
+           ;
+    const volScalarField& KSource = tKSource();
+
+    forAll(eqn.source(), i)
+    {
+        eqn.source()[i] += KSource[i];
+    }
+    // eqn -= fvc::reconstruct
+    //        (
+    //           ( 
+    //             fvc::snGrad(thermo_.b().component(2))
+    //           ) * thermo_.b().mesh().magSf()
+    //        )->component(2) * (- alpha * alphat_);
 }
 
 

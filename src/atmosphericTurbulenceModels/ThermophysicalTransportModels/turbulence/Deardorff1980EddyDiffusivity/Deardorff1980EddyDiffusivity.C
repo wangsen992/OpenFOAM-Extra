@@ -52,6 +52,9 @@ correctl()
         )
       )
     );
+    // Test code
+    b.correctBoundaryConditions();
+
     tmp<volScalarField> tdbdz
     (
       fvc::grad(b)->component(8)
@@ -77,17 +80,28 @@ correctl()
           }
       }
     }
+    l_.correctBoundaryConditions();
+    Info << "[Deardorff1980EddyDiffusivity] max(l) = " << gMax(l_) << endl;
 }
 
 template<class TurbulenceThermophysicalTransportModel>
 void Deardorff1980EddyDiffusivity<TurbulenceThermophysicalTransportModel>::
 correctAlphat()
 {
-    alphat_ =
-        (1 + 2 * l_ / delta_)
-       *this->momentumTransport().rho()
-       *this->momentumTransport().nut();
+    // As boundary condition matter in this case, the original
+    // code doesn't work in parallel for multi-phase case
+    forAll(alphat_, i)
+    {
+        alphat_[i] = (1 + 2 * l_[i]/delta_[i])
+                    * this->momentumTransport().rho()[i]
+                    * this->momentumTransport().nut()()[i];
+    }
+    // alphat_ =
+    //     (1 + 2 * l_ / delta_)
+    //    *this->momentumTransport().rho()
+    //    *this->momentumTransport().nut();
     alphat_.correctBoundaryConditions();
+    Info << "[Deardorff1980EddyDiffusivity] min(delta) = " << gMin(delta_) << endl;
 }
 
 

@@ -25,6 +25,8 @@ License
 
 #include "addToRunTimeSelectionTable.H"
 
+#include "rhoThermo.H"
+#include "rhoReactionThermo.H"
 #include "rhoAtmThermo.H"
 
 #include "combustionModel.H"
@@ -39,11 +41,36 @@ License
 #include "ReactingPhaseModel.H"
 #include "AtmMovingPhaseModel.H"
 #include "StationaryPhaseModel.H"
+#include "PassiveMovingPhaseModel.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
 {
+    // Native rhoReactionThermo is used for passive phase
+    typedef
+        AnisothermalPhaseModel
+        <
+            PurePhaseModel
+            <
+                InertPhaseModel
+                <
+                    AtmMovingPhaseModel
+                    <
+                        ThermoPhaseModel<phaseModel, rhoAtmThermo>
+                    >
+                >
+            >
+        >
+        pureAtmPhaseModel;
+
+    addNamedToRunTimeSelectionTable
+    (
+        phaseModel,
+        pureAtmPhaseModel,
+        phaseSystem,
+        pureAtmPhaseModel
+    );
 
     typedef
         AnisothermalPhaseModel
