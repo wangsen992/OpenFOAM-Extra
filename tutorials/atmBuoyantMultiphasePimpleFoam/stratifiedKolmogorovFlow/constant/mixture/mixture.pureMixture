@@ -1,0 +1,26 @@
+"(mixture|H2O)"
+{
+    specie
+    {
+        molWeight       18;
+    }
+    thermodynamics
+    {
+        Cp              4184;
+        Cv              4184;
+        Hf              -1.5879e7;
+    }
+    transport
+    {
+        mu              1e-3;
+        Pr              1;
+    }
+    equationOfState
+    {
+        rho							1000;
+				rho0						1;
+        T0              300;
+        beta            0.9;
+        
+    }
+}

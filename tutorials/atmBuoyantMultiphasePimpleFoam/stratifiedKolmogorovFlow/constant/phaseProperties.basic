@@ -1,0 +1,84 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Website:  https://openfoam.org
+    \\  /    A nd           | Version:  9
+     \\/     M anipulation  |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    format      ascii;
+    class       dictionary;
+    object      phaseProperties;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+type	basicMultiphaseSystem; 
+
+/* * Initiated from phaseSystem.H * */
+// referencePhase		none;
+
+phases (air);
+
+air
+{
+		// Used in phaseModelNew.C
+		type						multiComponentAtmPhaseModel;
+
+		// loaded in phaseModel.C
+		residualAlpha		0;
+		// optional
+		alphaMax				1.0;
+
+		diameterModel		constant;
+		constantCoeffs
+		{
+			d							1;
+		}
+
+}
+
+
+blending
+{
+		default
+		{
+					type							none;
+					continuousPhase		air;
+		}
+}
+
+interfaceCompression
+();
+
+surfaceTension
+();
+
+aspectRatio
+();
+
+/* * * in MomentumTransferPhaseSystem.C * * */
+drag
+();
+
+virtualMass
+();
+
+lift
+();
+
+wallLubrication
+();
+
+turbulenceDispersion
+();
+
+/* * * in OneResistanceHeatTransferPhaseSystem.C * * */
+heatTransfer
+();
+
+/* * * in PhaseTransferPhaseSystem.C * * */
+phaseTransfer
+();
+
+turbulentDispersion
+();

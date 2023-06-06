@@ -1,0 +1,221 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Website:  https://openfoam.org
+    \\  /    A nd           | Version:  9
+     \\/     M anipulation  |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      fvSolution;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+solvers
+{
+    "rho.*"
+    {
+        solver          diagonal;
+    }
+
+		// When set to 20/20, simulation breakdown with energy equation unstable
+		"alpha.*"
+		{
+				nAlphaCorr				3;
+				nAlphaSubCycles		5;
+		}
+    droplets
+    {
+        nCorr                1;
+        tolerance            1e-6;
+        scale                true;
+        sourceUpdateInterval 10;
+        solveOnFinalIterOnly false;
+    }
+
+
+    p_rgh
+    {
+        solver          PBiCGStab;
+        preconditioner  DIC;
+        tolerance       1e-10;
+        relTol          0;
+    }
+    p_rghFinal
+    {
+        $p_rgh;
+        relTol          0;
+    }
+    ph_rgh
+    {
+        solver          PBiCGStab;
+        preconditioner  DIC;
+        tolerance       1e-3;
+        relTol          1e-2;
+    }
+    
+
+    ph_rghFinal
+    {
+        $p_rgh;
+				tolerance				1e-6;
+    }
+    ph_rgh0
+    {
+        solver          PBiCGStab;
+        preconditioner  DIC;
+        tolerance       1e-3;
+        relTol          1e-2;
+				minIter					1;
+    }
+
+    ph_rgh0Final
+    {
+        $ph_rgh0;
+				relTol					0;
+    }
+    "(U|h|e|k|epsilon).air"
+    {
+        solver          PBiCGStab;
+        preconditioner  DILU;
+        tolerance       1e-8;
+        relTol          1e-5;
+				minIter					1;
+    }
+
+    "(U|h|e|k|epsilon).airFinal"
+    {
+        $U.air;
+        relTol          0;
+    }
+    "(U|h|e|k|epsilon).water"
+    {
+        solver          PBiCGStab;
+        preconditioner  DILU;
+        tolerance       1e-4;
+        relTol          1e-2;
+    }
+
+    "(U|h|e|k|epsilon).waterFinal"
+    {
+        $U.water;
+        relTol          0;
+    }
+
+    Yi
+    {
+        solver          PBiCGStab;
+        preconditioner  DILU;
+        tolerance       1e-6;
+        relTol          1e-4;
+				residualAlpha		1e-4;
+				minIter					1;
+    }
+
+		YiFinal
+		{
+				$Yi;
+				relTol					0;
+		}
+    "f.*"
+    {
+        solver          PBiCGStab;
+        preconditioner  DILU;
+        tolerance       1e-6;
+        relTol          1e-2;
+				residualAlpha		1e-4;
+    }
+    "f.*Final"
+    {
+        solver          PBiCGStab;
+        preconditioner  DILU;
+        tolerance       1e-6;
+        relTol          0;
+				residualAlpha		1e-4;
+    }
+}
+
+SIMPLE
+{
+    momentumPredictor yes;
+    nOuterCorrectors 5;
+    nCorrectors     5;
+    nNonOrthogonalCorrectors 0;
+
+    pRefCell        0;
+    pRefValue       1e5;
+
+		hydrostaticInitialisation   no;
+}
+
+PIMPLE
+{
+    momentumPredictor yes;
+    nOuterCorrectors 100;
+    nCorrectors     1; // 2 seems to be enough
+    nNonOrthogonalCorrectors 0;
+		turbOnFinalIterOnly			true;
+
+    pRefCell        0;
+    pRefValue       0;
+    p_rghRefCell        0;
+    p_rghRefValue       0;
+
+		hydrostaticInitialisation   no;
+		// Set to "no" when rerun
+		referenceStateInitialisation		yes;
+		atmHydrostaticInitialisation		yes;
+		outerCorrectorResidualControl
+		{
+				"(U|h|e).air"
+				{
+						tolerance       1e-2;
+						relTol          0;
+				}
+
+				p_rgh
+				{
+						tolerance       1e-4;
+						relTol          1e-3;
+				}
+		}
+}
+
+relaxationFactors
+{
+		// equations
+		// {
+		// 		".*"			1;
+		// 	 	// "U.*"					0.5;
+		// 		// p_rgh			0.5;
+		// }
+		fields
+		{
+			p_rgh			0.7;
+			p_rghFinal			1.0;
+		}
+		// fields
+		// {
+		// 	 p					0.5;
+		// 	 p_rgh			0.5;
+		// 	 "rho.*"				0.5;
+		// }
+		equations
+		{
+			"U.*"					0.7;
+			p_rgh					0.7;
+			k.air					0.7;
+			e.air					0.7;
+			e.airFinal					1.0;
+			e.water					0.3;
+			e.waterFinal					0.7;
+			// epsilon		0.5;
+		}
+}
+
+
+
+// ************************************************************************* //

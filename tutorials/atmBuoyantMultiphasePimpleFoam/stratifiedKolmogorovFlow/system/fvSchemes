@@ -1,0 +1,68 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Website:  https://openfoam.org
+    \\  /    A nd           | Version:  9
+     \\/     M anipulation  |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      fvSchemes;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+ddtSchemes
+{
+    default         backward;
+}
+
+gradSchemes
+{
+    default         Gauss linear;
+}
+
+divSchemes
+{
+    default																						Gauss linearUpwind limited;
+
+    "div\(phi,alpha.*\)"															Gauss vanLeer;
+    "div\(phir,alpha.*\)"                   					Gauss vanLeer;
+
+    "div\(alphaRhoPhi.*,U.*\)"              					Gauss linear;
+    "div\(alphaRhoPhi.*,(h|e).*\)"										Gauss linear;
+    "div\(alphaRhoPhi.*,K.*\)"												Gauss linear;
+    "div\(alphaRhoPhi.*,\(p\|thermo:rho.*\)\)"        Gauss linear;
+    "div\(alphaRhoPhi.*,Y.*\)"              					Gauss linear;
+
+    "div\(alphaRhoPhi.*,(k|epsilon).*\)"							bounded Gauss linearUpwind limited;
+
+    "div\(alphaPhi.*,f.*\)"                 Gauss vanLeer;
+    "div\(fAlphaPhi.*,kappa.*\)"            Gauss linearUpwind limited;
+
+    "div\(\(\(\(alpha.*\*thermo:rho.*\)\*nuEff.*\)\*dev2\(T\(grad\(U.*\)\)\)\)\)" Gauss linear;
+}
+
+laplacianSchemes
+{
+    default         Gauss linear corrected;
+}
+
+interpolationSchemes
+{
+    default         linear;
+}
+
+snGradSchemes
+{
+    default         corrected;
+}
+
+fluxRequired
+{
+		p_rgh;
+}
+
+// ************************************************************************* //

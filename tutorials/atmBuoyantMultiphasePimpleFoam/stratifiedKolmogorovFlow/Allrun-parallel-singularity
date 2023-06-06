@@ -1,0 +1,72 @@
+#!/bin/sh
+cd ${0%/*} || exit 1    # run from this directory
+
+# rm -r postProcessing
+# Update settings for the case
+
+# Update decompose setting
+
+NCPU=$NSLOTS
+# NCPU=4
+foamDictionary -entry numberOfSubdomains -set $NCPU system/decomposeParDict
+
+blockMesh | tee log.blockMesh
+rm 0/U.air 0/U.water 0/U
+boxTurb | tee log.boxTurb
+cp 0/U 0/U.air
+cp 0/U 0/U.water
+procDir=procArchive4
+mkdir $procDir
+mv processor* $procDir/
+rm -r $procDir &
+decomposePar -force -time '0' | tee log.decomposePar
+
+# Note: using -copyZero causes hydrostaticInitialisation to diverge, reasons
+# unknown yet, probably due to the codeStream internal field init
+# decomposePar -copyZero -force | tee log.decomposePar
+# for proc in $(ls -d processor*)
+# do
+# 	foamDictionary \
+# 				-entry boundaryField/floor/gradient \
+# 				-set "$(foamDictionary -entry boundaryField/floor/gradient -value 0/T.air)" \
+# 				$proc/0/T.air
+# 	foamDictionary \
+# 				-entry boundaryField/ceiling/gradient \
+# 				-set "$(foamDictionary -entry boundaryField/ceiling/gradient -value 0/T.air)" \
+# 				$proc/0/T.air
+# 	foamDictionary \
+# 				-entry boundaryField/floor/gradient \
+# 				-set "$(foamDictionary -entry boundaryField/floor/gradient -value 0/T.water)" \
+# 				$proc/0/T.water
+# 	foamDictionary \
+# 				-entry boundaryField/ceiling/gradient \
+# 				-set "$(foamDictionary -entry boundaryField/ceiling/gradient -value 0/T.water)" \
+# 				$proc/0/T.water
+# 					
+# done
+
+# mpirun	-np $NSLOTS \
+# 				--mca btl_tcp_if_exclude enp0s20u1u5,lo \
+# 				--mca btl_vader_single_copy_mechanism none  \
+# 				apptainer exec -B $(pwd):/mnt/runCase \
+# 									../ues-debug.sif \
+# 									snappyHexMesh -parallel -overwrite \
+# 									-case /mnt/runCase | tee log.snappyHexMesh; 
+
+# apptainer exec -B $(pwd):/mnt/runCase \
+# 					../layering-debug.sif \
+# 					atmBuoyantMultiphaseEulerPimpleFoam  \
+# 					-case /mnt/runCase | tee log.atmBuoyantMultiphaseEulerPimpleFoam
+mpirun	-np $NCPU \
+									atmBuoyantMultiphaseEulerPimpleFoam -parallel \
+									| tee log.atmBuoyantMultiphaseEulerPimpleFoam
+
+# mpirun	-np $NCPU \
+# 				--mca btl_tcp_if_exclude enp0s20u1u5,lo \
+# 				--mca btl_vader_single_copy_mechanism none  \
+# 				apptainer exec -B $(pwd):/mnt/runCase \
+# 									../layering-debug-test.sif \
+# 									atmBuoyantMultiphaseEulerPimpleFoam -parallel \
+# 									-case /mnt/runCase | tee log.atmBuoyantMultiphaseEulerPimpleFoam
+
+#------------------------------------------------------------------------------

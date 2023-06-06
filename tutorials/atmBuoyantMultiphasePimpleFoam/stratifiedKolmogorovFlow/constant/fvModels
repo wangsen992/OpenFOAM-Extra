@@ -1,0 +1,100 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Website:  https://openfoam.org
+    \\  /    A nd           | Version:  9
+     \\/     M anipulation  |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    format      ascii;
+    class       dictionary;
+    location    "constant";
+    object      fvModels;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+// geostrophicForce
+// {
+//     type            geostrophicForce;
+// 
+//     selectionMode   all;
+// 
+// 		UName						U;
+// 		Ug							(6 0 0);
+// 		f								(0 0 0.826e-4);
+// }
+
+// boussinesqBuoyancyForce
+// {
+// 		type						boussinesqBuoyancyForce;
+// 
+// 		selectionMode		all;
+// 
+// 		UName						U;
+// 		theta0					[0 0 0 1 0] 300;
+// 		g								[0 1 -2 0 0] (0 0 -10);
+// }
+
+boussinesqBuoyancyKSource
+{
+		type						boussinesqBuoyancyKSource;
+
+		phase						air;
+		selectionMode		all;
+}
+
+momentumSource
+{
+		type							coded;
+
+		selectionMode			all;
+
+		field							U.air;
+
+		codeInclude
+		#{
+		#};
+
+		codeAddSup
+		#{
+				Pout << "**codeAddSup**" << endl;
+		#};
+
+		codeAddRhoSup
+		#{
+				Pout << "**codeAddRhoSup**" << endl;
+				const Time& time = mesh().time();
+				const scalarField& V = mesh().V();
+				const vectorField& C = mesh().C();
+				vectorField& USource = eqn.source();
+				scalar x;
+				forAll(USource, i)
+				{
+						x = C[i].x();
+						USource[i] -= rho[i] * V[i] * vector(0, 0.005 * Foam::sin(2 * 3.14 * x/1000), 0) * time.deltaTValue();
+				}
+		#};
+
+		codeAddAlphaRhoSup
+		#{
+				Pout << "**codeAddAlphaRhoSup**" << endl;
+				const Time& time = mesh().time();
+				const scalarField& V = mesh().V();
+				const vectorField& C = mesh().C();
+				const volVectorField& U = mesh().lookupObjectRef<volVectorField>("U.air");
+				Info << "[fvModel] t : " << time.timeName() << "; " 
+						 << "max(U.air) = " << gMax(U) << endl;
+				// Pout << "[fvModel] size = " << V.size() << endl;
+				vectorField& USource = eqn.source();
+				scalar x;
+				forAll(USource, i)
+				{
+						x = C[i].x();
+						USource[i] -= alpha[i] * rho[i] * V[i] * vector(0, 0.0025 * Foam::sin(2 * 3.14 * x/1000), 0);
+				}
+		#};
+}
+
+
+// ************************************************************************* //

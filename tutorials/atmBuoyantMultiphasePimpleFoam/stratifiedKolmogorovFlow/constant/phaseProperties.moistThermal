@@ -1,0 +1,210 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Website:  https://openfoam.org
+    \\  /    A nd           | Version:  9
+     \\/     M anipulation  |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    format      ascii;
+    class       dictionary;
+    object      phaseProperties;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+type	interfaceCompositionAtmThermalPhaseChangeMultiphaseSystem; 
+
+/* * Initiated from phaseSystem.H * */
+referencePhase		air;
+
+volatile			H2O;
+pressureImplicit				false;
+phases (air water);
+
+air
+{
+		// Used in phaseModelNew.C
+		type						multiComponentAtmPhaseModel;
+
+		// loaded in phaseModel.C
+		residualAlpha		1e-40;
+		// optional
+		alphaMax				1.0;
+		alphaMin				0.0;
+
+		diameterModel		constant;
+		constantCoeffs
+		{
+			d							1;
+		}
+
+}
+
+water
+{
+		// Used in phaseModelNew.C
+		type						multiComponentAtmPhaseModel;
+
+		carrierPhase		air;
+
+		// loaded in phaseModel.C
+		residualAlpha		1e-50;
+		// optional
+		alphaMax				1.0;
+		alphaMin				0.0;
+
+		diameterModel		constant;
+		constantCoeffs
+		{
+			d							1e-5;
+		}
+
+}
+
+blending
+{
+		default
+		{
+					type							linear;
+					minFullyContinuousAlpha.air		0.7;
+					minPartlyContinuousAlpha.air		0.3;
+					minFullyContinuousAlpha.water		0.7;
+					minPartlyContinuousAlpha.water		0.3;
+		}
+
+		heatTransfer
+		{
+					type							linear;
+					minFullyContinuousAlpha.air		1.0;
+					minPartlyContinuousAlpha.air		0.0;
+					minFullyContinuousAlpha.water		1.0;
+					minPartlyContinuousAlpha.water		0.0;
+		}
+
+		diffusiveMassTransfer
+		{
+				$heatTransfer;
+		}
+}
+
+
+/* * * in MomentumTransferPhaseSystem.C * * */
+drag
+(
+		(water in air)
+		{
+			type		aerosolDrag;
+			sigma		1;
+		}
+);
+
+virtualMass
+(
+		(water in air)
+		{
+			type		Lamb;
+		}
+);
+
+lift
+(
+		(water in air)
+		{
+			type		none;
+		}
+);
+
+wallLubrication
+();
+
+turbulentDispersion
+(
+		(water in air)
+		{
+			type		Gosman;
+			sigma		1;
+		}
+);
+
+interfaceCompression
+();
+
+surfaceTension
+();
+
+aspectRatio
+();
+/* * * in OneResistanceHeatTransferPhaseSystem.C * * */
+heatTransfer.water
+(
+		(water in air)
+		{
+			type		spherical;
+		}
+);
+
+heatTransfer.air
+(
+		(water in air)
+		{
+			type		spherical;
+		}
+);
+
+saturation
+(
+		(air and water)
+		{
+			type	ArdenBuck;
+		}
+);
+/* * * in PhaseTransferPhaseSystem.C * * */
+phaseTransfer
+();
+
+/* * * in InterfaceCompositionPhaesChangeSystem.C * * */
+nInterfaceCorrectors		2;
+
+interfaceComposition.air
+(
+		(air and water)
+		{
+				type		saturated;
+				species		( H2O );
+				Le			1;
+				saturationPressure
+				{
+					type		ArdenBuck;
+				}
+		}
+);
+interfaceComposition.water
+();
+
+diffusiveMassTransfer.air
+(
+	(air in water)
+	{
+		type	Frossling;
+		Le		1;
+	}
+	(water in air)
+	{
+		type	spherical;
+		Le		1;
+	}
+);
+
+diffusiveMassTransfer.water
+(
+	(air in water)
+	{
+		type	spherical;
+		Le		1;
+	}
+	(water in air)
+	{
+		type	Frossling;
+		Le		1;
+	}
+);

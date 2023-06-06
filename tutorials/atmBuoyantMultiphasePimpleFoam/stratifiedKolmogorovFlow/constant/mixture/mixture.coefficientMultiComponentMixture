@@ -1,0 +1,56 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Website:  https://openfoam.org
+    \\  /    A nd           | Version:  dev
+     \\/     M anipulation  |
+\*---------------------------------------------------------------------------*/
+
+species
+(
+    dryAir
+    H2O
+);
+
+dryAir
+{
+    specie
+    {
+        molWeight       28.967;
+    }
+    thermodynamics
+    {
+        Cp              1000;
+        Cv              718;
+        Hf              0;
+				Tref						0;
+    }
+    transport
+    {
+        mu              1e-5;
+        Pr              1;
+    }
+}
+
+H2O
+{
+    specie
+    {
+        molWeight       18;
+    }
+    thermodynamics
+    {
+        Cp              1864;
+        Cv              1402;
+        Hf              -1.3435e7;
+        // Hf              0;
+    }
+    transport
+    {
+        mu              1e-5;
+        Pr              1;
+    }
+}
+
+
+// ************************************************************************* //
