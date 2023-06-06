@@ -390,8 +390,8 @@ Foam::atmThermalPhaseChangePhaseSystem<BasePhaseSystem>::heatTransfer() const
             (
                 nDmidtfs,
                 Tns,
-                0,
                 BasePhaseSystem::latentHeatScheme::upwind,
+                BasePhaseSystem::latentHeatTransfer::heat,
                 eqns
             );
         }
@@ -522,6 +522,7 @@ Foam::atmThermalPhaseChangePhaseSystem<BasePhaseSystem>::correctInterfaceThermo(
 
         // Compute Nucleation Mass Transfer
         const phaseModel& phase = pair.phase1().name() == condensePhase_ ? pair.phase1() : pair.phase2();
+        const phaseModel& otherPhase = pair.phase1().name() != condensePhase_ ? pair.phase1() : pair.phase2();
         const rhoReactionThermo& thermo
         (
           phase.mesh().lookupObjectRef<rhoReactionThermo>
@@ -544,11 +545,51 @@ Foam::atmThermalPhaseChangePhaseSystem<BasePhaseSystem>::correctInterfaceThermo(
         Info << "Unit of qs: " << qs.dimensions() << endl;
 
         volScalarField& ndmdtf(*this->nDmdtfs_[pair]);
+        volScalarField& dmdtf(*this->dmdtfs_[pair]);
 
         dimensionedScalar dt = phase.mesh().time().deltaT();
+        volScalarField dq((qv - qs));
+        volScalarField rhodt(thermo.rho() / dt);
+        Info << "[atmThermalPhaseChangePhaseSystem] avg(qv) = " << average(qv) << endl;
+        Info << "[atmThermalPhaseChangePhaseSystem] avg(qs) = " << average(qs) << endl;
+        Info << "[atmThermalPhaseChangePhaseSystem] gMax(dq) = " << gMax(dq) << endl;
+        Info << "[atmThermalPhaseChangePhaseSystem] gMin(dq) = " << gMin(dq) << endl;
+
+        // Since ndmdtf is added to phase1 and subtracted from phase2, 
+        // for nucleation, and condensePhase_, "air", should be subtracted, 
+        // so if phase1 is condensePhase_, pos(qv-qs) * -1 = ndmdtfNew, else, 
+        // pos(qv-qs) = ndmdtfNew
+        // When qv - qs < 0, air is undersaturated, therefore we consider
+        // only neg(qv - qs), we here assume that evaporation is only 5% 
+        // of the deficiency in saturation
+        
+        /* old version 
         volScalarField ndmdtfNew((qv - qs) * thermo.rho() / dt);
-        ndmdtfNew *= (pair.phase1().name() == condensePhase_ ? +1 : -1);
+        ndmdtfNew = dm * (pair.phase1().name() == condensePhase_ ? -1 : 1)
+        ndmdtfNew *= (pair.phase1().name() == condensePhase_ ? -1 : 1);
         ndmdtfNew *= pos(ndmdtfNew);
+        */
+
+        const scalar sign = pair.phase1().name() == condensePhase_ ? -1 : 1;
+
+        volScalarField ndmdtfNew = pos(dq) * dq * sign * rhodt; // nucleation of droplets
+        // Evaporation is a function of mass diffusivity, surface area
+        // (diameter), also, the mass transfer rate should also be limited 
+        // by the total water liquid content. A dynamic way to limit it is
+        // through total surface area, which can be done through the
+        // interfaceComposition model
+        
+        // evaporation of liquid phase
+        // 0.01 is hard coded diffusivity and the rate is limited by phase
+        // fraction
+        // Changed to 0.5 to test
+        volScalarField dmdtfNew
+        (
+            neg(dq) 
+          * dq * otherPhase 
+          * 0.5 * rhodt * sign
+        );
+
         // mass transfer update
         {
 
@@ -559,19 +600,20 @@ Foam::atmThermalPhaseChangePhaseSystem<BasePhaseSystem>::correctInterfaceThermo(
                 // this->mesh().fieldRelaxationFactor(dmdtf.member());
 
             ndmdtf = (1 - dmdtfRelax)*ndmdtf + dmdtfRelax*ndmdtfNew;
+            // ndmdtf *= 0;
+            dmdtf =  (1 - dmdtfRelax) * dmdtf + dmdtfRelax * dmdtfNew;
 
             Info<< ndmdtf.name()
-                << ": min = " << min(ndmdtf.primitiveField())
-                << ", mean = " << average(ndmdtf.primitiveField())
-                << ", max = " << max(ndmdtf.primitiveField())
+                << ": min = " << gMin(ndmdtf.primitiveField())
+                << ", mean = " << gAverage(ndmdtf.primitiveField())
+                << ", max = " << gMax(ndmdtf.primitiveField())
                 << ", integral = " << fvc::domainIntegrate(ndmdtf).value()
                 << endl;
-            Info << "Testing dmdtfNew" << endl;
-            Info<< ndmdtfNew.name()
-                << ": min = " << min(ndmdtfNew.primitiveField())
-                << ", mean = " << average(ndmdtfNew.primitiveField())
-                << ", max = " << max(ndmdtfNew.primitiveField())
-                << ", integral = " << fvc::domainIntegrate(ndmdtfNew).value()
+            Info<< dmdtf.name()
+                << ": min = " << gMin(dmdtf.primitiveField())
+                << ", mean = " << gAverage(dmdtf.primitiveField())
+                << ", max = " << gMax(dmdtf.primitiveField())
+                << ", integral = " << fvc::domainIntegrate(dmdtf).value()
                 << endl;
         }
 
