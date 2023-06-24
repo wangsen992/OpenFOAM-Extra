@@ -1,0 +1,17 @@
+#!/bin/sh
+cd ${0%/*} || exit 1			# Run from this directory
+
+# Parse arguments for library compilation
+. $WM_PROJECT_DIR/wmake/scripts/AllwmakeParseArguments
+
+# Perform various checks
+wmakeCheckPwd "$WM_PROJECT_USER_DIR/src" || {
+	echo "Allwmake error: Current directory is not \$WM_PROJECT_USER_DIR/src"
+	exit 1
+}
+
+echo $targetType $*
+wmake $targetType utilityFuncs
+wmake $targetType surfaceMeshTools
+wmake $targetType atmosphericTurbulenceModels
+wmake $targetType urbanModels
