@@ -1,0 +1,4 @@
+[submodule "external/netcdf-cxx4"]
+	path = external/netcdf-cxx4
+	url = https://github.com/Unidata/netcdf-cxx4.git
+	branch = 4.3.0
