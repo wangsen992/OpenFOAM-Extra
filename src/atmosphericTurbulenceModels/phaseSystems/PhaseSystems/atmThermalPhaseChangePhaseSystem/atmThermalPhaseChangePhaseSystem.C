@@ -521,8 +521,10 @@ Foam::atmThermalPhaseChangePhaseSystem<BasePhaseSystem>::correctInterfaceThermo(
         const phasePair& pair = this->phasePairs_[saturationModelIter.key()];
 
         // Compute Nucleation Mass Transfer
+        // condensePhase_ == "air"
         const phaseModel& phase = pair.phase1().name() == condensePhase_ ? pair.phase1() : pair.phase2();
         const phaseModel& otherPhase = pair.phase1().name() != condensePhase_ ? pair.phase1() : pair.phase2();
+        
         const rhoReactionThermo& thermo
         (
           phase.mesh().lookupObjectRef<rhoReactionThermo>
@@ -533,6 +535,7 @@ Foam::atmThermalPhaseChangePhaseSystem<BasePhaseSystem>::correctInterfaceThermo(
         const volScalarField& T(thermo.T());
         volScalarField qv(volatile_, phase.Y(volatile_));
         qv += VSMALL;
+        const volScalarField e(qv * thermo.p() / (0.622 + 0.378 * qv));
         const volScalarField es(saturationModelIter()->pSat(T));
         const volScalarField qs
         (
@@ -572,7 +575,11 @@ Foam::atmThermalPhaseChangePhaseSystem<BasePhaseSystem>::correctInterfaceThermo(
 
         const scalar sign = pair.phase1().name() == condensePhase_ ? -1 : 1;
 
-        volScalarField ndmdtfNew = pos(dq) * dq * sign * rhodt; // nucleation of droplets
+        // Nucleation calculation block
+        tmp<volScalarField> tndmdtfNew = pos(dq) * dq * sign * rhodt; // nucleation of droplets
+        const volScalarField& ndmdtfNew = tndmdtfNew.ref();
+        
+        // Evaporation calculation block
         // Evaporation is a function of mass diffusivity, surface area
         // (diameter), also, the mass transfer rate should also be limited 
         // by the total water liquid content. A dynamic way to limit it is
@@ -583,11 +590,18 @@ Foam::atmThermalPhaseChangePhaseSystem<BasePhaseSystem>::correctInterfaceThermo(
         // 0.01 is hard coded diffusivity and the rate is limited by phase
         // fraction
         // Changed to 0.5 to test
+        // volScalarField dmdtfNew
+        // (
+        //     neg(dq) 
+        //   * dq * otherPhase 
+        //   * 0.5 * rhodt * sign
+        // );
         volScalarField dmdtfNew
         (
-            neg(dq) 
-          * dq * otherPhase 
-          * 0.5 * rhodt * sign
+            neg(dq) * sign
+          * 8/3 * 3.1415 * 24.9 * pow(10.0, -6)
+          * rhodt 
+          * (es - e) / e
         );
 
         // mass transfer update
