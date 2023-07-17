@@ -597,12 +597,15 @@ Foam::atmThermalPhaseChangePhaseSystem<BasePhaseSystem>::correctInterfaceThermo(
         //   * 0.5 * rhodt * sign
         // );
         Info << "[atmThermal] Running new evapoation scheme" << endl;
+        const volScalarField S( (e - es) / es);
+        const volScalarField rs(otherPhase.d() / 2.0);
+        dimensionedScalar D("D", dimArea/dimTime, 24.9 * pow(10.0, -6));
         volScalarField dmdtfNew
         (
             neg(dq) * sign
-          * 8/3 * 3.1415 * 24.9 * pow(10.0, -6)
-          * rhodt 
-          * (es - e) / e
+          * 3 * D * rhodt 
+          * otherPhase / (rs * rs)
+          * S
         );
 
         // mass transfer update
