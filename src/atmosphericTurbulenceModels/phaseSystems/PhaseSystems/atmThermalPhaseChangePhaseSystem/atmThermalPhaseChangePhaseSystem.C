@@ -603,7 +603,7 @@ Foam::atmThermalPhaseChangePhaseSystem<BasePhaseSystem>::correctInterfaceThermo(
         volScalarField dmdtfNew
         (
             neg(dq) * sign
-          * 3 * D * rhodt 
+          * 3 * D * thermo.rho()
           * otherPhase / (rs * rs)
           * S
         );
