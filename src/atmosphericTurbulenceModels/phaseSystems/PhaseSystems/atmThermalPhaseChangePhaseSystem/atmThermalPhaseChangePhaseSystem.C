@@ -596,6 +596,7 @@ Foam::atmThermalPhaseChangePhaseSystem<BasePhaseSystem>::correctInterfaceThermo(
         //   * dq * otherPhase 
         //   * 0.5 * rhodt * sign
         // );
+        Info << "[atmThermal] Running new evapoation scheme" << endl;
         volScalarField dmdtfNew
         (
             neg(dq) * sign
