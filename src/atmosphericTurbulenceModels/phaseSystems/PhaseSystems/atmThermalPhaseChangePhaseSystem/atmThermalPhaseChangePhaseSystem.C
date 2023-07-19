@@ -602,10 +602,13 @@ Foam::atmThermalPhaseChangePhaseSystem<BasePhaseSystem>::correctInterfaceThermo(
         dimensionedScalar D("D", dimArea/dimTime, 24.9 * pow(10.0, -6));
         volScalarField dmdtfNew
         (
-            neg(dq) * sign
-          * 3 * D * thermo.rho()
-          * otherPhase / (rs * rs)
-          * S
+          max(
+              neg(dq) * sign
+            * 3 * D * thermo.rho()
+            * otherPhase / (rs * rs)
+            * S,
+            (-1.0) * pos(otherPhase) * otherPhase * otherPhase.thermo().rho() / dt
+            )
         );
 
         // mass transfer update
