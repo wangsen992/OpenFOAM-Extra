@@ -1,5 +1,5 @@
 
-export WM_PROJECT_USER_DIR=/root/OpenFOAM/OpenFOAM-Extra
+export WM_PROJECT_USER_DIR=/app/OpenFOAM-Extra
 
 export FOAM_USER_LIB_SRC=$WM_PROJECT_USER_DIR/src
 
