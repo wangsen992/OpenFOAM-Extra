@@ -233,8 +233,8 @@ while (pimple.correct())
     }
 
     // Compressible pressure equations
-    #include "pEqnCompsTest.H"
-    // #include "pEqnComps.H"
+    // #include "pEqnCompsTest.H"
+    #include "pEqnComps.H"
 
     // Cache p prior to solve for density update
     volScalarField p_rgh_0(p_rgh);
@@ -253,39 +253,13 @@ while (pimple.correct())
         //{
             fvScalarMatrix pEqn(pEqnIncomp);
 
-            // [This is where to start] Disabled compressible pEqn terms for now
-            // This is where the failture of setReference is rooted.
-            // Need to check against each term
-            // FOUND THE TERM!!!!: dmdts[phasei]/rho
-            // [ISSUE] although previous solution works for 2D, but in 3D this
-            // happens again
             forAll(phases, phasei)
             {
                 pEqn += pEqnComps[phasei];
             }
 
-            // if (fluid.incompressible())
-            // {
-            //pEqn.setReference
-            //(
-            //    pressureReference.refCell(),
-            //    0
-            //    // pressureReference.refValue()
-            //);
-            // }
-
             pEqn.solve();
 
-            // [Note] This is an ad hoc solution as an alternative to
-            // pressureReference
-            // p_rgh.primitiveFieldRef() -= gMax(p_rgh);
-            // p_rgh.primitiveFieldRef() = 
-            //         p_rgh.primitiveField() 
-            //      -  (
-            //           getRefCellValue(p_rgh, pressureReference.refCell()) 
-            //         - pressureReference.refValue()
-            //         );
-            
         //}
 
         // Correct fluxes and velocities on last non-orthogonal iteration

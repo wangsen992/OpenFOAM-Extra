@@ -137,32 +137,6 @@ namespace Foam
         dictionary,
         interfaceCompositionAtmThermalPhaseChangePopulationBalanceMultiphaseSystem
     );
-    // typedef
-    //     InterfaceCompositionPhaseChangePhaseSystem
-    //     <
-    //         PopulationBalancePhaseSystem
-    //         <
-    //           DropletNucleationPhaseChangePhaseSystem
-    //           <
-    //               PhaseTransferPhaseSystem
-    //               <
-    //                   TwoResistanceHeatTransferPhaseSystem
-    //                   <
-    //                       MomentumTransferPhaseSystem<phaseSystem>
-    //                   >
-    //               >
-    //           >
-    //         >
-    //     >
-    //     interfaceCompositionPhaseChangePopulationBalanceDropletMultiphaseSystem;
-
-    // addNamedToRunTimeSelectionTable
-    // (
-    //     phaseSystem,
-    //     interfaceCompositionPhaseChangePopulationBalanceDropletMultiphaseSystem,
-    //     dictionary,
-    //     interfaceCompositionPhaseChangePopulationBalanceDropletMultiphaseSystem
-    // );
 
 }
 

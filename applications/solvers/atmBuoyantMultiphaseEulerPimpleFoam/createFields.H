@@ -148,18 +148,5 @@ volScalarField rho
     fluid.rho()
 );
 
-volScalarField he
-(
-    IOobject
-    (
-        "hAir",
-        runTime.timeName(),
-        mesh,
-        IOobject::NO_READ,
-        IOobject::AUTO_WRITE
-    ),
-    phases[0].thermoRef().he()
-);
-
 runTime++;
 runTime.write();
