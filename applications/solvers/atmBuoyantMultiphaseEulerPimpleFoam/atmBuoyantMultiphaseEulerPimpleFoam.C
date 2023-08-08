@@ -45,6 +45,7 @@ Description
 #include "atmHydrostaticInitialisation.H"
 #include "referenceStateInitialisation.H"
 
+#include "IOmanip.H"
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 int main(int argc, char *argv[])
@@ -111,6 +112,10 @@ int main(int argc, char *argv[])
         runTime++;
         Info<< "Time = " << runTime.timeName() << nl << endl;
 
+        // [Debug]
+        phaseModel& phase = fluid.phases()[0];
+        volScalarField qv_old("H2O", phase.Y("H2O"));
+        volScalarField rho_v_old(qv_old * phase.thermo().rho());
         // --- Pressure-velocity PIMPLE corrector loop
         while (pimple.loop())
         {
@@ -198,9 +203,14 @@ int main(int argc, char *argv[])
                 }
 
                 fluid.solve(rAUs, rAUfs);
+
                 fluid.correct();
                 fluid.correctContinuityError();
 
+
+                // [Debug]
+                qv_old = phase.Y("H2O");
+                rho_v_old = qv_old * phase.thermo().rho();
                 if (pimple.thermophysics())
                 {
                     #include "YEqns.H"
@@ -228,26 +238,6 @@ int main(int argc, char *argv[])
                     }
 
                     #include "pU/pEqnTest.H"
-                    forAll(phases, phasei)
-                    {
-                        phaseModel& phase = phases[phasei];
-
-                        Info<< "[Solver] time : " << runTime.timeName() << ";" 
-                          <<phase.name() << " min/max T "
-                            << min(phase.thermo().T()).value()
-                            << " - "
-                            << max(phase.thermo().T()).value()
-                            << endl;
-                    }
-                    // #include "pU/pEqn.H"
-                
-                    // Include another round of correction to enforce 
-                    // mass conservation (alphaRhoPhi conservation)
-                    // fluid.solve(rAUs, rAUfs);
-                    // fluid.correct();
-                    // fluid.correctContinuityError();
-
-                    // #include "setDebugFields.H"
                 }
 
                 fluid.correctKinematics();
@@ -255,14 +245,39 @@ int main(int argc, char *argv[])
                 if (pimple.turbCorr())
                 {
                     fluid.correctTurbulence();
-                    fluid.correctEnergyTransport();
+                    // fluid.correctEnergyTransport();
                 }
+
             }
         }    
 
-        he = phases[0].thermoRef().he();
+        // [Note] This is ad hoc and must be removed
+        // phases[1] += negPart(fluid.dmdts()[1])/phases[1].thermo().rho() \
+        //              * runTime.deltaT();
 
         runTime.write();
+
+          // [Debug]
+          Info << setprecision(15);
+          phaseModel& otherPhase = fluid.phases()[1];
+          volScalarField qv("H2O", phase.Y("H2O"));
+          volScalarField rho_v(qv * phase.thermo().rho());
+          volScalarField qt
+          (
+            qv * phase.thermo().rho() * phase + otherPhase * otherPhase.thermo().rho()
+          );
+          
+          Info  << "[totalWater] Time ,"     
+                << runTime.timeName() << ", "                                       // << "qt = "                  
+                << gAverage(qt) << ", "                                                         // << "rho_v = "
+                << gAverage(rho_v_old) << ", "                          // << ", rho_l = "               
+                << gAverage(rho_v) << ", "                          // << ", rho_l = "               
+                << gAverage((phase * phase.thermo().rho()).ref()) << ", "
+                << gAverage((otherPhase * otherPhase.thermo().rho()).ref()) << ", "             // << ", dm.air = "              
+                << gAverage((fluid.dmdts()[0] * phase.mesh().time().deltaT()).ref()) << ", "          // << ", dm.pos = "              
+                << gAverage((posPart(fluid.dmdts()[0]) * phase.mesh().time().deltaT()).ref()) << ", " // << ", dm.neg = "              
+                << gAverage((negPart(fluid.dmdts()[0]) * phase.mesh().time().deltaT()).ref()) // << "; sign = "                          << sign << " : " << pair 
+                << endl;
 
         Info<< "ExecutionTime = "
             << runTime.elapsedCpuTime()
