@@ -575,40 +575,63 @@ Foam::atmThermalPhaseChangePhaseSystem<BasePhaseSystem>::correctInterfaceThermo(
 
         const scalar sign = pair.phase1().name() == condensePhase_ ? -1 : 1;
 
+        
+        Info << "[atmThermal] Running new evapoation scheme" << endl;
+        const volScalarField S( (e - es) / es);
+        Info << "[atmThermalPhaseChangePhaseSystem] time = " 
+             << phase.mesh().time().timeName() << ";"
+             << "gMax(S) = " << gMax(S) 
+             << "; gMin(S) = " << gMin(S) << endl;
+        
         // Nucleation calculation block
         tmp<volScalarField> tndmdtfNew = pos(dq) * dq * sign * rhodt; // nucleation of droplets
         const volScalarField& ndmdtfNew = tndmdtfNew.ref();
-        
+              
         // Evaporation calculation block
-        // Evaporation is a function of mass diffusivity, surface area
-        // (diameter), also, the mass transfer rate should also be limited 
-        // by the total water liquid content. A dynamic way to limit it is
-        // through total surface area, which can be done through the
-        // interfaceComposition model
-        
-        // evaporation of liquid phase
-        // 0.01 is hard coded diffusivity and the rate is limited by phase
-        // fraction
-        // Changed to 0.5 to test
-        // volScalarField dmdtfNew
-        // (
-        //     neg(dq) 
-        //   * dq * otherPhase 
-        //   * 0.5 * rhodt * sign
-        // );
-        Info << "[atmThermal] Running new evapoation scheme" << endl;
-        const volScalarField S( (e - es) / es);
         const volScalarField rs(otherPhase.d() / 2.0);
         dimensionedScalar D("D", dimArea/dimTime, 24.9 * pow(10.0, -6));
+        dimensionedScalar Rv("Rv", dimEnergy/dimMass/dimTemperature, 461.5);
+        dimensionedScalar Lv("Lv", dimEnergy/dimMass, 3.34 * pow(10.0, 5));
+        dimensionedScalar K("K", dimensionedScalar(dimPower / dimLength / dimTemperature, 0.025));
+
+        volScalarField Fk
+        (
+          "Fk", 
+          Lv * Lv / (K * Rv * thermo.T() * thermo.T())
+        );
+        volScalarField Fd
+        (
+          "Fd",
+          Rv * thermo.T() / (D * es)
+        );
+        volScalarField F("F", 4 * 3.1415 * rs / (Fk + Fd) * pos(otherPhase) * otherPhase / (4/3 * 3.1415 * pow(rs, 3)));
+
+        const volScalarField rho_v
+        (
+          thermo.composition().rho(1, e, thermo.T())
+        );
+
+        // volScalarField F
+        // (
+        //   "F",
+        //     neg(dq) * sign
+        //   * 3 * D * rho_v
+        //   * pos(otherPhase) * otherPhase / (rs * rs)
+        // );
+        
         volScalarField dmdtfNew
         (
-          max(
-              neg(dq) * sign
-            * 3 * D * thermo.rho()
-            * otherPhase / (rs * rs)
-            * S,
-            (-1.0) * pos(otherPhase) * otherPhase * otherPhase.thermo().rho() / dt
-            )
+          max
+          (
+            F  * neg(S) * S * sign,
+            (-1) * pos(otherPhase) * otherPhase * otherPhase.thermo().rho() / dt
+          )
+        );
+
+        // Compute total water content
+        volScalarField qt
+        (
+          qv * thermo.rho() * phase + otherPhase * otherPhase.thermo().rho()
         );
 
         // mass transfer update
@@ -620,9 +643,9 @@ Foam::atmThermalPhaseChangePhaseSystem<BasePhaseSystem>::correctInterfaceThermo(
             const scalar dmdtfRelax = 1.0;
                 // this->mesh().fieldRelaxationFactor(dmdtf.member());
 
-            ndmdtf = (1 - dmdtfRelax)*ndmdtf + dmdtfRelax*ndmdtfNew;
+            ndmdtf = (1 - dmdtfRelax)*ndmdtf + dmdtfRelax* ndmdtfNew;
             // ndmdtf *= 0;
-            dmdtf =  (1 - dmdtfRelax) * dmdtf + dmdtfRelax * dmdtfNew;
+            dmdtf =  (1 - dmdtfRelax) *dmdtf + dmdtfRelax * dmdtfNew;
 
             Info<< ndmdtf.name()
                 << ": min = " << gMin(ndmdtf.primitiveField())
@@ -637,7 +660,6 @@ Foam::atmThermalPhaseChangePhaseSystem<BasePhaseSystem>::correctInterfaceThermo(
                 << ", integral = " << fvc::domainIntegrate(dmdtf).value()
                 << endl;
         }
-
     }
 }
 
