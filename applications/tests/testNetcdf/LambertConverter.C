@@ -66,6 +66,10 @@ void mapProj::LambertConverter::get_xy
     // Apply lambert
     
     // Ignored two checks (truelat1 != truelat2 and wide apart)
+    std::cout << "Debug Line" << std::endl;
+    std::cout << truelat1 << std::endl;
+    std::cout << truelat2 << std::endl;
+    std::cout << RAD_PER_DEG << std::endl;
     cone = (log(cos(truelat1*RAD_PER_DEG))-log(cos(truelat2*RAD_PER_DEG))) / 
           (log(tan((90.0 - abs(truelat1))*RAD_PER_DEG*0.5)) - 
            log(tan((90.0 - abs(truelat2))*RAD_PER_DEG*0.5)));

@@ -1,4 +1,6 @@
 LambertConverter.C
+WrfTools.C
+WrfOfReader.C
 testNetcdf.C
 
 EXE = $(FOAM_USER_APPBIN)/testNetcdf
