@@ -558,24 +558,8 @@ Foam::atmThermalPhaseChangePhaseSystem<BasePhaseSystem>::correctInterfaceThermo(
         Info << "[atmThermalPhaseChangePhaseSystem] gMax(dq) = " << gMax(dq) << endl;
         Info << "[atmThermalPhaseChangePhaseSystem] gMin(dq) = " << gMin(dq) << endl;
 
-        // Since ndmdtf is added to phase1 and subtracted from phase2, 
-        // for nucleation, and condensePhase_, "air", should be subtracted, 
-        // so if phase1 is condensePhase_, pos(qv-qs) * -1 = ndmdtfNew, else, 
-        // pos(qv-qs) = ndmdtfNew
-        // When qv - qs < 0, air is undersaturated, therefore we consider
-        // only neg(qv - qs), we here assume that evaporation is only 5% 
-        // of the deficiency in saturation
-        
-        /* old version 
-        volScalarField ndmdtfNew((qv - qs) * thermo.rho() / dt);
-        ndmdtfNew = dm * (pair.phase1().name() == condensePhase_ ? -1 : 1)
-        ndmdtfNew *= (pair.phase1().name() == condensePhase_ ? -1 : 1);
-        ndmdtfNew *= pos(ndmdtfNew);
-        */
-
         const scalar sign = pair.phase1().name() == condensePhase_ ? -1 : 1;
 
-        
         Info << "[atmThermal] Running new evapoation scheme" << endl;
         const volScalarField S( (e - es) / es);
         Info << "[atmThermalPhaseChangePhaseSystem] time = " 
@@ -584,55 +568,71 @@ Foam::atmThermalPhaseChangePhaseSystem<BasePhaseSystem>::correctInterfaceThermo(
              << "; gMin(S) = " << gMin(S) << endl;
         
         // Nucleation calculation block
-        tmp<volScalarField> tndmdtfNew = pos(dq) * dq * sign * rhodt; // nucleation of droplets
-        const volScalarField& ndmdtfNew = tndmdtfNew.ref();
+        // tmp<volScalarField> tndmdtfNew = pos(dq) * dq * sign * rhodt; // nucleation of droplets
+
+        // Twomney's Formula, specified nucleation radius
+          // Estimate total number concentration for newly nucleated droplets
+          // using Twomney's Formula. Two empirical parameters are chosen as
+          // the median value suggested in Khain et al., 2000. 
+          const dimensionedScalar N0
+          ( dimless/dimVolume/dimTime,
+            this->template lookupOrDefault<scalar>("N0", 2e8)
+          );
+          const scalar k( this->template lookupOrDefault<scalar>("k", 0.45));
+          // const dimensionedScalar N0(dimless/dimVolume/dimTime, 200 * pow(10.0, 6));
+          // const scalar k(0.45);
+          // const tmp<volScalarField> N = N0 * pow(pos(S)*S, k) / dt.value();
+          const tmp<volScalarField> N = N0 * pow(pos(S)*S, k);
+
+          // Compute total mass transfer from nucleation
+          const dimensionedScalar r
+          ( dimLength,
+            this->template lookupOrDefault<scalar>("r0", 1e-5)
+          );
+          // const dimensionedScalar r(dimLength, pow(10.0,-5));
+          Info << "[atmThermalPhaseChangePhaseSystem] Twomney coefficients: " 
+               << "N0 = " << N0.value() << ", k = " << k 
+               << ", r0 = " << r.value()
+               << endl;
+
+          const dimensionedScalar m_d = 4.0/3.0 * 3.14 * pow(r, 3) * dimensionedScalar(dimDensity, 1000);
+          tmp<volScalarField> tndmdtfNew = m_d * N;
+          const volScalarField& ndmdtfNew = tndmdtfNew.ref();
+          Info << "[atmThermalPhaseChangePhaseSystem] ndmdtf calculated " << endl;
               
         // Evaporation calculation block
-        const volScalarField rs(otherPhase.d() / 2.0);
-        dimensionedScalar D("D", dimArea/dimTime, 24.9 * pow(10.0, -6));
-        dimensionedScalar Rv("Rv", dimEnergy/dimMass/dimTemperature, 461.5);
-        dimensionedScalar Lv("Lv", dimEnergy/dimMass, 3.34 * pow(10.0, 5));
-        dimensionedScalar K("K", dimensionedScalar(dimPower / dimLength / dimTemperature, 0.025));
+          // 
+          const volScalarField rs(otherPhase.d() / 2.0);
+          dimensionedScalar D("D", dimArea/dimTime, 24.9 * pow(10.0, -6));
+          dimensionedScalar Rv("Rv", dimEnergy/dimMass/dimTemperature, 461.5);
+          dimensionedScalar Lv("Lv", dimEnergy/dimMass, 3.34 * pow(10.0, 5));
+          dimensionedScalar K("K", dimensionedScalar(dimPower / dimLength / dimTemperature, 0.025));
 
-        volScalarField Fk
-        (
-          "Fk", 
-          Lv * Lv / (K * Rv * thermo.T() * thermo.T())
-        );
-        volScalarField Fd
-        (
-          "Fd",
-          Rv * thermo.T() / (D * es)
-        );
-        volScalarField F("F", 4 * 3.1415 * rs / (Fk + Fd) * pos(otherPhase) * otherPhase / (4/3 * 3.1415 * pow(rs, 3)));
-
-        const volScalarField rho_v
-        (
-          thermo.composition().rho(1, e, thermo.T())
-        );
-
-        // volScalarField F
-        // (
-        //   "F",
-        //     neg(dq) * sign
-        //   * 3 * D * rho_v
-        //   * pos(otherPhase) * otherPhase / (rs * rs)
-        // );
-        
-        volScalarField dmdtfNew
-        (
-          max
+          volScalarField Fk
           (
-            F  * neg(S) * S * sign,
-            (-1) * pos(otherPhase) * otherPhase * otherPhase.thermo().rho() / dt
-          )
-        );
+            "Fk", 
+            Lv * Lv / (K * Rv * thermo.T() * thermo.T())
+          );
+          volScalarField Fd
+          (
+            "Fd",
+            Rv * thermo.T() / (D * es)
+          );
+          volScalarField F("F", 4 * 3.1415 * rs / (Fk + Fd) * pos0(otherPhase) * otherPhase / (4/3 * 3.1415 * pow(rs, 3)));
 
-        // Compute total water content
-        volScalarField qt
-        (
-          qv * thermo.rho() * phase + otherPhase * otherPhase.thermo().rho()
-        );
+          const volScalarField rho_v
+          (
+            thermo.composition().rho(1, e, thermo.T())
+          );
+
+          volScalarField dmdtfNew
+          (
+            // max
+            // (
+              F  * neg0(S) * S * sign
+            //  (-1) * pos(otherPhase) * otherPhase * otherPhase.thermo().rho() / dt
+            //)
+          );
 
         // mass transfer update
         {
