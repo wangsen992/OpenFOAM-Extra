@@ -596,7 +596,7 @@ Foam::atmThermalPhaseChangePhaseSystem<BasePhaseSystem>::correctInterfaceThermo(
                << endl;
 
           const dimensionedScalar m_d = 4.0/3.0 * 3.14 * pow(r, 3) * dimensionedScalar(dimDensity, 1000);
-          tmp<volScalarField> tndmdtfNew = m_d * N;
+          tmp<volScalarField> tndmdtfNew = m_d * N / dt.value();
           const volScalarField& ndmdtfNew = tndmdtfNew.ref();
           Info << "[atmThermalPhaseChangePhaseSystem] ndmdtf calculated " << endl;
               
