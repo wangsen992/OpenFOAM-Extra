@@ -581,6 +581,10 @@ Foam::atmThermalPhaseChangePhaseSystem<BasePhaseSystem>::correctInterfaceThermo(
              << phase.mesh().time().timeName() << ";"
              << "gMax(S) = " << gMax(S_) 
              << "; gMin(S) = " << gMin(S_) << endl;
+        Info << "[atmThermalPhaseChangePhaseSystem] time = " 
+             << phase.mesh().time().timeName() << ";"
+             << "gMax(S_old) = " << gMax(S_.oldTime()) 
+             << "; gMin(S_old) = " << gMin(S_.oldTime()) << endl;
         
         // Nucleation calculation block
         // tmp<volScalarField> tndmdtfNew = pos(dq) * dq * sign * rhodt; // nucleation of droplets
@@ -613,11 +617,14 @@ Foam::atmThermalPhaseChangePhaseSystem<BasePhaseSystem>::correctInterfaceThermo(
           const dimensionedScalar m_d = 4.0/3.0 * 3.14 * pow(r, 3) * dimensionedScalar(dimDensity, 1000);
           // tmp<volScalarField> tndmdtfNew = m_d * N / dt.value();
           Info << "Compute tndmdtfNew" << endl;
+          volScalarField dS
+          (
+            fvc::ddt(S_) + fvc::div(phase.alphaPhi(), S_)
+          );
           tmp<volScalarField> tndmdtfNew 
           (
-            m_d * N0 * k * pow((pos(S_) * S_ + VSMALL), k - 1.0) 
-          * (fvc::ddt(S_) + fvc::div(phase.phi(), S_)) 
-          * pos(S_) * pos(fvc::ddt(S_))
+            m_d * N0 * k * pow((pos(S_-1e-3) * S_ + VSMALL), k - 1.0) 
+          * dS * pos(S_-1e-3) * pos(dS)
           );
           Info << "Compute tndmdtfNew" << endl;
           const volScalarField& ndmdtfNew = tndmdtfNew.ref();
