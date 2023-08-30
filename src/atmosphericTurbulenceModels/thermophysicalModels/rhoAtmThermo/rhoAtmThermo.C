@@ -47,7 +47,7 @@ Foam::rhoAtmThermo::implementation::implementation
     IOobject
     (
        phasePropertyName("rhoref", phaseName),
-       mesh.time().timeName(),
+       mesh.time().constant(),
        mesh,
        IOobject::READ_IF_PRESENT,
        IOobject::AUTO_WRITE
