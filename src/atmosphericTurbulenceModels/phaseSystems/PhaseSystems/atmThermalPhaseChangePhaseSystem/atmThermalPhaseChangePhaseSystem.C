@@ -25,6 +25,7 @@ License
 
 #include "atmThermalPhaseChangePhaseSystem.H"
 #include "alphatPhaseChangeWallFunctionFvPatchScalarField.H"
+#include "fvc.H"
 #include "fvcVolumeIntegrate.H"
 #include "fvmSup.H"
 #include "rhoReactionThermo.H"
@@ -69,7 +70,21 @@ atmThermalPhaseChangePhaseSystem
     BasePhaseSystem(mesh),
     volatile_(this->template lookupOrDefault<word>("volatile", "none")),
     condensePhase_(this->template lookupOrDefault<word>("condensePhase", "air")),
-    dmdt0s_(this->phases().size())
+    dmdt0s_(this->phases().size()),
+    S_
+    (
+      IOobject
+      (
+        "S",
+        mesh.time().timeName(),
+        mesh, 
+        IOobject::NO_READ,
+        IOobject::AUTO_WRITE
+      ),
+      mesh,
+      dimless
+    )
+
 {
     this->generatePairsAndSubModels
     (
@@ -561,11 +576,11 @@ Foam::atmThermalPhaseChangePhaseSystem<BasePhaseSystem>::correctInterfaceThermo(
         const scalar sign = pair.phase1().name() == condensePhase_ ? -1 : 1;
 
         Info << "[atmThermal] Running new evapoation scheme" << endl;
-        const volScalarField S( (e - es) / es);
+        S_ = ( e - es ) / es;
         Info << "[atmThermalPhaseChangePhaseSystem] time = " 
              << phase.mesh().time().timeName() << ";"
-             << "gMax(S) = " << gMax(S) 
-             << "; gMin(S) = " << gMin(S) << endl;
+             << "gMax(S) = " << gMax(S_) 
+             << "; gMin(S) = " << gMin(S_) << endl;
         
         // Nucleation calculation block
         // tmp<volScalarField> tndmdtfNew = pos(dq) * dq * sign * rhodt; // nucleation of droplets
@@ -575,14 +590,14 @@ Foam::atmThermalPhaseChangePhaseSystem<BasePhaseSystem>::correctInterfaceThermo(
           // using Twomney's Formula. Two empirical parameters are chosen as
           // the median value suggested in Khain et al., 2000. 
           const dimensionedScalar N0
-          ( dimless/dimVolume/dimTime,
+          ( dimless/dimVolume,
             this->template lookupOrDefault<scalar>("N0", 2e8)
           );
           const scalar k( this->template lookupOrDefault<scalar>("k", 0.45));
           // const dimensionedScalar N0(dimless/dimVolume/dimTime, 200 * pow(10.0, 6));
           // const scalar k(0.45);
           // const tmp<volScalarField> N = N0 * pow(pos(S)*S, k) / dt.value();
-          const tmp<volScalarField> N = N0 * pow(pos(S)*S, k);
+          // const tmp<volScalarField> N = N0 * pow(pos(S)*S, k);
 
           // Compute total mass transfer from nucleation
           const dimensionedScalar r
@@ -596,7 +611,15 @@ Foam::atmThermalPhaseChangePhaseSystem<BasePhaseSystem>::correctInterfaceThermo(
                << endl;
 
           const dimensionedScalar m_d = 4.0/3.0 * 3.14 * pow(r, 3) * dimensionedScalar(dimDensity, 1000);
-          tmp<volScalarField> tndmdtfNew = m_d * N / dt.value();
+          // tmp<volScalarField> tndmdtfNew = m_d * N / dt.value();
+          Info << "Compute tndmdtfNew" << endl;
+          tmp<volScalarField> tndmdtfNew 
+          (
+            m_d * N0 * k * pow((pos(S_) * S_ + VSMALL), k - 1.0) 
+          * (fvc::ddt(S_) + fvc::div(phase.phi(), S_)) 
+          * pos(S_) * pos(fvc::ddt(S_))
+          );
+          Info << "Compute tndmdtfNew" << endl;
           const volScalarField& ndmdtfNew = tndmdtfNew.ref();
           Info << "[atmThermalPhaseChangePhaseSystem] ndmdtf calculated " << endl;
               
@@ -629,7 +652,7 @@ Foam::atmThermalPhaseChangePhaseSystem<BasePhaseSystem>::correctInterfaceThermo(
           (
             // max
             // (
-              F  * neg0(S) * S * sign
+              F  * neg0(S_) * S_ * sign
             //  (-1) * pos(otherPhase) * otherPhase * otherPhase.thermo().rho() / dt
             //)
           );

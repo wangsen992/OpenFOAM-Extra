@@ -115,6 +115,9 @@ class atmThermalPhaseChangePhaseSystem
         //  function
         PtrList<volScalarField> dmdt0s_;
 
+        //- Store supersaturation value
+        volScalarField S_;
+
     // Private Member Functions
 
         //- Sum the mass transfer rates for each phase into the given list
