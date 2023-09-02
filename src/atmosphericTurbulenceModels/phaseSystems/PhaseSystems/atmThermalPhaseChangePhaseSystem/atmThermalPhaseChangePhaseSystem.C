@@ -605,7 +605,8 @@ Foam::atmThermalPhaseChangePhaseSystem<BasePhaseSystem>::correctInterfaceThermo(
 
           // Compute total mass transfer from nucleation
           const dimensionedScalar r
-          ( dimLength,
+          ( 
+            dimLength,
             this->template lookupOrDefault<scalar>("r0", 1e-5)
           );
           // const dimensionedScalar r(dimLength, pow(10.0,-5));
@@ -635,20 +636,36 @@ Foam::atmThermalPhaseChangePhaseSystem<BasePhaseSystem>::correctInterfaceThermo(
           const volScalarField rs(otherPhase.d() / 2.0);
           dimensionedScalar D("D", dimArea/dimTime, 24.9 * pow(10.0, -6));
           dimensionedScalar Rv("Rv", dimEnergy/dimMass/dimTemperature, 461.5);
-          dimensionedScalar Lv("Lv", dimEnergy/dimMass, 3.34 * pow(10.0, 5));
+          dimensionedScalar Lv("Lv", dimEnergy/dimMass, 2.230 * pow(10.0, 6));
           dimensionedScalar K("K", dimensionedScalar(dimPower / dimLength / dimTemperature, 0.025));
 
           volScalarField Fk
           (
             "Fk", 
-            Lv * Lv / (K * Rv * thermo.T() * thermo.T())
+            Lv * Lv / (K * thermo.T()* Rv*thermo.T()) - Lv / (K * thermo.T())
           );
           volScalarField Fd
           (
             "Fd",
             Rv * thermo.T() / (D * es)
           );
-          volScalarField F("F", 4 * 3.1415 * rs / (Fk + Fd) * pos0(otherPhase) * otherPhase / (4/3 * 3.1415 * pow(rs, 3)));
+          volScalarField C
+          (
+            "C",
+            rs  * pos0(otherPhase) * otherPhase / (4/3 * 3.1415 * pow(rs, 3))
+          );
+        Info << "[atmThermalPhaseChangePhaseSystem] time = " 
+             << phase.mesh().time().timeName() << ";"
+             << "gAverage(C) = " << gAverage(C) 
+             << "gMin(C) = " << gMin(C) 
+             << "gMax(C) = " << gMax(C) 
+             << endl;
+
+          volScalarField F
+          (
+            "F", 
+            4 * 3.1415 * C / (Fk + Fd)
+          );
 
           const volScalarField rho_v
           (
