@@ -676,7 +676,7 @@ Foam::atmThermalPhaseChangePhaseSystem<BasePhaseSystem>::correctInterfaceThermo(
           (
             // max
             // (
-              F  * neg0(S_) * S_ * sign
+              F   * S_ * sign
             //  (-1) * pos(otherPhase) * otherPhase * otherPhase.thermo().rho() / dt
             //)
           );
