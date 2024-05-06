@@ -19,9 +19,17 @@ phaseSystems/phaseModel/phaseModel/phaseModels.C
 phaseSystems/multiphaseSystems/multiphaseSystems.C
 phaseSystems/populationBalanceModel/nucleationModels/dropletActivation/dropletActivation.C
 
+nesting/utils/arg_utils.C
+nesting/utils/gdal_utils.C
+nesting/utils/openfoam_utils.C
+nesting/utils/WrfOfReader.C
+nesting/utils/WrfTools.C
+nesting/WRF/WRF.C
+
 # radiationModels/radiationModels/atmRadiationModel/atmRadiationModel.C
 # radiationModels/radiationModels/atmRadiationModel/atmRadiationModelNew.C
 # radiationModels/absorptionEmissionModels/atmAbsorptionEmissionModel/atmAbsorptionEmissionModel.C
 # radiationModels/absorptionEmissionModels/atmAbsorptionEmissionModel/atmAbsorptionEmissionModelNew.C
+
 
 LIB = $(FOAM_USER_LIBBIN)/libatmosphericTurbulenceModels
