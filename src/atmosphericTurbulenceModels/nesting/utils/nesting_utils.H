@@ -87,9 +87,9 @@ Foam::autoPtr<Foam::polyMesh> meshFromNc(netCDF::NcFile&, Foam::Time&, bool);
 
 Foam::autoPtr<Foam::fvMesh> fvmeshFromNc(netCDF::NcFile&, Foam::Time&);
 
-std::shared_ptr<Foam::volVectorField> load_U(Foam::fvMesh&, netCDF::NcFile& datafile, size_t i);
+Foam::tmp<Foam::volVectorField> load_U(Foam::fvMesh&, netCDF::NcFile& datafile, size_t i);
 
-std::shared_ptr<Foam::volScalarField> load_var(Foam::fvMesh&, netCDF::NcFile& datafile, const std::string& varname, size_t i);
+Foam::tmp<Foam::volScalarField> load_var(Foam::fvMesh&, netCDF::NcFile& datafile, const std::string& varname, size_t i);
 // ----------- OpenFOAM ---------------- //
 // find cells from polyMesh patch within a distance
 Foam::labelList getPatchCloseCells(const Foam::polyMesh&, Foam::string, Foam::scalar);

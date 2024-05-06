@@ -2,20 +2,19 @@
 #define WRF_H
 
 #include "fvMesh.H"
+#include "GeometricField.H"
 #include "meshSearch.H"
 #include "nesting_utils.H"
 
 namespace Foam
 {
   class WRF
-  :
-    public IOobject
   {
     // Private member attributes
     netCDF::NcFile nc_;
     Time runTime_; // Time registry for the main of case
     const Time& foamTime_;
-    fvMesh& mesh_;
+    autoPtr<fvMesh> pmesh_;
     meshSearch searcher_;
     OGRCoordinateTransformation* ptransformer_;
 
@@ -34,20 +33,28 @@ namespace Foam
 
     // Member functions for access
       
-      inline netCDF::NcFile& file(){return nc_;};
+      netCDF::NcFile& file(){return nc_;};
 
-      inline fvMesh& mesh(){return mesh_;};
+      autoPtr<fvMesh> pmesh(){return pmesh_;};
 
-      inline Time& time(){return runTime_;};
+      fvMesh& mesh(){return pmesh_();};
 
-      inline const Time& foamTime(){return foamTime_;};
+      Time& time(){return runTime_;};
+
+      const Time& foamTime(){return foamTime_;};
 
       template<typename Type>
       inline bool hasVar(const string& name)
       {
-        return mesh_.foundObject<Type>(name);
+        return pmesh_->foundObject<Type>(name);
       };
-    
+
+    // Load variables from netcdf file to mesh
+
+      tmp<volVectorField> U(size_t it);
+
+      tmp<volScalarField> var(const word& name, size_t it);
+
     // Coordinate transformation
       // Transform one point from input to WRF
       point transform(const point&);
@@ -56,14 +63,16 @@ namespace Foam
       pointField transform(const pointField&);
 
     // Interpolation functions
-      // interpolate one point from source field
-      template<typename Type>
-      Type interpolate(const point&, GeometricField<Type, fvPatchField, volMesh>&, const word& interpMethod="pointMVC");
-
-      // interpolate multiple points from source field
-      template<typename Type>
-      Field<Type> interpolate(const Field<point>&, GeometricField<Type, fvPatchField, volMesh>&, const word& interpMethod="pointMVC");
-  };
+    // interpolate one point from source field
+       template<typename Type>
+       Type interpolate(const point& pt, GeometricField<Type, fvPatchField, volMesh>& psi, const word& interpMethod="pointMVC");
+ 
+       // interpolate multiple points from source field
+       template<typename Type>
+       Field<Type> interpolate(const Field<point>& pts, GeometricField<Type, fvPatchField, volMesh>& psi, const word& interpMethod="pointMVC");
+ 
+   };
 }
+#include "WRFI.C"
 
 #endif

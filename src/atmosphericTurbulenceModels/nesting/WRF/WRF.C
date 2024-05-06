@@ -1,5 +1,4 @@
 #include "WRF.H"
-#include "interpolation.H"
 
 using namespace Foam;
 
@@ -12,15 +11,14 @@ WRF::WRF
   const string& foam_proj4
 )
 :
-  IOobject("WRF", wrfCaseRoot, db),
   nc_(ncfile_path, netCDF::NcFile::read),
   runTime_(wrfCaseRoot, wrfCaseName),
   foamTime_(db),
-  mesh_
+  pmesh_
   (
-    fvmeshFromNc(nc_, runTime_)()
+    fvmeshFromNc(nc_, runTime_)
   ),
-  searcher_(mesh_),
+  searcher_(pmesh_()),
   ptransformer_(nullptr)
 {
   Info << "Running WRF init script" << endl;
@@ -28,10 +26,26 @@ WRF::WRF
   WRF_PROJ_PARAMS params;
   getProjAtts(nc_, params);
   std::shared_ptr<OGRSpatialReference> pcrs_wrf = getCRS(params);
-  std::shared_ptr<OGRSpatialReference> pcrs_foam;
+  std::shared_ptr<OGRSpatialReference> pcrs_foam
+  (
+    new OGRSpatialReference
+  );
   pcrs_foam->SetFromUserInput(foam_proj4.c_str());
   ptransformer_ = OGRCreateCoordinateTransformation(pcrs_foam.get(), pcrs_wrf.get());
   Info << "WRF init script complete" << endl;
+}
+
+tmp<volVectorField> WRF::U(size_t it)
+{
+  tmp<volVectorField> pu = load_U(mesh(), nc_, it);
+  return pu;
+}
+
+tmp<volScalarField> WRF::var(const word& name, size_t it)
+{
+  Info << "Start loading var" << endl;
+  tmp<volScalarField> pvar = load_var(mesh(), nc_, name, it);
+  return pvar;
 }
 
 point WRF::transform(const point& pt)
@@ -52,39 +66,3 @@ pointField WRF::transform(const pointField& pts)
   return outPts;
 }
 
-template<typename Type>
-Type WRF::interpolate(const point& pt, GeometricField<Type, fvPatchField, volMesh>& psi, const word& interpMethod)
-{
-  autoPtr<interpolation<Type>> interp
-  (
-    interpolation<Type>::New(interpMethod, psi)
-  );
-  point wrf_pt = transform(pt);
-  Type interpVal = interp->interpolate
-  (
-    wrf_pt, 
-    searcher_.findCell(wrf_pt)
-  );
-  return interpVal;
-  
-}
-
-template<typename Type>
-Field<Type> WRF::interpolate(const Field<point>& pts, GeometricField<Type, fvPatchField, volMesh>& psi, const word& interpMethod)
-{
-  autoPtr<interpolation<Type>> interp
-  (
-    interpolation<Type>::New(interpMethod, psi)
-  );
-  pointField wrf_pts = transform(pts);
-  Field<Type> interpVals(pts.size());
-  for(size_t i=0; i < pts.size(); i++)
-  {
-    interpVals[i] = interp->interpolate
-    (
-      wrf_pts[i],
-      searcher_.findCell(wrf_pts[i])
-    );
-  }
-  return interpVals;
-}
