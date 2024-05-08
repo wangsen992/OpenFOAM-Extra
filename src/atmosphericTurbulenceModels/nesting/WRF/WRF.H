@@ -17,6 +17,7 @@ namespace Foam
     autoPtr<fvMesh> pmesh_;
     meshSearch searcher_;
     OGRCoordinateTransformation* ptransformer_;
+    OGRCoordinateTransformation* pitransformer_;
 
   public:
 
@@ -61,6 +62,12 @@ namespace Foam
 
       // Transform pointField from input to WRF
       pointField transform(const pointField&);
+      
+      // Transform one point from input to to foam from WRF
+      point itransform(const point&);
+
+      // Transform pointField from input to foam from WRF
+      pointField itransform(const pointField&);
 
     // Interpolation functions
     // interpolate one point from source field

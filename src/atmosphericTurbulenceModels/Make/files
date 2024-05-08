@@ -5,6 +5,7 @@ thermophysicalModels/fluidAtmThermo/referenceStateInitialisation.C
 thermophysicalModels/rhoAtmThermo/rhoAtmThermo.C
 thermophysicalModels/rhoAtmThermo/rhoAtmThermos.C
 
+fvModels/WRFCoupler/WRFCoupler.C
 fvModels/geostrophicForce/geostrophicForce.C
 # fvModels/boussinesqBuoyancyForce/boussinesqBuoyancyForce.C
 fvModels/boussinesqBuoyancyKSource/boussinesqBuoyancyKSource.C

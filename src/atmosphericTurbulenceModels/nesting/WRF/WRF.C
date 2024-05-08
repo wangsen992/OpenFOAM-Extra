@@ -19,7 +19,8 @@ WRF::WRF
     fvmeshFromNc(nc_, runTime_)
   ),
   searcher_(pmesh_()),
-  ptransformer_(nullptr)
+  ptransformer_(nullptr),
+  pitransformer_(nullptr)
 {
   Info << "Running WRF init script" << endl;
   // load the transformation
@@ -32,7 +33,14 @@ WRF::WRF
   );
   pcrs_foam->SetFromUserInput(foam_proj4.c_str());
   ptransformer_ = OGRCreateCoordinateTransformation(pcrs_foam.get(), pcrs_wrf.get());
-  Info << "WRF init script complete" << endl;
+  pitransformer_ = ptransformer_->GetInverse();
+  pmesh_->movePoints
+  (
+    itransform(pmesh_->points())
+  );
+  pmesh_->setInstance(runTime_.constant());
+  pmesh_->write();
+  Info << "WRF init script complete (constructed & transformed to Foam CRS" << endl;
 }
 
 tmp<volVectorField> WRF::U(size_t it)
@@ -66,3 +74,20 @@ pointField WRF::transform(const pointField& pts)
   return outPts;
 }
 
+point WRF::itransform(const point& pt)
+{
+  double x(pt.x()), y(pt.y()), z(pt.z());
+  pitransformer_->Transform(1, &x, &y);
+  return point{x,y,z};
+}
+
+
+pointField WRF::itransform(const pointField& pts)
+{
+  pointField outPts(pts.size());
+  for(int i=0; i<pts.size(); i++)
+  {
+    outPts[i] = itransform(pts[i]);
+  }
+  return outPts;
+}

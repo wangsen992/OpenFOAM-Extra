@@ -58,8 +58,5 @@ int main(int argc, char **argv)
     mesh.write();
   }
 
-
-
-
   return 0;
 }

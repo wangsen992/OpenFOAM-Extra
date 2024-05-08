@@ -1,0 +1,156 @@
+/*---------------------------------------------------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Website:  https://openfoam.org
+    \\  /    A nd           | Copyright (C) 2015-2021 OpenFOAM Foundation
+     \\/     M anipulation  |
+-------------------------------------------------------------------------------
+License
+    This file is part of OpenFOAM.
+
+    OpenFOAM is free software: you can redistribute it and/or modify it
+    under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    OpenFOAM is distributed in the hope that it will be useful, but WITHOUT
+    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+    FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+    for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
+
+\*---------------------------------------------------------------------------*/
+
+#include "WRFCoupler.H"
+#include "fvMatrices.H"
+#include "addToRunTimeSelectionTable.H"
+
+// * * * * * * * * * * * * * Static Member Functions * * * * * * * * * * * * //
+
+namespace Foam
+{
+namespace fv
+{
+    defineTypeNameAndDebug(WRFCoupler, 0);
+
+    addToRunTimeSelectionTable
+    (
+        fvModel,
+        WRFCoupler,
+        dictionary
+    );
+}
+}
+
+// * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
+
+void Foam::fv::WRFCoupler::readCoeffs()
+{
+    phaseName_ = coeffs().lookupOrDefault<word>("phase", word::null);
+
+    UName_ =
+        coeffs().lookupOrDefault<word>
+        (
+            "UName",
+            IOobject::groupName("U", phaseName_)
+        );
+}
+
+// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
+
+Foam::fv::WRFCoupler::WRFCoupler
+(
+    const word& name,
+    const word& modelType,
+    const dictionary& dict,
+    const fvMesh& mesh
+)
+:
+    fvModel(name, modelType, dict, mesh),
+    phaseName_(word::null),
+    UName_
+    (
+        coeffs().lookupOrDefault<word>
+        (
+            "UName",
+            IOobject::groupName("U", phaseName_)
+        )
+    ),
+    U_
+    (
+      mesh.lookupObjectRef<volVectorField>(UName_)
+    ),
+    Ug_
+    (
+      "Ug",
+      dimVelocity,
+      vector(coeffs().lookup<vector>("Ug"))
+    ),
+    f_
+    (
+      "f",
+      dimTime / dimTime / dimTime,
+      vector(coeffs().lookup<vector>("f"))
+    )
+{
+    readCoeffs();
+}
+
+// * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
+
+Foam::wordList Foam::fv::WRFCoupler::addSupFields() const
+{
+    return wordList(1, UName_);
+}
+
+
+void Foam::fv::WRFCoupler::addSup
+(
+    fvMatrix<vector>& eqn,
+    const word& fieldName
+) const
+{
+    eqn += f_ ^ (Ug_ - U_);
+}
+
+
+void Foam::fv::WRFCoupler::addSup
+(
+    const volScalarField& rho,
+    fvMatrix<vector>& eqn,
+    const word& fieldName
+) const
+{
+    eqn += rho*f_ ^ (Ug_ - U_);
+}
+
+
+void Foam::fv::WRFCoupler::addSup
+(
+    const volScalarField& alpha,
+    const volScalarField& rho,
+    fvMatrix<vector>& eqn,
+    const word& fieldName
+) const
+{
+    
+    eqn += alpha*rho*f_ ^ (Ug_ - U_);
+}
+
+
+bool Foam::fv::WRFCoupler::read(const dictionary& dict)
+{
+    if (fvModel::read(dict))
+    {
+        readCoeffs();
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+// ************************************************************************* //

@@ -28,3 +28,4 @@ Foam::labelList getPatchCloseCells(const Foam::polyMesh& mesh, Foam::string patc
   Foam::labelList layerCells(layerCellsInd);
   return layerCells;
 }
+
