@@ -5,12 +5,15 @@
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
+#include <utility>
 
 #include <netcdf>
 #include <gdal/ogr_spatialref.h>
 
+#include "HashTable.H"
 #include "polyMesh.H"
 #include "fvMesh.H"
+#include "dimensionSet.H"
 
 // Forward declarations to avoid namespace clash
 // namespace Foam
@@ -87,12 +90,20 @@ Foam::autoPtr<Foam::polyMesh> meshFromNc(netCDF::NcFile&, Foam::Time&, bool);
 
 Foam::autoPtr<Foam::fvMesh> fvmeshFromNc(netCDF::NcFile&, Foam::Time&);
 
-Foam::tmp<Foam::volVectorField> load_U(Foam::fvMesh&, netCDF::NcFile& datafile, size_t i);
+Foam::tmp<Foam::volVectorField> load_U(Foam::fvMesh&, netCDF::NcFile& datafile, size_t i, Foam::IOobject::writeOption opt=Foam::IOobject::NO_WRITE);
 
-Foam::tmp<Foam::volScalarField> load_var(Foam::fvMesh&, netCDF::NcFile& datafile, const std::string& varname, size_t i);
+Foam::tmp<Foam::volScalarField> load_var(Foam::fvMesh&, netCDF::NcFile& datafile, const std::string& varname, Foam::dimensionSet ds, size_t i, Foam::IOobject::writeOption opt=Foam::IOobject::NO_WRITE);
+
+Foam::tmp<Foam::volScalarField> load_2dvar(Foam::fvMesh&, netCDF::NcFile& datafile, const std::string& varname, Foam::dimensionSet ds, size_t i, Foam::IOobject::writeOption opt=Foam::IOobject::NO_WRITE);
 // ----------- OpenFOAM ---------------- //
 // find cells from polyMesh patch within a distance
-Foam::labelList getPatchCloseCells(const Foam::polyMesh&, Foam::string, Foam::scalar);
+// Foam::labelList getPatchCloseCells(const Foam::polyMesh&, Foam::string, Foam::scalar);
+
+// std::pair<Foam::labelList, Foam::scalarField> getPatchCloseCells(const Foam::polyMesh&, Foam::string, Foam::scalar);
+
+Foam::HashTable<Foam::scalar, Foam::label> getPatchCloseCells(const Foam::polyMesh&, Foam::string, Foam::scalar);
+
+void combineCloseCellTables(Foam::HashTable<Foam::scalar, Foam::label>& hostTbl, const Foam::HashTable<Foam::scalar, Foam::label>&  srcTbl);
 
 // ----------- Interpolations ------------ //
 void interp3d

@@ -2,6 +2,7 @@
 #include "readGravitationalAcceleration.H"
 #include "readhRef.H"
 
+
 Info<< "Creating phaseSystem\n" << endl;
 
 autoPtr<phaseSystem> fluidPtr
@@ -67,6 +68,12 @@ if (p_rgh.needReference() && fluid.incompressible())
 
 mesh.setFluxRequired(p_rgh.name());
 
+Switch wrfcoupling
+(
+  pimple.dict().lookupOrDefault<Switch>("WRFCoupling", false)
+);
+#include "createWRF.H"
+
 // thermo initialisation
 forAll(fluid.movingPhases(), movingPhasei)
 {
@@ -110,6 +117,9 @@ forAll(fluid.movingPhases(), movingPhasei)
         Info << "Reference state initialisation on phase " 
              << phase.name() 
              << "\n" << endl;
+
+
+        // #include "load_wrf_vars.H"
         referenceStateInitialisation
         (
             rho_air,
@@ -137,7 +147,7 @@ forAll(fluid.movingPhases(), movingPhasei)
             thermo,
             pimple.dict()
         );
-
+Info << "average(thermo.rho) = " << average(phase.thermoRef().rho()) << endl;
       }    
 }
 
@@ -145,6 +155,7 @@ forAll(fluid.movingPhases(), movingPhasei)
 // rho is correctly computed
 phases[0].thermoRef().T().correctBoundaryConditions();
 phases[0].thermoRef().correct();
+Info << "average(thermo.rho) = " << average(phases[0].thermoRef().rho()) << endl;
 
 PtrList<volScalarField> rAUs;
 PtrList<surfaceScalarField> rAUfs;
@@ -174,6 +185,3 @@ volScalarField he
     ),
     phases[0].thermoRef().he()
 );
-
-runTime++;
-runTime.write();

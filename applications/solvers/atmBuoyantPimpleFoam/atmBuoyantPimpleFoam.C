@@ -172,11 +172,11 @@ int main(int argc, char *argv[])
                     fvModels.correct();
                 }
 
-                if (runTime.timeIndex() > 1)
-                {
-                    Info << "Applying acoustic damping with gamma_d = 0.1." << endl;
-                    p_rgh = p_rgh + 0.1 * (p_rgh - p_rgh.prevIter());
-                }
+                // if (runTime.timeIndex() > 1)
+                // {
+                //     Info << "Applying acoustic damping with gamma_d = 0.1." << endl;
+                //     p_rgh = p_rgh + 0.1 * (p_rgh - p_rgh.prevIter());
+                // }
                 if (pimple.thermophysics())
                 {
                     UPtrList<volScalarField>& Y = thermo.composition().Y();

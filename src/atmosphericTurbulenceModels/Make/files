@@ -5,7 +5,6 @@ thermophysicalModels/fluidAtmThermo/referenceStateInitialisation.C
 thermophysicalModels/rhoAtmThermo/rhoAtmThermo.C
 thermophysicalModels/rhoAtmThermo/rhoAtmThermos.C
 
-fvModels/WRFCoupler/WRFCoupler.C
 fvModels/geostrophicForce/geostrophicForce.C
 # fvModels/boussinesqBuoyancyForce/boussinesqBuoyancyForce.C
 fvModels/boussinesqBuoyancyKSource/boussinesqBuoyancyKSource.C
@@ -26,6 +25,8 @@ nesting/utils/openfoam_utils.C
 nesting/utils/WrfOfReader.C
 nesting/utils/WrfTools.C
 nesting/WRF/WRF.C
+nesting/fvModels/WRFCoupler/WRFCoupler.C
+nesting/fvPatchFields/wrfFixedValue/wrfFixedValueFvPatchFields.C
 
 # radiationModels/radiationModels/atmRadiationModel/atmRadiationModel.C
 # radiationModels/radiationModels/atmRadiationModel/atmRadiationModelNew.C

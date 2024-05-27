@@ -44,6 +44,7 @@ Description
 #include "fluidAtmThermo.H"
 #include "atmHydrostaticInitialisation.H"
 #include "referenceStateInitialisation.H"
+#include "WRF.H"
 
 #include "IOmanip.H"
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -61,12 +62,12 @@ int main(int argc, char *argv[])
     #include "createFieldRefs.H"
     // #include "createDebugFields.H"
 
-
     if (!LTS)
     {
         #include "CourantNo.H"
         #include "setInitialDeltaT.H"
     }
+
 
     Switch faceMomentum
     (
@@ -77,10 +78,62 @@ int main(int argc, char *argv[])
         pimple.dict().lookupOrDefault<Switch>("partialElimination", false)
     );
 
+    // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+    runTime++;
+    phaseModel& phase = fluid.movingPhases()[0];
+
+    Info << "Initializing variables with WRF data" << endl;
+    Info << "On U...." << endl;
+    phase.URef() = wrf.U();
+    // phase.URef() = dimensionedVector(dimVelocity, vector(0,0,0));
+    phase.URef().correctBoundaryConditions();
+    phase.phiRef() = fvc::flux(phase.URef());
+    phase.alphaPhiRef() = fvc::flux(phase.URef());
+
+    Info << "On T...." << endl;
+    phase.thermoRef().T() = wrf.var("T.air");
+    phase.thermoRef().T().correctBoundaryConditions();
+
+    // phase.YRef()[0] = dimensionedScalar(dimless, 1) - wrf.var("H2O.air");
+    // phase.YRef()[1] = wrf.var("H2O.air");
+    // phase.YRef()[0].correctBoundaryConditions();
+    // phase.YRef()[1].correctBoundaryConditions();
+
+    phase.thermoRef().p() = wrf.var("p");
+    phase.thermoRef().p().correctBoundaryConditions();
+
+    phase.thermoRef().he().primitiveFieldRef() = wrf.var("e.air");
+    phase.thermoRef().he().correctBoundaryConditions();
+    he = phase.thermoRef().he();
+
+    phase.thermoRef().rho().primitiveFieldRef() = wrf.var("p") / (wrf.var("T.air") * dimensionedScalar(dimEnergy/(dimMass*dimTemperature), 287.05));
+    forAll(phase.thermoRef().rho().boundaryFieldRef(), i)
+    {
+      phase.thermoRef().rho().boundaryFieldRef()[i] = phase.thermoRef().rho().boundaryFieldRef()[i].patchInternalField();
+    }
+
+    p_rgh = phase.thermoRef().p() - phase.thermoRef().rho() * gh - pRef;
+    forAll(p_rgh.boundaryFieldRef(), i)
+    {
+      p_rgh.boundaryFieldRef()[i] = p_rgh.boundaryFieldRef()[i].patchInternalField();
+    }
+    
+    phase.thermoRef().correct();
+
+    Info << "average(alphaPhi)= " << average(phase.alphaPhiRef()) << endl;
+    Info << "average(rho) = " << average(rho) << endl;
+    Info << "average(thermo.rho) = " << average(phase.thermoRef().rho()) << endl;
+    
+    Info << "Writetime after setting variables: " << runTime.value() << endl;
+    runTime.write();
+    // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
     #include "createRDeltaTf.H"
 
-    Info << "[solver]" << "max(p)" << max(p) << "; ";
-    Info << "[solver] max poinit : " << mesh.C()[findMax(p)] << endl;
+    // wrf.time()++;
+    // wrf.time().write();
+    // Info << "[solver]" << "max(p)" << max(p) << "; ";
+    // Info << "[solver] max poinit : " << mesh.C()[findMax(p)] << endl;
 
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -203,10 +256,9 @@ int main(int argc, char *argv[])
                 }
 
                 fluid.solve(rAUs, rAUfs);
-
                 fluid.correct();
                 fluid.correctContinuityError();
-
+                Info << "average(alphaPhi)= " << average(phase.alphaPhiRef()) << endl;
 
                 // [Debug]
                 qv_old = phase.Y("H2O");
@@ -234,6 +286,10 @@ int main(int argc, char *argv[])
 
                     if (pimple.thermophysics())
                     {
+                        Info << "[Debug] average(p) " << average(fluid.phases()[0].thermo().p()) << endl;
+                        Info << "[Debug] average(rho) " << average(fluid.phases()[0].thermo().rho()) << endl;
+                        Info << "[Debug] average(e.air) " << average(fluid.phases()[0].thermo().he()) << endl;
+                        Info << "[Debug] average(phi) " << average(fluid.phases()[0].phi()) << endl;
                         #include "EEqns.H"
                     }
 
@@ -253,36 +309,36 @@ int main(int argc, char *argv[])
 
         runTime.write();
 
-          // [Debug]
-          Info << setprecision(15);
-          phaseModel& otherPhase = fluid.phases()[1];
-          volScalarField qv("H2O", phase.Y("H2O"));
-          volScalarField rho_v(qv * phase * phase.thermo().rho());
-          volScalarField qt
-          (
-            qv * phase * phase.thermo().rho() + otherPhase * otherPhase.thermo().rho()
-          );
-          Info << "[Debug] Phase1.pure : " << phase.pure() << " ; " 
-               << "phase2.pure : " << otherPhase.pure() << endl;
-          
-          
-          Info  << "[totalWater] Time ,"     
-                << runTime.timeName() << ", "                                       // << "qt = "                  
-                << gAverage(phase) << ", "
-                << gAverage(otherPhase) << ", "
-                << gAverage(qt) << ", "                                                         // << "rho_v = "
-                << gAverage(rho_v_old) << ", "                          // << ", rho_l = "               
-                << gAverage(rho_v) << ", "                          // << ", rho_l = "               
-                << gAverage((phase * phase.thermo().rho()).ref()) << ", "
-                << gAverage((otherPhase * otherPhase.thermo().rho()).ref()) << ", "             // << ", dm.air = "              
-                << gAverage((fluid.dmdts()[0] * phase.mesh().time().deltaT()).ref()) << ", "          // << ", dm.pos = "              
-                << gAverage((fluid.dmdts()[1] * phase.mesh().time().deltaT()).ref()) << ", "          // << ", dm.pos = "              
-                << gSum((neg(fluid.dmdts()[0])).ref()) << ", " // << ", dm.neg = "              
-                << gAverage((posPart(fluid.dmdts()[0]) * phase.mesh().time().deltaT()).ref()) << ", " // << ", dm.neg = "              
-                << gAverage((negPart(fluid.dmdts()[0]) * phase.mesh().time().deltaT()).ref()) << ", "// << "; sign = "                          << sign << " : " << pair 
-                << gAverage((posPart(fluid.dmdts()[1]) * phase.mesh().time().deltaT()).ref()) << ", " // << ", dm.neg = "              
-                << gAverage((negPart(fluid.dmdts()[1]) * phase.mesh().time().deltaT()).ref()) // << "; sign = "                          << sign << " : " << pair 
-                << endl;
+          // // [Debug]
+          // Info << setprecision(15);
+          // phaseModel& otherPhase = fluid.phases()[1];
+          // volScalarField qv("H2O", phase.Y("H2O"));
+          // volScalarField rho_v(qv * phase * phase.thermo().rho());
+          // volScalarField qt
+          // (
+          //   qv * phase * phase.thermo().rho() + otherPhase * otherPhase.thermo().rho()
+          // );
+          // Info << "[Debug] Phase1.pure : " << phase.pure() << " ; " 
+          //      << "phase2.pure : " << otherPhase.pure() << endl;
+          // 
+          // 
+          // Info  << "[totalWater] Time ,"     
+          //       << runTime.timeName() << ", "                                       // << "qt = "                  
+          //       << gAverage(phase) << ", "
+          //       << gAverage(otherPhase) << ", "
+          //       << gAverage(qt) << ", "                                                         // << "rho_v = "
+          //       << gAverage(rho_v_old) << ", "                          // << ", rho_l = "               
+          //       << gAverage(rho_v) << ", "                          // << ", rho_l = "               
+          //       << gAverage((phase * phase.thermo().rho()).ref()) << ", "
+          //       << gAverage((otherPhase * otherPhase.thermo().rho()).ref()) << ", "             // << ", dm.air = "              
+          //       << gAverage((fluid.dmdts()[0] * phase.mesh().time().deltaT()).ref()) << ", "          // << ", dm.pos = "              
+          //       << gAverage((fluid.dmdts()[1] * phase.mesh().time().deltaT()).ref()) << ", "          // << ", dm.pos = "              
+          //       << gSum((neg(fluid.dmdts()[0])).ref()) << ", " // << ", dm.neg = "              
+          //       << gAverage((posPart(fluid.dmdts()[0]) * phase.mesh().time().deltaT()).ref()) << ", " // << ", dm.neg = "              
+          //       << gAverage((negPart(fluid.dmdts()[0]) * phase.mesh().time().deltaT()).ref()) << ", "// << "; sign = "                          << sign << " : " << pair 
+          //       << gAverage((posPart(fluid.dmdts()[1]) * phase.mesh().time().deltaT()).ref()) << ", " // << ", dm.neg = "              
+          //       << gAverage((negPart(fluid.dmdts()[1]) * phase.mesh().time().deltaT()).ref()) // << "; sign = "                          << sign << " : " << pair 
+          //       << endl;
 
         Info<< "ExecutionTime = "
             << runTime.elapsedCpuTime()

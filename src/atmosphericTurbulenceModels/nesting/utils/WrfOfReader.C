@@ -3,7 +3,7 @@
 #include "GeometricField.H"
 
 using namespace Foam;
-tmp<volVectorField> load_U(fvMesh& mesh, netCDF::NcFile& dataFile, size_t it)
+tmp<volVectorField> load_U(fvMesh& mesh, netCDF::NcFile& dataFile, size_t it, Foam::IOobject::writeOption opt)
 {
       WrfCaseInfo wrfInfo;
       readWrfCaseInfo(&wrfInfo, dataFile);
@@ -21,12 +21,13 @@ tmp<volVectorField> load_U(fvMesh& mesh, netCDF::NcFile& dataFile, size_t it)
           (
             "Utmp",
             mesh.time().timeName(),
-            mesh,
+            mesh.time(),
             IOobject::NO_READ,
-            IOobject::NO_WRITE
+            opt
           ),
           mesh,
-          dimVelocity
+          dimVelocity,
+          "zeroGradient"
           )
       );
 
@@ -100,7 +101,15 @@ tmp<volVectorField> load_U(fvMesh& mesh, netCDF::NcFile& dataFile, size_t it)
     return pVar;
 }
 
-Foam::tmp<Foam::volScalarField> load_var(Foam::fvMesh& mesh, netCDF::NcFile& dataFile, const std::string& varname, size_t it)
+Foam::tmp<Foam::volScalarField> load_var
+(
+  Foam::fvMesh& mesh, 
+  netCDF::NcFile& dataFile, 
+  const std::string& varname, 
+  dimensionSet ds,
+  size_t it,
+  Foam::IOobject::writeOption opt
+)
 {
       WrfCaseInfo wrfInfo;
       readWrfCaseInfo(&wrfInfo, dataFile);
@@ -115,12 +124,13 @@ Foam::tmp<Foam::volScalarField> load_var(Foam::fvMesh& mesh, netCDF::NcFile& dat
           (
             varname+"tmp",
             mesh.time().timeName(),
-            mesh,
+            mesh.time(),
             IOobject::NO_READ,
-            IOobject::AUTO_WRITE
+            opt
           ),
           mesh,
-          dimVelocity
+          ds,
+          "zeroGradient"
           )
       );
 
@@ -154,4 +164,83 @@ Foam::tmp<Foam::volScalarField> load_var(Foam::fvMesh& mesh, netCDF::NcFile& dat
       }
     Info << "load var complete" << endl;
     return pVar;
+}
+
+Foam::tmp<Foam::volScalarField> load_2dvar
+(
+  Foam::fvMesh& mesh, 
+  netCDF::NcFile& dataFile, 
+  const std::string& varname, 
+  dimensionSet ds,
+  size_t it,
+  Foam::IOobject::writeOption opt
+)
+{
+    WrfCaseInfo wrfInfo;
+    readWrfCaseInfo(&wrfInfo, dataFile);
+
+    Info << "Retrieving var " << varname << " value at timestep index " << it << endl;
+    // Get a variable to look how it behaves
+    tmp<volScalarField> pVar
+    (
+      new volScalarField 
+      (
+        IOobject
+        (
+          varname+"tmp",
+          mesh.time().timeName(),
+          mesh.time(),
+          IOobject::NO_READ,
+          opt
+        ),
+        mesh,
+        dimensionedScalar(ds, 0)
+        )
+    );
+
+    volScalarField& Var(pVar.ref());
+
+    size_t Nx(wrfInfo.Ncellx), Ny(wrfInfo.Ncelly), Nz(wrfInfo.Ncellz);
+    size_t N = Nx*Ny;
+    float* tmp = new float[N];
+    netCDF::NcVar var_wrf = dataFile.getVar(varname);
+    std::cout << var_wrf.getDimCount() << std::endl;
+    std::cout << var_wrf.getDims()[1].getSize() 
+              << ", " 
+              << var_wrf.getDims()[2].getSize()
+              << std::endl;
+    std::cout << N  << std::endl;
+    var_wrf.getVar
+    (
+      std::vector<size_t>{it, 0, 0}, 
+      std::vector<size_t>{1, Ny, Nx}, 
+      tmp
+    );
+    label bottom_id = 0;
+    for(label i=0; i < Var.boundaryField().size(); i++)
+    {
+      if(Var.boundaryField()[i].patch().name() == "bottom")
+      {
+        bottom_id = i;
+        break;
+      }
+    }
+    fvPatchScalarField& varPatch = Var.boundaryFieldRef()[bottom_id];
+    
+    int cc = 0, cci=0;
+    // int pcu = 0;
+    // int pcv = 0;
+    // int pcw = 0;
+      for(size_t isn = 0; isn < wrfInfo.Ncelly; isn++)
+      {
+        for(size_t iwe = 0; iwe < wrfInfo.Ncellx; iwe++)
+        {
+          cc = iwe + wrfInfo.Ncellx*isn;
+          cci = isn + wrfInfo.Ncelly*iwe;
+
+          varPatch[cci] = tmp[cc];
+        }
+      }
+  Info << "load 2dvar complete" << endl;
+  return pVar;
 }

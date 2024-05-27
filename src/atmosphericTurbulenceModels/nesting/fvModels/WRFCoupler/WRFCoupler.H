@@ -65,6 +65,8 @@ namespace fv
 /*---------------------------------------------------------------------------*\
                         Class buoyancyForce Declaration
 \*---------------------------------------------------------------------------*/
+template<typename Type>
+tmp<GeometricField<Type, fvPatchField, volMesh>> smooth(GeometricField<Type, fvPatchField, volMesh>& psi, label smooth_n=5);
  
 class WRFCoupler
 :
@@ -79,12 +81,6 @@ class WRFCoupler
         //- WRF driver
         WRF& wrf_;
 
-        //- List of varialbes from netcdf
-        volVectorField U_;
-        HashTable<autoPtr<volScalarField>, word> volScalarFieldPtrTable_;
-        volVectorField projU_;
-        HashTable<autoPtr<volScalarField>, word> projVolScalarFieldPtrTable_;
-        
         //- CellList for applying nesting
         DynamicList<label, 20> nestingCells_;
         HashTable<scalar, label> nestingCellTbl_;
@@ -104,8 +100,7 @@ class WRFCoupler
         //- Non-virtual read
         void readCoeffs();
 
-        //- Non-virtual update variables
-        void updateVars(label it);
+        //- static function for smoothing
 
 public:
 
@@ -231,6 +226,22 @@ void Foam::fv::WRFCoupler::addSup
   {
     source[i] -= V[i] * rho[i] * relaxationFactor_*(psi[i] - psi_foam[i]);
   }
+}
+
+template<typename Type>
+tmp<GeometricField<Type, fvPatchField, volMesh>> smooth(GeometricField<Type, fvPatchField, volMesh>& psi, label smooth_n)
+{
+    typedef GeometricField<Type, fvPatchField, volMesh> psiType;
+    psiType f0(psi);
+    psiType f(psi);
+    label smoothingPasses = smooth_n;
+    for (label pass=1; pass<=smoothingPasses; pass++)
+    {
+        f = fvc::average(fvc::interpolate(f0));
+        f.correctBoundaryConditions();
+        f0 = f;
+    }
+    return tmp<psiType> ( new psiType(f0));
 }
 
 

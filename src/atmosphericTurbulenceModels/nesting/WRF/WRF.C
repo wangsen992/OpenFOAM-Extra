@@ -1,4 +1,7 @@
 #include "WRF.H"
+#include "treeDataFace.H"
+#include "indexedOctree.H"
+#include "treeBoundBox.H"
 
 using namespace Foam;
 
@@ -7,20 +10,77 @@ WRF::WRF
   const string& ncfile_path, 
   const string& wrfCaseRoot, 
   const string& wrfCaseName, 
-  const Time& db,
-  const string& foam_proj4
+  const fvMesh& mesh,
+  const string& foam_proj4,
+  const scalar& dt,
+  const scalar& T0,
+  const scalar& P0
 )
 :
+  regIOobject
+  (
+    IOobject
+    (
+      "WRF",
+      wrfCaseRoot/"constant",
+      mesh.time(),
+      IOobject::NO_READ,
+      IOobject::NO_WRITE
+    )
+  ),
   nc_(ncfile_path, netCDF::NcFile::read),
-  runTime_(wrfCaseRoot, wrfCaseName),
-  foamTime_(db),
+  runTime_(Time::controlDictName, wrfCaseRoot, wrfCaseName),
+  foamMesh_(mesh),
+  foamTime_(foamMesh_.time()),
   pmesh_
   (
     fvmeshFromNc(nc_, runTime_)
   ),
   searcher_(pmesh_()),
   ptransformer_(nullptr),
-  pitransformer_(nullptr)
+  pitransformer_(nullptr),
+  dt_(dt),
+  T0_(dimTemperature, T0),
+  P0_(dimPressure, P0),
+  thermo_
+  (
+    foamMesh_.lookupObjectRef<fluidAtmThermo>
+    (
+      IOobject::groupName
+      (
+        "thermophysicalProperties",
+        "air"
+      )
+    )
+  ),
+  U_
+  (
+    IOobject
+    (
+      "U.air",
+      runTime_.timeName(),
+      runTime_,
+      IOobject::NO_READ,
+      IOobject::AUTO_WRITE
+    ),
+    pmesh_(),
+    dimVelocity,
+    "zeroGradient"
+  ),
+  projU_
+  (
+    IOobject
+    (
+      IOobject::groupName("U.air" , "proj"),
+      foamTime_.timeName(),
+      foamTime_,
+      IOobject::NO_READ,
+      IOobject::AUTO_WRITE
+    ),
+    foamMesh_,
+    dimVelocity,
+    "zeroGradient"
+  )
 {
   Info << "Running WRF init script" << endl;
   // load the transformation
@@ -34,6 +94,7 @@ WRF::WRF
   pcrs_foam->SetFromUserInput(foam_proj4.c_str());
   ptransformer_ = OGRCreateCoordinateTransformation(pcrs_foam.get(), pcrs_wrf.get());
   pitransformer_ = ptransformer_->GetInverse();
+  Info << "transform created" << endl;
   pmesh_->movePoints
   (
     itransform(pmesh_->points())
@@ -41,20 +102,300 @@ WRF::WRF
   pmesh_->setInstance(runTime_.constant());
   pmesh_->write();
   Info << "WRF init script complete (constructed & transformed to Foam CRS" << endl;
+
+  // Initialize variable resources
+    volScalarFieldPtrTable_.set
+    (
+      "T.air",
+      autoPtr<volScalarField>
+      (
+        new volScalarField
+        (
+          IOobject
+          (
+            "T.air",
+            runTime_.timeName(),
+            runTime_,
+            IOobject::NO_READ,
+            IOobject::AUTO_WRITE
+          ),
+          pmesh_(),
+          dimTemperature,
+          "zeroGradient"
+        )
+      )
+    );
+    volScalarFieldPtrTable_.set
+    (
+      "H2O.air",
+      autoPtr<volScalarField>
+      (
+        new volScalarField
+        (
+          IOobject
+          (
+            "H2O.air",
+            runTime_.timeName(),
+            runTime_,
+            IOobject::NO_READ,
+            IOobject::AUTO_WRITE
+          ),
+          pmesh_(),
+          dimless,
+          "zeroGradient"
+        )
+      )
+    );
+    volScalarFieldPtrTable_.set
+    (
+      "thermo:rho.air",
+      autoPtr<volScalarField>
+      (
+        new volScalarField
+        (
+          IOobject
+          (
+            "thermo.rho.air",
+            runTime_.timeName(),
+            runTime_,
+            IOobject::NO_READ,
+            IOobject::AUTO_WRITE
+          ),
+          pmesh_(),
+          dimDensity,
+          "zeroGradient"
+        )
+      )
+    );
+    volScalarFieldPtrTable_.set
+    (
+      "p",
+      autoPtr<volScalarField>
+      (
+        new volScalarField
+        (
+          IOobject
+          (
+            "p",
+            runTime_.timeName(),
+            runTime_,
+            IOobject::NO_READ,
+            IOobject::AUTO_WRITE
+          ),
+          pmesh_(),
+          dimPressure,
+          "zeroGradient"
+        )
+      )
+    );
+    
+    // Create scalar hashtables for variables and cells
+    projVolScalarFieldPtrTable_.set
+    (
+      "T.air",
+      autoPtr<volScalarField>
+      (
+        new volScalarField
+        (
+          IOobject
+          (
+            IOobject::groupName("T.air", "proj"),
+            foamTime_.timeName(),
+            foamTime_,
+            IOobject::NO_READ,
+            IOobject::AUTO_WRITE
+          ),
+          foamMesh_,
+          dimTemperature,
+          "zeroGradient"
+        )
+      )
+    );
+    projVolScalarFieldPtrTable_.set
+    (
+      "H2O.air",
+      autoPtr<volScalarField>
+      (
+        new volScalarField
+        (
+          IOobject
+          (
+            IOobject::groupName("H2O.air", "proj"),
+            foamTime_.timeName(),
+            foamTime_,
+            IOobject::NO_READ,
+            IOobject::AUTO_WRITE
+          ),
+          foamMesh_,
+          dimless,
+          "zeroGradient"
+        )
+      )
+    );
+    projVolScalarFieldPtrTable_.set
+    (
+      "dryAir.air",
+      autoPtr<volScalarField>
+      (
+        new volScalarField
+        (
+          IOobject
+          (
+            IOobject::groupName("dryAir.air", "proj"),
+            foamTime_.timeName(),
+            foamTime_,
+            IOobject::NO_READ,
+            IOobject::AUTO_WRITE
+          ),
+          foamMesh_,
+          dimless,
+          "zeroGradient"
+        )
+      )
+    );
+    projVolScalarFieldPtrTable_.set
+    (
+      "thermo:rho.air",
+      autoPtr<volScalarField>
+      (
+        new volScalarField
+        (
+          IOobject
+          (
+            IOobject::groupName("thermo:rho.air", "proj"),
+            foamTime_.timeName(),
+            foamTime_,
+            IOobject::NO_READ,
+            IOobject::AUTO_WRITE
+          ),
+          foamMesh_,
+          dimDensity,
+          "zeroGradient"
+        )
+      )
+    );
+    projVolScalarFieldPtrTable_.set
+    (
+      "p",
+      autoPtr<volScalarField>
+      (
+        new volScalarField
+        (
+          IOobject
+          (
+            IOobject::groupName("p", "proj"),
+            foamTime_.timeName(),
+            foamTime_,
+            IOobject::NO_READ,
+            IOobject::AUTO_WRITE
+          ),
+          foamMesh_,
+          dimPressure,
+          "zeroGradient"
+        )
+      )
+    );
+    projVolScalarFieldPtrTable_.set
+    (
+      "p_rgh",
+      autoPtr<volScalarField>
+      (
+        new volScalarField
+        (
+          IOobject
+          (
+            IOobject::groupName("p_rgh", "proj"),
+            foamTime_.timeName(),
+            foamTime_,
+            IOobject::NO_READ,
+            IOobject::AUTO_WRITE
+          ),
+          foamMesh_,
+          dimPressure,
+          "zeroGradient"
+        )
+      )
+    );
+    projVolScalarFieldPtrTable_.set
+    (
+      "e.air",
+      autoPtr<volScalarField>
+      (
+        new volScalarField
+        (
+          IOobject
+          (
+            IOobject::groupName("e.air", "proj"),
+            foamTime_.timeName(),
+            foamTime_,
+            IOobject::NO_READ,
+            IOobject::AUTO_WRITE
+          ),
+          foamMesh_,
+          dimEnergy / dimMass,
+          "zeroGradient"
+        )
+      )
+    );
+
+    updateVars(0);
 }
 
-tmp<volVectorField> WRF::U(size_t it)
+tmp<volVectorField> WRF::read_U(size_t it, IOobject::writeOption opt)
 {
-  tmp<volVectorField> pu = load_U(mesh(), nc_, it);
+  tmp<volVectorField> pu = load_U(mesh(), nc_, it, opt);
   return pu;
 }
 
-tmp<volScalarField> WRF::var(const word& name, size_t it)
+tmp<volScalarField> WRF::read_var(const word& name, dimensionSet ds, size_t it, IOobject::writeOption opt)
 {
   Info << "Start loading var" << endl;
-  tmp<volScalarField> pvar = load_var(mesh(), nc_, name, it);
+  tmp<volScalarField> pvar = load_var(mesh(), nc_, name, ds, it, opt);
   return pvar;
 }
+
+tmp<volScalarField> WRF::read_var2d(const word& name, dimensionSet ds, size_t it, IOobject::writeOption opt)
+{
+  Info << "Start loading var" << endl;
+  tmp<volScalarField> pvar = load_2dvar(mesh(), nc_, name, ds, it, opt);
+  return pvar;
+}
+
+void Foam::WRF::updateVars(label it)
+{
+    runTime_.setTime(this->dt() * it, it);
+    U_ = this->read_U(it);
+    volScalarFieldPtrTable_["p"]() = this->read_var("P", dimPressure, it) + this->read_var("PB", dimPressure, it);
+
+    volScalarFieldPtrTable_["T.air"]() 
+      = (this->read_var("T", dimTemperature, it) + this->T0()) 
+        * pow
+          (
+            volScalarFieldPtrTable_["p"]()/this->P0(), 
+            0.286
+          );
+    volScalarFieldPtrTable_["H2O.air"]() = this->read_var("QVAPOR", dimless, it);
+    volScalarFieldPtrTable_["thermo:rho.air"]() = volScalarFieldPtrTable_["p"]() / (volScalarFieldPtrTable_["T.air"]() * dimensionedScalar(dimEnergy/(dimMass*dimTemperature), 287.05));
+
+    // Interpolate to the fields
+    Info << "[WRF] Interpolating cell var values" << endl;
+    projU_.primitiveFieldRef() = this->interpolate(foamMesh_.cellCentres(), U_);
+    
+    projVolScalarFieldPtrTable_["T.air"]().primitiveFieldRef() = this->interpolate(foamMesh_.cellCentres(), volScalarFieldPtrTable_["T.air"]());
+    projVolScalarFieldPtrTable_["p"]().primitiveFieldRef() = this->interpolate(foamMesh_.cellCentres(), volScalarFieldPtrTable_["p"]());
+    
+    projVolScalarFieldPtrTable_["e.air"]().primitiveFieldRef() = thermo_.he
+      (
+       projVolScalarFieldPtrTable_["p"](),
+       projVolScalarFieldPtrTable_["T.air"]()
+      );
+    projVolScalarFieldPtrTable_["H2O.air"]().primitiveFieldRef() = this->interpolate(foamMesh_.cellCentres(), volScalarFieldPtrTable_["H2O.air"]());
+    projVolScalarFieldPtrTable_["dryAir.air"]() = dimensionedScalar(dimless, 1) - projVolScalarFieldPtrTable_["H2O.air"]();
+    projVolScalarFieldPtrTable_["thermo:rho.air"]().primitiveFieldRef() = this->interpolate(foamMesh_.cellCentres(), volScalarFieldPtrTable_["thermo:rho.air"]());
+    projVolScalarFieldPtrTable_["p_rgh"]().primitiveFieldRef() = projVolScalarFieldPtrTable_["p"]() - projVolScalarFieldPtrTable_["thermo:rho.air"]() * dimensionedScalar(dimAcceleration, 9.81) * foamMesh_.C().component(2);
+    Info << "[WRF] Interpolation complete" << endl;
+}
+
 
 point WRF::transform(const point& pt)
 {
@@ -62,7 +403,6 @@ point WRF::transform(const point& pt)
   ptransformer_->Transform(1, &x, &y);
   return point{x,y,z};
 }
-
 
 pointField WRF::transform(const pointField& pts)
 {
@@ -90,4 +430,84 @@ pointField WRF::itransform(const pointField& pts)
     outPts[i] = itransform(pts[i]);
   }
   return outPts;
+}
+
+void WRF::terraform_to_wrf(fvMesh& mesh)
+{
+  Info << "Terraforming to WRF" << endl;
+  fvMesh& wrfMesh(this->mesh());
+  const polyPatch& wrfGroundPatch(wrfMesh.boundaryMesh()["bottom"]);
+  pointField groundPoints = wrfGroundPatch.points();
+
+  indexedOctree<treeDataFace> wrfTree
+  (
+    treeDataFace(false, wrfGroundPatch),
+    treeBoundBox(boundBox(wrfGroundPatch.points())),
+    10,
+    10,
+    3
+  );
+
+  const polyPatch& foamGroundPatch(mesh.boundaryMesh()["bottom"]);
+  indexedOctree<treeDataFace> foamTree
+  (
+    treeDataFace(false, foamGroundPatch),
+    treeBoundBox(boundBox(foamGroundPatch.points())),
+    10,
+    10,
+    3
+  );
+  // Interp the ground points from openfoam to wrf bottom patch
+  Foam::vector ll{0,0,3000};
+  Foam::vector zvec{0,0,1};
+  auto findVec = [&](const point& pt)
+  {
+    auto wrfHit =  wrfTree.findLine(pt-ll, pt+ll);
+    point wrfPt = wrfHit.hitPoint(); 
+    auto foamHit = foamTree.findLine(pt-ll, pt+ll);
+    point foamPt;
+    if (!foamHit.hit())
+    {
+      foamPt = foamTree.findNearest(pt, 1e9).hitPoint();
+    }
+    else
+    {
+      foamPt = foamHit.hitPoint(); 
+    }
+
+    return zvec * (wrfPt.z() - foamPt.z());
+    // compress the high altitude regions
+  };
+
+  {
+    pointField foamPts = mesh.points();
+    vectorField vec(foamPts.size());
+    std::transform
+    (
+      foamPts.cbegin(), 
+      foamPts.cend(), 
+      vec.begin(),
+      findVec
+    );
+
+    // assuming foam mesh is always lower than wrf mesh
+    scalar zmax = max(foamPts.component(2));
+    scalar zmin = min(foamPts.component(2));
+    scalar vec_zmax(max(vec.component(2)));
+    scalar vec_zmin(min(vec.component(2)));
+    Info << vec_zmax - vec_zmin << endl;
+
+    vec = Foam::vector{0,0,vec_zmin} 
+        +(
+            (zmax - foamPts.component(2))/(zmax-zmin)
+           *(vec - Foam::vector{0,0,vec_zmin})
+         );
+
+    mesh.movePoints(foamPts + vec + vector(0,0,500)); // Some points are
+                                                      // outside the wrf domain
+    mesh.setInstance(mesh.time().constant());
+    mesh.write();
+    mesh.moving(false); // set to false so solver doesn't require V0
+  Info << "Terraforming to WRF complete" << endl;
+  }
 }

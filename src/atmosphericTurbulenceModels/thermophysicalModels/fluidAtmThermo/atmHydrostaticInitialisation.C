@@ -63,7 +63,7 @@ void Foam::atmHydrostaticInitialisation
                     "0",
                     mesh,
                     IOobject::MUST_READ,
-                    IOobject::NO_WRITE
+                    IOobject::AUTO_WRITE
                 ),
                 mesh
             )

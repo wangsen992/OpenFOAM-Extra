@@ -32,6 +32,14 @@ for (int Ecorr=0; Ecorr<nEnergyCorrectors; Ecorr++)
         const volScalarField& rho = tRho();
         tmp<volVectorField> tU = phase.U();
         const volVectorField& U = tU();
+    Info<< "[EEqn] time : " << runTime.timeName() << ";" 
+      <<phase.name() << " min/max T "
+        << min(phase.thermo().T()).value()
+        << " - "
+        << max(phase.thermo().T()).value()
+        << endl;
+    
+    Info << "[EEqn] rho = " << average(rho) << endl;
 
         fvScalarMatrix EEqn
         (

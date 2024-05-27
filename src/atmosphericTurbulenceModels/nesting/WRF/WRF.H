@@ -1,23 +1,46 @@
+// WRF class as a connector from OpenFOAM to read netcdf read from WRF
+
 #ifndef WRF_H
 #define WRF_H
 
+#include "HashTable.H"
 #include "fvMesh.H"
-#include "GeometricField.H"
 #include "meshSearch.H"
 #include "nesting_utils.H"
+#include "fluidAtmThermo.H"
 
 namespace Foam
 {
-  class WRF
+  class WRF: public regIOobject
   {
     // Private member attributes
-    netCDF::NcFile nc_;
-    Time runTime_; // Time registry for the main of case
-    const Time& foamTime_;
-    autoPtr<fvMesh> pmesh_;
-    meshSearch searcher_;
-    OGRCoordinateTransformation* ptransformer_;
-    OGRCoordinateTransformation* pitransformer_;
+      //- data reference
+      netCDF::NcFile nc_;
+      Time runTime_; // Time registry for the main of case
+      const fvMesh& foamMesh_;
+      const Time& foamTime_;
+      autoPtr<fvMesh> pmesh_;
+
+      //- reference 
+      meshSearch searcher_;
+      OGRCoordinateTransformation* ptransformer_;
+      OGRCoordinateTransformation* pitransformer_;
+      scalar  dt_;
+      dimensionedScalar  T0_;
+      dimensionedScalar  P0_;
+
+      //- RAII for WRF data
+        //- Thermo class
+        const fluidAtmThermo& thermo_;
+
+        //- List of varialbes from netcdf
+        volVectorField U_;
+        HashTable<autoPtr<volScalarField>, word> volScalarFieldPtrTable_;
+        volVectorField projU_;
+        HashTable<autoPtr<volScalarField>, word> projVolScalarFieldPtrTable_;
+        
+        //- Flags to control update
+        label currTimeInd_;
 
   public:
 
@@ -26,13 +49,27 @@ namespace Foam
       const string& ncfile_path, 
       const string& wrfCaseRoot, 
       const string& wrfCaseName, 
-      const Time& db,
-      const string& foam_proj4
+      const fvMesh& mesh,
+      const string& foam_proj4,
+      const scalar& dt,
+      const scalar& T0,
+      const scalar& P0
     );
 
     ~WRF(){};
 
+    // regIOobject inheritance
+      
+      bool writeData(Ostream&) const
+      {
+        return true;
+      }
+
     // Member functions for access
+
+      const scalar& dt(){return dt_;};
+      const dimensionedScalar& T0(){return T0_;};
+      const dimensionedScalar& P0(){return P0_;};
       
       netCDF::NcFile& file(){return nc_;};
 
@@ -52,9 +89,21 @@ namespace Foam
 
     // Load variables from netcdf file to mesh
 
-      tmp<volVectorField> U(size_t it);
+      tmp<volVectorField> read_U(size_t it, IOobject::writeOption opt=IOobject::NO_WRITE);
 
-      tmp<volScalarField> var(const word& name, size_t it);
+      tmp<volScalarField> read_var(const word& name, dimensionSet ds, size_t it, IOobject::writeOption opt=IOobject::NO_WRITE);
+
+      tmp<volScalarField> read_var2d(const word& name, dimensionSet ds, size_t it, IOobject::writeOption opt=IOobject::NO_WRITE);
+
+      const volVectorField& U(){return projU_;}
+
+      const volScalarField& var(const word& name)
+      {
+        return projVolScalarFieldPtrTable_[name]();
+      }
+      
+      //- Non-virtual update variables
+      void updateVars(label it);
 
     // Coordinate transformation
       // Transform one point from input to WRF
@@ -68,6 +117,9 @@ namespace Foam
 
       // Transform pointField from input to foam from WRF
       pointField itransform(const pointField&);
+
+      // terraform the openfoam case to wrf terrain
+      void terraform_to_wrf(fvMesh& mesh);
 
     // Interpolation functions
     // interpolate one point from source field

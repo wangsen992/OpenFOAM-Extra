@@ -29,6 +29,7 @@
               + fvModels.source(alpha, rho, Y[i])
             );
 
+            Info << "[YEqn] before relax" << endl;
             YiEqn.relax();
             YiEqn.solve("Yi");
             Info << "[YEqn] Yi name : " << Y[i].name() 

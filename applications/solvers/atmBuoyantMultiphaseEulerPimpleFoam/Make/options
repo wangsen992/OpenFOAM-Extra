@@ -27,4 +27,6 @@ EXE_LIBS = \
     -lmeshTools \
     -ldynamicFvMesh \
     -L$(FOAM_USER_LIBBIN) \
-    -latmosphericTurbulenceModels
+    -latmosphericTurbulenceModels \
+    -lnetcdf_c++4 \
+    -lgdal
