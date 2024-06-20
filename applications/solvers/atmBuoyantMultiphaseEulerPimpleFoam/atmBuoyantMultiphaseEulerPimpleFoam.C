@@ -83,6 +83,8 @@ int main(int argc, char *argv[])
     phaseModel& phase = fluid.movingPhases()[0];
 
     Info << "Initializing variables with WRF data" << endl;
+    
+    // Variables used from WRF: U, H2O.air, T.air, p, e.air, rho
     Info << "On U...." << endl;
     phase.URef() = wrf.U();
     // phase.URef() = dimensionedVector(dimVelocity, vector(0,0,0));
@@ -94,14 +96,16 @@ int main(int argc, char *argv[])
     phase.thermoRef().T() = wrf.var("T.air");
     phase.thermoRef().T().correctBoundaryConditions();
 
-    // phase.YRef()[0] = dimensionedScalar(dimless, 1) - wrf.var("H2O.air");
-    // phase.YRef()[1] = wrf.var("H2O.air");
-    // phase.YRef()[0].correctBoundaryConditions();
-    // phase.YRef()[1].correctBoundaryConditions();
+    phase.YRef()[0] = dimensionedScalar(dimless, 1) - wrf.var("H2O.air");
+    phase.YRef()[1] = wrf.var("H2O.air");
+    phase.YRef()[0].correctBoundaryConditions();
+    phase.YRef()[1].correctBoundaryConditions();
 
     phase.thermoRef().p() = wrf.var("p");
     phase.thermoRef().p().correctBoundaryConditions();
 
+    volScalarField& wrf_e(const_cast<volScalarField&>(wrf.var("e.air")));
+    wrf_e = phase.thermoRef().he(phase.thermoRef().p(), phase.thermoRef().T());
     phase.thermoRef().he().primitiveFieldRef() = wrf.var("e.air");
     phase.thermoRef().he().correctBoundaryConditions();
     he = phase.thermoRef().he();
