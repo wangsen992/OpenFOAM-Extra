@@ -98,19 +98,17 @@ void Foam::wrfFixedValueFvPatchField<Type>::updateCoeffs()
     {
       const Time& runTime = this->patch().boundaryMesh().mesh().time();
       WRF& wrf_ = runTime.template lookupObjectRef<WRF>("WRF");
-    Info << "[fvPatchField] update coeffs for patch " << this->patch().name() << " for field " << fieldName_ << endl;
-    const scalar t = this->db().time().timeOutputValue();
-    typedef GeometricField<Type, fvPatchField, volMesh> psiType;
-    psiType& psi
-    (
-      runTime.lookupObjectRef<psiType>(IOobject::groupName(fieldName_, "proj"))
-    );
-    // const pointField& Cf(this->patch().Cf());
-    // Info << psi.boundaryField()[this->patch().index()].patchInternalField() << endl;
+      Info << "[fvPatchField] update coeffs for patch " << this->patch().name() << " for field " << fieldName_ << endl;
+      const scalar t = this->db().time().timeOutputValue();
+      typedef GeometricField<Type, fvPatchField, volMesh> psiType;
+      psiType& psi
+      (
+        runTime.lookupObjectRef<psiType>(IOobject::groupName(fieldName_, "proj"))
+      );
 
-    this->operator==(psi.boundaryField()[this->patch().index()].patchInternalField());
-    Info << average(*this) << endl;
-    fixedValueFvPatchField<Type>::updateCoeffs();
+      this->operator==(psi.boundaryField()[this->patch().index()].patchInternalField());
+      Info << average(*this) << endl;
+      fixedValueFvPatchField<Type>::updateCoeffs();
     }
     else
     {

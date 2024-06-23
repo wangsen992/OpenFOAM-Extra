@@ -36,7 +36,6 @@ WRF::WRF
   (
     fvmeshFromNc(nc_, runTime_)
   ),
-  searcher_(pmesh_()),
   ptransformer_(nullptr),
   pitransformer_(nullptr),
   dt_(dt),
@@ -102,6 +101,11 @@ WRF::WRF
   pmesh_->setInstance(runTime_.constant());
   pmesh_->write();
   Info << "WRF init script complete (constructed & transformed to Foam CRS" << endl;
+  tsearcher_.set
+  (
+    new meshSearch(pmesh_())
+  );
+
 
   // Initialize variable resources
     volScalarFieldPtrTable_.set
@@ -338,7 +342,7 @@ WRF::WRF
       )
     );
 
-    updateVars(0);
+    // updateVars(0);
 }
 
 tmp<volVectorField> WRF::read_U(size_t it, IOobject::writeOption opt)
@@ -365,7 +369,9 @@ void Foam::WRF::updateVars(label it)
 {
     runTime_.setTime(this->dt() * it, it);
     U_ = this->read_U(it);
+    U_.correctBoundaryConditions();
     volScalarFieldPtrTable_["p"]() = this->read_var("P", dimPressure, it) + this->read_var("PB", dimPressure, it);
+    volScalarFieldPtrTable_["p"]().correctBoundaryConditions();
 
     volScalarFieldPtrTable_["T.air"]() 
       = (this->read_var("T", dimTemperature, it) + this->T0()) 
@@ -374,14 +380,22 @@ void Foam::WRF::updateVars(label it)
             volScalarFieldPtrTable_["p"]()/this->P0(), 
             0.286
           );
+    volScalarFieldPtrTable_["T.air"]().correctBoundaryConditions();
     volScalarFieldPtrTable_["H2O.air"]() = this->read_var("QVAPOR", dimless, it);
+    volScalarFieldPtrTable_["H2O.air"]().correctBoundaryConditions();
     volScalarFieldPtrTable_["thermo:rho.air"]() = volScalarFieldPtrTable_["p"]() / (volScalarFieldPtrTable_["T.air"]() * dimensionedScalar(dimEnergy/(dimMass*dimTemperature), 287.05));
+    volScalarFieldPtrTable_["thermo:rho.air"]().correctBoundaryConditions();
+
+    // Debug for WRF data
+    runTime_++;
+    runTime_.write();
 
     // Interpolate to the fields
     Info << "[WRF] Interpolating cell var values" << endl;
     projU_.primitiveFieldRef() = this->interpolate(foamMesh_.cellCentres(), U_);
     
     projVolScalarFieldPtrTable_["T.air"]().primitiveFieldRef() = this->interpolate(foamMesh_.cellCentres(), volScalarFieldPtrTable_["T.air"]());
+
     projVolScalarFieldPtrTable_["p"]().primitiveFieldRef() = this->interpolate(foamMesh_.cellCentres(), volScalarFieldPtrTable_["p"]());
     
     projVolScalarFieldPtrTable_["e.air"]().primitiveFieldRef() = thermo_.he
@@ -389,13 +403,16 @@ void Foam::WRF::updateVars(label it)
        projVolScalarFieldPtrTable_["p"](),
        projVolScalarFieldPtrTable_["T.air"]()
       );
+
     projVolScalarFieldPtrTable_["H2O.air"]().primitiveFieldRef() = this->interpolate(foamMesh_.cellCentres(), volScalarFieldPtrTable_["H2O.air"]());
+
     projVolScalarFieldPtrTable_["dryAir.air"]() = dimensionedScalar(dimless, 1) - projVolScalarFieldPtrTable_["H2O.air"]();
+    
     projVolScalarFieldPtrTable_["thermo:rho.air"]().primitiveFieldRef() = this->interpolate(foamMesh_.cellCentres(), volScalarFieldPtrTable_["thermo:rho.air"]());
+
     projVolScalarFieldPtrTable_["p_rgh"]().primitiveFieldRef() = projVolScalarFieldPtrTable_["p"]() - projVolScalarFieldPtrTable_["thermo:rho.air"]() * dimensionedScalar(dimAcceleration, 9.81) * foamMesh_.C().component(2);
     Info << "[WRF] Interpolation complete" << endl;
 }
-
 
 point WRF::transform(const point& pt)
 {
@@ -437,12 +454,11 @@ void WRF::terraform_to_wrf(fvMesh& mesh)
   Info << "Terraforming to WRF" << endl;
   fvMesh& wrfMesh(this->mesh());
   const polyPatch& wrfGroundPatch(wrfMesh.boundaryMesh()["bottom"]);
-  pointField groundPoints = wrfGroundPatch.points();
 
   indexedOctree<treeDataFace> wrfTree
   (
     treeDataFace(false, wrfGroundPatch),
-    treeBoundBox(boundBox(wrfGroundPatch.points())),
+    treeBoundBox(boundBox(wrfGroundPatch.localPoints())),
     10,
     10,
     3
@@ -475,7 +491,7 @@ void WRF::terraform_to_wrf(fvMesh& mesh)
       foamPt = foamHit.hitPoint(); 
     }
 
-    return zvec * (wrfPt.z() - foamPt.z());
+    return zvec * wrfPt.z();
     // compress the high altitude regions
   };
 
@@ -503,7 +519,7 @@ void WRF::terraform_to_wrf(fvMesh& mesh)
            *(vec - Foam::vector{0,0,vec_zmin})
          );
 
-    mesh.movePoints(foamPts + vec + vector(0,0,500)); // Some points are
+    mesh.movePoints(foamPts + vec); // Some points are
                                                       // outside the wrf domain
     mesh.setInstance(mesh.time().constant());
     mesh.write();

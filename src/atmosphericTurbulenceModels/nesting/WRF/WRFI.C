@@ -11,10 +11,11 @@ Type WRF::interpolate(const point& pt, GeometricField<Type, fvPatchField, volMes
     interpolation<Type>::New(interpMethod, psi)
   );
   point wrf_pt = transform(pt);
+
   Type interpVal = interp->interpolate
   (
     wrf_pt, 
-    searcher_.findCell(wrf_pt)
+    tsearcher_->findCell(wrf_pt)
   );
   return interpVal;
   
@@ -27,14 +28,21 @@ Field<Type> WRF::interpolate(const Field<point>& pts, GeometricField<Type, fvPat
   (
     interpolation<Type>::New(interpMethod, psi)
   );
-  pointField wrf_pts = transform(pts);
+  pointField wrf_pts = pts;
   Field<Type> interpVals(pts.size());
   for(size_t i=0; i < pts.size(); i++)
   {
+    label cellInd = tsearcher_->findCell(wrf_pts[i]);
+    if(cellInd < 0)
+    {
+      Info << "[Debug] point not in domain: " << wrf_pts[i];
+      cellInd = tsearcher_->findNearestCell(wrf_pts[i]);
+      Info << " distance = " << tsearcher_->mesh().points()[cellInd].z() - wrf_pts[i].z() << endl;
+    }
     interpVals[i] = interp->interpolate
     (
       wrf_pts[i],
-      searcher_.findCell(wrf_pts[i])
+      tsearcher_->findCell(wrf_pts[i])
     );
   }
   return interpVals;

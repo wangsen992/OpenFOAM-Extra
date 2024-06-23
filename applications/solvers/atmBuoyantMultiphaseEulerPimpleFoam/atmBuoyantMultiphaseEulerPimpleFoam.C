@@ -122,11 +122,13 @@ int main(int argc, char *argv[])
       p_rgh.boundaryFieldRef()[i] = p_rgh.boundaryFieldRef()[i].patchInternalField();
     }
     
-    phase.thermoRef().correct();
+    // phase.thermoRef().correct();
 
-    Info << "average(alphaPhi)= " << average(phase.alphaPhiRef()) << endl;
-    Info << "average(rho) = " << average(rho) << endl;
-    Info << "average(thermo.rho) = " << average(phase.thermoRef().rho()) << endl;
+    Info << "[Debug] average(U)= " << average(phase.URef()) << endl;
+    Info << "[Debug] average(T)= " << average(phase.thermoRef().T()) << endl;
+    Info << "[Debug] average(alphaPhi)= " << average(phase.alphaPhiRef()) << endl;
+    Info << "[Debug] average(rho) = " << average(rho) << endl;
+    Info << "[Debug] average(thermo.rho) = " << average(phase.thermoRef().rho()) << endl;
     
     Info << "Writetime after setting variables: " << runTime.value() << endl;
     runTime.write();

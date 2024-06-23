@@ -22,7 +22,7 @@ namespace Foam
       autoPtr<fvMesh> pmesh_;
 
       //- reference 
-      meshSearch searcher_;
+      autoPtr<meshSearch> tsearcher_;
       OGRCoordinateTransformation* ptransformer_;
       OGRCoordinateTransformation* pitransformer_;
       scalar  dt_;
