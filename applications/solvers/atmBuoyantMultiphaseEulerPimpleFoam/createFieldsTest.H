@@ -153,9 +153,9 @@ Info << "average(thermo.rho) = " << average(phase.thermoRef().rho()) << endl;
 
 // [Test] correct T boundary conditions first to ensure
 // rho is correctly computed
-phases[0].thermoRef().T().correctBoundaryConditions();
-phases[0].thermoRef().correct();
-Info << "average(thermo.rho) = " << average(phases[0].thermoRef().rho()) << endl;
+// phases[0].thermoRef().T().correctBoundaryConditions();
+// phases[0].thermoRef().correct();
+// Info << "average(thermo.rho) = " << average(phases[0].thermoRef().rho()) << endl;
 
 PtrList<volScalarField> rAUs;
 PtrList<surfaceScalarField> rAUfs;
@@ -185,3 +185,23 @@ volScalarField he
     ),
     phases[0].thermoRef().he()
 );
+
+// Add a new temperature varialbe for computing radiation
+// This is T is only updated after T.air is computed. 
+
+volScalarField Trad
+(
+    IOobject
+    (
+        "T",
+        runTime.timeName(),
+        mesh,
+        IOobject::NO_READ,
+        IOobject::NO_WRITE
+    ),
+    mesh,
+    dimTemperature,
+    "zeroGradient"
+);
+Trad = phases[0].thermo().T();
+Trad.correctBoundaryConditions();

@@ -28,10 +28,21 @@ nesting/WRF/WRF.C
 nesting/fvModels/WRFCoupler/WRFCoupler.C
 nesting/fvPatchFields/wrfFixedValue/wrfFixedValueFvPatchFields.C
 
+radiationModels/absorptionEmissionModels/atmWideBand/atmWideBand.C
 # radiationModels/radiationModels/atmRadiationModel/atmRadiationModel.C
 # radiationModels/radiationModels/atmRadiationModel/atmRadiationModelNew.C
+# radiationModels/radiationModels/atmFvDOM/atmFvDOM.C
+# radiationModels/radiationModels/atmFvDOM/atmRadiativeIntensityRay/atmRadiativeIntensityRay.C
+# radiationModels/radiationModels/atmFvDOM/absorptionCoeffs/absorptionCoeffs.C
+# 
 # radiationModels/absorptionEmissionModels/atmAbsorptionEmissionModel/atmAbsorptionEmissionModel.C
 # radiationModels/absorptionEmissionModels/atmAbsorptionEmissionModel/atmAbsorptionEmissionModelNew.C
+# radiationModels/scatterModels/scatterModel/atmScatterModel.C
+# radiationModels/scatterModels/scatterModel/atmScatterModelNew.C
+# radiationModels/scatterModels/noScatter/noScatter.C
+# 
+# radiationModels/fvModels/atmRadiation/atmRadiation.C
+
 
 
 LIB = $(FOAM_USER_LIBBIN)/libatmosphericTurbulenceModels

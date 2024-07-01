@@ -23,7 +23,7 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "fvDomRadiation.H"
+#include "atmRadiation.H"
 #include "fluidThermo.H"
 #include "fvMatrices.H"
 #include "addToRunTimeSelectionTable.H"
@@ -34,12 +34,12 @@ namespace Foam
 {
 namespace fv
 {
-    defineTypeNameAndDebug(fvDomRadiation, 0);
+    defineTypeNameAndDebug(atmRadiation, 0);
 
     addToRunTimeSelectionTable
     (
         fvModel,
-        fvDomRadiation,
+        atmRadiation,
         dictionary
     );
 }
@@ -48,7 +48,7 @@ namespace fv
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-Foam::fv::fvDomRadiation::fvDomRadiation
+Foam::fv::atmRadiation::atmRadiation
 (
     const word& sourceName,
     const word& modelType,
@@ -59,7 +59,7 @@ Foam::fv::fvDomRadiation::fvDomRadiation
     fvModel(sourceName, modelType, dict, mesh),
     radiation_
     (
-        new radiationModels::fvDOM
+        atmRadiationModel::New
         (
             mesh.lookupObject<basicThermo>
             (
@@ -76,7 +76,7 @@ Foam::fv::fvDomRadiation::fvDomRadiation
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-Foam::wordList Foam::fv::fvDomRadiation::addSupFields() const
+Foam::wordList Foam::fv::atmRadiation::addSupFields() const
 {
     const basicThermo& thermo =
         mesh().lookupObject<basicThermo>
@@ -92,7 +92,7 @@ Foam::wordList Foam::fv::fvDomRadiation::addSupFields() const
 }
 
 
-void Foam::fv::fvDomRadiation::addSup
+void Foam::fv::atmRadiation::addSup
 (
     const volScalarField& rho,
     fvMatrix<scalar>& eqn,
@@ -114,27 +114,5 @@ void Foam::fv::fvDomRadiation::addSup
     eqn += radiation_->Sh(thermo, eqn.psi());
 }
 
-void Foam::fv::fvDomRadiation::addSup
-(
-    const volScalarField& alpha,
-    const volScalarField& rho,
-    fvMatrix<scalar>& eqn,
-    const word& fieldName
-) const
-{
-    const basicThermo& thermo =
-        mesh().lookupObject<basicThermo>
-        (
-          IOobject::groupName
-          (
-            basicThermo::dictName,
-            "air"
-          )
-        );
-
-    radiation_->correct();
-
-    eqn += radiation_->Sh(thermo, eqn.psi());
-}
 
 // ************************************************************************* //

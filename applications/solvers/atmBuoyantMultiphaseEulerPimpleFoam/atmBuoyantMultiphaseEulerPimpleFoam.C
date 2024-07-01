@@ -87,14 +87,13 @@ int main(int argc, char *argv[])
     // Variables used from WRF: U, H2O.air, T.air, p, e.air, rho
     Info << "On U...." << endl;
     phase.URef() = wrf.U();
-    // phase.URef() = dimensionedVector(dimVelocity, vector(0,0,0));
     phase.URef().correctBoundaryConditions();
     phase.phiRef() = fvc::flux(phase.URef());
     phase.alphaPhiRef() = fvc::flux(phase.URef());
 
     Info << "On T...." << endl;
     phase.thermoRef().T() = wrf.var("T.air");
-    phase.thermoRef().T().correctBoundaryConditions();
+    // phase.thermoRef().T().correctBoundaryConditions();
 
     phase.YRef()[0] = dimensionedScalar(dimless, 1) - wrf.var("H2O.air");
     phase.YRef()[1] = wrf.var("H2O.air");
@@ -131,15 +130,10 @@ int main(int argc, char *argv[])
     Info << "[Debug] average(thermo.rho) = " << average(phase.thermoRef().rho()) << endl;
     
     Info << "Writetime after setting variables: " << runTime.value() << endl;
-    runTime.write();
+    // runTime.write();
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
     #include "createRDeltaTf.H"
-
-    // wrf.time()++;
-    // wrf.time().write();
-    // Info << "[solver]" << "max(p)" << max(p) << "; ";
-    // Info << "[solver] max poinit : " << mesh.C()[findMax(p)] << endl;
 
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -292,11 +286,10 @@ int main(int argc, char *argv[])
 
                     if (pimple.thermophysics())
                     {
-                        Info << "[Debug] average(p) " << average(fluid.phases()[0].thermo().p()) << endl;
-                        Info << "[Debug] average(rho) " << average(fluid.phases()[0].thermo().rho()) << endl;
-                        Info << "[Debug] average(e.air) " << average(fluid.phases()[0].thermo().he()) << endl;
-                        Info << "[Debug] average(phi) " << average(fluid.phases()[0].phi()) << endl;
                         #include "EEqns.H"
+                        Trad = phases[0].thermo().T();
+                        Trad.correctBoundaryConditions();
+                        
                     }
 
                     #include "pU/pEqnTest.H"

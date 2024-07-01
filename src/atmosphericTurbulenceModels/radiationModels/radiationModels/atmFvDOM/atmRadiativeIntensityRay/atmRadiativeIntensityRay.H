@@ -35,7 +35,7 @@ SourceFiles
 #ifndef radiativeIntensityRay_H
 #define radiativeIntensityRay_H
 
-#include "absorptionEmissionModel.H"
+#include "atmAbsorptionEmissionModel.H"
 #include "blackBodyEmission.H"
 
 
@@ -71,7 +71,7 @@ private:
         const fvMesh& mesh_;
 
         //- Absorption/emission model
-        const absorptionEmissionModel& absorptionEmission_;
+        const atmRadiationModels::atmAbsorptionEmissionModel& absorptionEmission_;
 
         //- Black body
         const blackBodyEmission& blackBody_;

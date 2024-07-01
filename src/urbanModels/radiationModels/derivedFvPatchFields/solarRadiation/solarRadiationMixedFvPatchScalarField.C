@@ -190,6 +190,7 @@ void Foam::solarRadiationMixedFvPatchScalarField::updateCoeffs()
     DynamicList<label> downRayList(dom.nRay());
     DynamicList<label> upRayList(dom.nRay());
 
+    // Separate rays into upward and downward
     for (label i = 0; i < dom.nRay(); i++)
     {
       dList[i] = dom.IRay(i).d();
@@ -211,7 +212,7 @@ void Foam::solarRadiationMixedFvPatchScalarField::updateCoeffs()
     // Set 
     scalar theta_start = thetaStart_;
 
-    // For a normal day simulation, deltaTheta = pi / (12 * 60 * 60)
+    // For a normal day simulation, deltaTheta = pi / 43200
 
     scalar theta0 = theta_start - deltaTheta_ * db().time().timeOutputValue();
     vector d0 = vector(-sin(theta0)*cos(phi0_), sin(phi0_), -cos(theta0));
@@ -228,12 +229,13 @@ void Foam::solarRadiationMixedFvPatchScalarField::updateCoeffs()
     scalar nAveDown = sum(mag(vectorField(dAveList, downRayList) & vector(0,0,1)));
 
     Info << "cos(theta0) = " << cos(theta0) << endl;
-    // Sky Rad Props
+    
+    // Sky radiation properties
     scalar I0_0 = 0.0;
     scalar I0_1 = 0.0;
     scalar Idefault_0 = 0.0;
     scalar Idefault_1 = 0.0;
-    if ( d0.z() < 0)
+    if ( d0.z() < 0) // daytime condition
     {
       const scalar R_DV = 600 * exp(-0.185 / cos(theta0)) * cos(theta0);
       const scalar R_dV = 0.4 * (600 - R_DV) * cos(theta0);
@@ -246,7 +248,7 @@ void Foam::solarRadiationMixedFvPatchScalarField::updateCoeffs()
       Idefault_0 = R_dV / nAveDown;
       Idefault_1 = R_dN / nAveDown;
     }
-    else
+    else // night-time condition
     {
       // Temporary setting for night radiation
       const scalar R_dN = 150;
@@ -271,6 +273,7 @@ void Foam::solarRadiationMixedFvPatchScalarField::updateCoeffs()
         const_cast<radiationModels::radiativeIntensityRay&>(dom.IRay(rayId));
 
     const scalarField nAve(n & ray.dAve());
+    Info << "[Debug] dAve= " << ray.dAve() << endl;
 
     ray.qr().boundaryFieldRef()[patchi] += Iw*nAve;
 

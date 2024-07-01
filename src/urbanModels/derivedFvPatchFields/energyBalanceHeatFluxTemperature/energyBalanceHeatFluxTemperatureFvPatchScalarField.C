@@ -167,20 +167,30 @@ void Foam::energyBalanceHeatFluxTemperatureFvPatchScalarField::updateCoeffs()
     scalarField rho(Tp.size(), 0);
     scalarField Cp(Tp.size(), 0);
     scalarField qEff(Tp.size(), 0);
+    // qr =
+    //    patch().lookupPatchField<volScalarField, scalar>
+    //    (
+    //      IOobject::groupName("qr", internalField().group())
+    //    );
     qr =
        patch().lookupPatchField<volScalarField, scalar>
        (
-         IOobject::groupName("qr", internalField().group())
+         "qr"
        );
     alphat = 
         patch().lookupPatchField<volScalarField, scalar>
         (
           IOobject::groupName("alphat", internalField().group())
         );
+    // rho = 
+    //     patch().lookupPatchField<volScalarField, scalar>
+    //     (
+    //       IOobject::groupName("rho", internalField().group())
+    //     );
     rho = 
         patch().lookupPatchField<volScalarField, scalar>
         (
-          IOobject::groupName("rho", internalField().group())
+          "rho"
         );
     Cp = 
         patch().lookupPatchField<volScalarField, scalar>

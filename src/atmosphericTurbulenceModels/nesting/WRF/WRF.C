@@ -387,8 +387,8 @@ void Foam::WRF::updateVars(label it)
     volScalarFieldPtrTable_["thermo:rho.air"]().correctBoundaryConditions();
 
     // Debug for WRF data
-    runTime_++;
-    runTime_.write();
+    // runTime_++;
+    // runTime_.write();
 
     // Interpolate to the fields
     Info << "[WRF] Interpolating cell var values" << endl;

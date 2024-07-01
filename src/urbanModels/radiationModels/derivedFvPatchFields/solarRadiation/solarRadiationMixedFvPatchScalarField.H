@@ -83,6 +83,8 @@ class solarRadiationMixedFvPatchScalarField
 
         //- change of deltaTheta per time step (1 sec)
         scalar deltaTheta_;
+
+        //- inclination angle due to south/north deviation from equator
         scalar phi0_;
 
 public:

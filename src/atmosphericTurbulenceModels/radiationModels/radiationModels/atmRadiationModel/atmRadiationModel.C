@@ -26,7 +26,7 @@ License
 #include "atmRadiationModel.H"
 #include "atmAbsorptionEmissionModel.H"
 #include "atmScatterModel.H"
-#include "sootModel.H"
+#include "atmScatterModel.H"
 #include "fvmSup.H"
 #include "basicThermo.H"
 
@@ -222,7 +222,7 @@ Foam::tmp<Foam::fvScalarMatrix> Foam::atmRadiationModel::ST
 }
 
 
-const Foam::radiationModels::atmAbsorptionEmissionModel&
+const Foam::atmRadiationModels::atmAbsorptionEmissionModel&
 Foam::atmRadiationModel::absorptionEmission() const
 {
     if (!absorptionEmission_.valid())

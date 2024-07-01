@@ -22,10 +22,10 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::fv::fvDomRadiation
+    Foam::fv::atmRadiation
 
 Description
-    Calculates and applies the fvDomRadiation source to the energy equation.
+    Calculates and applies the atmRadiation source to the energy equation.
 
 Usage
     Example usage:
@@ -33,22 +33,21 @@ Usage
     radiationCoeffs
     {
         libs    ("libradiationModels.so");
-        type    fvDomRadiation;
+        type    atmRadiation;
     }
     \endverbatim
 
 SourceFiles
-    fvDomRadiation.C
+    atmRadiation.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef fvDomRadiation_H
-#define fvDomRadiation_H
+#ifndef radiation_H
+#define radiation_H
 
 #include "fvModel.H"
 #include "uniformDimensionedFields.H"
-#include "radiationModel.H"
-#include "fvDOM.H"
+#include "atmRadiationModel.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -58,29 +57,30 @@ namespace fv
 {
 
 /*---------------------------------------------------------------------------*\
-                          Class fvDomRadiation Declaration
+                          Class atmRadiation Declaration
 \*---------------------------------------------------------------------------*/
 
-class fvDomRadiation
+class atmRadiation
 :
     public fvModel
 {
     // Private Data
 
-        //- The fvDomRadiation model pointer
-        mutable autoPtr<radiationModels::fvDOM> radiation_;
+        //- The atmRadiation model pointer
+        word phase_;
+        mutable autoPtr<atmRadiationModel> radiation_;
 
 
 public:
 
     //- Runtime type information
-    TypeName("fvDomRadiation");
+    TypeName("atmRadiation");
 
 
     // Constructors
 
         //- Construct from explicit source name and mesh
-        fvDomRadiation
+        atmRadiation
         (
             const word& sourceName,
             const word& modelType,
@@ -89,7 +89,7 @@ public:
         );
 
         //- Disallow default bitwise copy construction
-        fvDomRadiation(const fvDomRadiation&) = delete;
+        atmRadiation(const atmRadiation&) = delete;
 
 
     // Member Functions
@@ -111,19 +111,11 @@ public:
                 const word& fieldName
             ) const;
 
-            //- Add explicit contribution to compressible energy equation
-            virtual void addSup
-            (
-                const volScalarField& alpha,
-                const volScalarField& rho,
-                fvMatrix<scalar>& eqn,
-                const word& fieldName
-            ) const;
 
     // Member Operators
 
         //- Disallow default bitwise assignment
-        void operator=(const fvDomRadiation&) = delete;
+        void operator=(const atmRadiation&) = delete;
 };
 
 
