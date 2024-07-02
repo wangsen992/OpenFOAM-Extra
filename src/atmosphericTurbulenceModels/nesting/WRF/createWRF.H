@@ -23,6 +23,9 @@ WRF wrf
   wrf_dict.lookupOrAddDefault("P0", 1e5, false, false)
 );
 
+// When in parallel, terraform leads to mismatch at the proc boundaries
+// by a small amount as the same point is translated by 
+// slightly different amount
 wrf.terraform_to_wrf(mesh);
 wrf.updateVars(0);
 

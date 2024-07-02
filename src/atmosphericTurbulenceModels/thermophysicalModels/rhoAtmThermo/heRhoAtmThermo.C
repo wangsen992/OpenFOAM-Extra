@@ -106,7 +106,7 @@ void Foam::heRhoAtmThermo<BasicRhoThermo, MixtureType>::calculate()
         fvPatchScalarField& pmu = muBf[patchi];
         fvPatchScalarField& palpha = alphaBf[patchi];
 
-        if (pT.fixesValue())
+        if (pT.fixesValue() && pT.size() > 0)
         {
             forAll(pT, facei)
             {
