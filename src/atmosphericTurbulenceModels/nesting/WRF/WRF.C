@@ -507,17 +507,17 @@ void WRF::terraform_to_wrf(fvMesh& mesh)
     );
 
     // assuming foam mesh is always lower than wrf mesh
-    // scalar zmax = max(foamPts.component(2));
-    // scalar zmin = min(foamPts.component(2));
-    // scalar vec_zmax(max(vec.component(2)));
-    // scalar vec_zmin(min(vec.component(2)));
-    // Info << vec_zmax - vec_zmin << endl;
+    scalar zmax = gMax(foamPts.component(2));
+    scalar zmin = gMin(foamPts.component(2));
+    scalar vec_zmax(gMax(vec.component(2)));
+    scalar vec_zmin(gMin(vec.component(2)));
+    Info << vec_zmax - vec_zmin << endl;
 
-    // vec = Foam::vector{0,0,vec_zmin} 
-    //     +(
-    //         (zmax - foamPts.component(2))/(zmax-zmin)
-    //        *(vec - Foam::vector{0,0,vec_zmin})
-    //      );
+    vec = Foam::vector{0,0,vec_zmin} 
+        +(
+            (zmax - foamPts.component(2))/(zmax-zmin)
+           *(vec - Foam::vector{0,0,vec_zmin})
+         );
 
     mesh.movePoints(foamPts + vec); // Some points are
                                                       // outside the wrf domain
