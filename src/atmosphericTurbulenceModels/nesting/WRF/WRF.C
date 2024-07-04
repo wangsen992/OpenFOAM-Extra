@@ -355,6 +355,7 @@ tmp<volScalarField> WRF::read_var(const word& name, dimensionSet ds, size_t it, 
 {
   Info << "Start loading var" << endl;
   tmp<volScalarField> pvar = load_var(mesh(), nc_, name, ds, it, opt);
+  pvar->correctBoundaryConditions();
   return pvar;
 }
 
@@ -395,22 +396,29 @@ void Foam::WRF::updateVars(label it)
     projU_.primitiveFieldRef() = this->interpolate(foamMesh_.cellCentres(), U_);
     
     projVolScalarFieldPtrTable_["T.air"]().primitiveFieldRef() = this->interpolate(foamMesh_.cellCentres(), volScalarFieldPtrTable_["T.air"]());
+    projVolScalarFieldPtrTable_["T.air"]().correctBoundaryConditions();
 
     projVolScalarFieldPtrTable_["p"]().primitiveFieldRef() = this->interpolate(foamMesh_.cellCentres(), volScalarFieldPtrTable_["p"]());
+    projVolScalarFieldPtrTable_["p"]().correctBoundaryConditions();
     
     projVolScalarFieldPtrTable_["e.air"]().primitiveFieldRef() = thermo_.he
       (
        projVolScalarFieldPtrTable_["p"](),
        projVolScalarFieldPtrTable_["T.air"]()
       );
+    projVolScalarFieldPtrTable_["e.air"]().correctBoundaryConditions();
 
     projVolScalarFieldPtrTable_["H2O.air"]().primitiveFieldRef() = this->interpolate(foamMesh_.cellCentres(), volScalarFieldPtrTable_["H2O.air"]());
+    projVolScalarFieldPtrTable_["H2O.air"]().correctBoundaryConditions();
 
     projVolScalarFieldPtrTable_["dryAir.air"]() = dimensionedScalar(dimless, 1) - projVolScalarFieldPtrTable_["H2O.air"]();
+    projVolScalarFieldPtrTable_["dryAir.air"]().correctBoundaryConditions();
     
     projVolScalarFieldPtrTable_["thermo:rho.air"]().primitiveFieldRef() = this->interpolate(foamMesh_.cellCentres(), volScalarFieldPtrTable_["thermo:rho.air"]());
+    projVolScalarFieldPtrTable_["thermo:rho.air"]().correctBoundaryConditions();
 
     projVolScalarFieldPtrTable_["p_rgh"]().primitiveFieldRef() = projVolScalarFieldPtrTable_["p"]() - projVolScalarFieldPtrTable_["thermo:rho.air"]() * dimensionedScalar(dimAcceleration, 9.81) * foamMesh_.C().component(2);
+    projVolScalarFieldPtrTable_["p_rgh"]().correctBoundaryConditions();
     Info << "[WRF] Interpolation complete" << endl;
 }
 
