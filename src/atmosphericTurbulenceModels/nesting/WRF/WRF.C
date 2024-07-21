@@ -526,7 +526,7 @@ void WRF::terraform_to_wrf(fvMesh& mesh)
     scalar vec_zmin(gMin(vec.component(2)));
     Info << vec_zmax - vec_zmin << endl;
 
-    vec = Foam::vector{0,0,vec_zmin+300} 
+    vec = Foam::vector{0,0,vec_zmin} 
         +(
             (zmax - foamPts.component(2))/(zmax-zmin)
            *(vec - Foam::vector{0,0,vec_zmin})

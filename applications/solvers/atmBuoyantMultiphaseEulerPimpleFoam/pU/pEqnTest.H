@@ -298,6 +298,8 @@ while (pimple.correct())
                       - phigFs[phase.index()] // body force terms
                     );
 
+            }
+
             if (partialElimination)
             {
                 fluid.partialElimination(rAUs, KdUByAs, alphafs, phiKdPhis);
