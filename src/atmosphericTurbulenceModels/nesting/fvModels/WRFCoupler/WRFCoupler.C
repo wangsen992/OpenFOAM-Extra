@@ -236,7 +236,7 @@ void Foam::fv::WRFCoupler::addSup
   //                     * V.field();
   forAll(eqn.source(), i)
   {
-    eqn.source()[i] -= 0.1 * (alpha[i] * rho[i] * cellWeights_[i] * (deltaPsi[i] - 0.2 * deltaPsiSmoothed.ref()[i]) * relaxationFactor_) * V[i];
+    eqn.source()[i] -= 0.1 * (alpha[i] * rho[i] * cellWeights_[i] * (deltaPsi[i] - 0.0 * deltaPsiSmoothed.ref()[i]) * relaxationFactor_) * V[i];
   }
 }
 
@@ -268,7 +268,7 @@ void Foam::fv::WRFCoupler::addSup
   //                     * V.field();
   forAll(eqn.source(), i)
   {
-    eqn.source()[i] -= 0.1 * (alpha[i] * rho[i] * cellWeights_[i] * (deltaPsi[i] - 0.2 * deltaPsiSmoothed.ref()[i]) * relaxationFactor_) * V[i];
+    eqn.source()[i] -= 0.1 * (alpha[i] * rho[i] * cellWeights_[i] * (deltaPsi[i] - 0.0 * deltaPsiSmoothed.ref()[i]) * relaxationFactor_) * V[i];
   }
   Info << "[fvModel] source added" << endl;
 }

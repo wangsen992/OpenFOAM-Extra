@@ -29,7 +29,6 @@ WRF wrf
 wrf.terraform_to_wrf(mesh);
 wrf.updateVars(0);
 
-
 // Load variables (besides U) to ptrTable
 List<dictionary> variableList
 (
