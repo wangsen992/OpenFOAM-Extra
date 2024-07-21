@@ -72,7 +72,10 @@ Switch wrfcoupling
 (
   pimple.dict().lookupOrDefault<Switch>("WRFCoupling", false)
 );
-#include "createWRF.H"
+if (wrfcoupling)
+{
+  #include "createWRF.H"
+}
 
 // thermo initialisation
 forAll(fluid.movingPhases(), movingPhasei)
