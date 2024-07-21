@@ -80,57 +80,9 @@ int main(int argc, char *argv[])
 
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
     runTime++;
-    phaseModel& phase = fluid.movingPhases()[0];
-
-    Info << "Initializing variables with WRF data" << endl;
-    
-    // Variables used from WRF: U, H2O.air, T.air, p, e.air, rho
-    Info << "On U...." << endl;
-    phase.URef() = wrf.U();
-    phase.URef().correctBoundaryConditions();
-    phase.phiRef() = fvc::flux(phase.URef());
-    phase.alphaPhiRef() = fvc::flux(phase.URef());
-
-    Info << "On T...." << endl;
-    phase.thermoRef().T() = wrf.var("T.air");
-    // phase.thermoRef().T().correctBoundaryConditions();
-
-    phase.YRef()[0] = dimensionedScalar(dimless, 1) - wrf.var("H2O.air");
-    phase.YRef()[1] = wrf.var("H2O.air");
-    phase.YRef()[0].correctBoundaryConditions();
-    phase.YRef()[1].correctBoundaryConditions();
-
-    phase.thermoRef().p() = wrf.var("p");
-    phase.thermoRef().p().correctBoundaryConditions();
-
-    volScalarField& wrf_e(const_cast<volScalarField&>(wrf.var("e.air")));
-    wrf_e = phase.thermoRef().he(phase.thermoRef().p(), phase.thermoRef().T());
-    phase.thermoRef().he().primitiveFieldRef() = wrf.var("e.air");
-    phase.thermoRef().he().correctBoundaryConditions();
-    he = phase.thermoRef().he();
-
-    phase.thermoRef().rho().primitiveFieldRef() = wrf.var("p") / (wrf.var("T.air") * dimensionedScalar(dimEnergy/(dimMass*dimTemperature), 287.05));
-    forAll(phase.thermoRef().rho().boundaryFieldRef(), i)
-    {
-      phase.thermoRef().rho().boundaryFieldRef()[i] = phase.thermoRef().rho().boundaryFieldRef()[i].patchInternalField();
-    }
-
-    p_rgh = phase.thermoRef().p() - phase.thermoRef().rho() * gh - pRef;
-    forAll(p_rgh.boundaryFieldRef(), i)
-    {
-      p_rgh.boundaryFieldRef()[i] = p_rgh.boundaryFieldRef()[i].patchInternalField();
-    }
-    
-    // phase.thermoRef().correct();
-
-    Info << "[Debug] average(U)= " << average(phase.URef()) << endl;
-    Info << "[Debug] average(T)= " << average(phase.thermoRef().T()) << endl;
-    Info << "[Debug] average(alphaPhi)= " << average(phase.alphaPhiRef()) << endl;
-    Info << "[Debug] average(rho) = " << average(rho) << endl;
-    Info << "[Debug] average(thermo.rho) = " << average(phase.thermoRef().rho()) << endl;
-    
-    Info << "Writetime after setting variables: " << runTime.value() << endl;
-    // runTime.write();
+    // 
+    // Info << "Writetime after setting variables: " << runTime.value() << endl;
+    runTime.write();
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
     #include "createRDeltaTf.H"

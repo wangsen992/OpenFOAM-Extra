@@ -294,10 +294,9 @@ while (pimple.correct())
                     HbyAs[phase.index()]
                   + fvc::reconstruct
                     (
-                        alpharAUfs[phase.index()]*mSfGradp
-                      - phigFs[phase.index()]
+                        alpharAUfs[phase.index()]*mSfGradp // pressure term
+                      - phigFs[phase.index()] // body force terms
                     );
-            }
 
             if (partialElimination)
             {
