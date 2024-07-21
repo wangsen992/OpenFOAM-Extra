@@ -95,10 +95,12 @@ Foam::fv::WRFCoupler::WRFCoupler
         IOobject::AUTO_WRITE
       ),
       mesh,
-      dimensionedScalar(dimless, 0)
+      dimensionedScalar(dimless, 0),
+      "zeroGradient"
     ),
     nestingDist_(dict.lookupOrDefault<scalar>("nestingDist", 500)),
-    relaxationFactor_(dict.lookupOrDefault<scalar>("relaxationFactor", 20)),
+    nestingDistTop_(dict.lookupOrDefault<scalar>("nestingDistTop", 100)),
+    relaxationFactor_(dict.lookupOrDefault<scalar>("relaxationFactor", 0.5)),
     currTimeInd_(-1),
     phaseName_(word::null)
 {
@@ -106,7 +108,7 @@ Foam::fv::WRFCoupler::WRFCoupler
     readCoeffs();
 
     // Set up the nesting cells
-    for(word pn: std::vector<word>{"east", "west", "south", "north", "top"})
+    for(word pn: std::vector<word>{"east", "west", "south", "north"})
     {
       // nestingCells_.append(getPatchCloseCells(mesh, pn, nestingDist_).first);
       combineCloseCellTables(nestingCellTbl_ , getPatchCloseCells(mesh, pn, nestingDist_));
@@ -126,15 +128,25 @@ Foam::fv::WRFCoupler::WRFCoupler
     forAll(nestingCells_, i)
     {
       label celli = nestingCells_[i];
-      cellWeights_[celli] = (nestingDist_ - nestingCellTbl_[celli])/nestingDist_;
+      cellWeights_[celli] = 1-nestingCellTbl_[celli]/nestingDist_;
     }
+
+    nestingCells_.clear();
+    nestingCellTbl_.clear();
+    combineCloseCellTables(nestingCellTbl_, getPatchCloseCells(mesh, "top", nestingDistTop_));
+    forAll(nestingCells_, i)
+    {
+      label celli = nestingCells_[i];
+      cellWeights_[celli] = 1 - nestingCellTbl_[celli]/100.0;
+    }
+
 }
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
 Foam::wordList Foam::fv::WRFCoupler::addSupFields() const
 {
-    return wordList{"U.air", "e.air", "H2O.air", "dryAir.air", "thermo:rho.air"};
+    return wordList{"U.air", "e.air", "H2O.air", "dryAir.air","thermo:rho.air"};
     // return wordList{"U.air", "e.air", "H2O.air"};
 }
 
@@ -200,16 +212,16 @@ void Foam::fv::WRFCoupler::addSup
   typedef GeometricField<Foam::vector, fvPatchField, volMesh> psiType;
   auto psi_foam = mesh().lookupObjectRef<psiType>(fieldName);
   auto V = mesh().V();
-  tmp<volVectorField> tdeltaPsi = wrf_.U() - psi_foam;
+  tmp<volVectorField> tdeltaPsi = wrf_.U() - eqn.psi();
   volVectorField& deltaPsi(tdeltaPsi.ref());
 
   // Remove vertical velocity addition
-  std::for_each
-  (
-    deltaPsi.begin(), 
-    deltaPsi.end(), 
-    [](vector& v){v.z() = 0;}
-  );
+  // std::for_each
+  // (
+  //   deltaPsi.begin(), 
+  //   deltaPsi.end(), 
+  //   [](vector& v){v.z() = 0;}
+  // );
 
   // Set patchField values
   forAll(deltaPsi.boundaryFieldRef(), i)
@@ -226,8 +238,8 @@ void Foam::fv::WRFCoupler::addSup
   {
     eqn.source()[i] -= 0.1 * (alpha[i] * rho[i] * cellWeights_[i] * (deltaPsi[i] - 0.2 * deltaPsiSmoothed.ref()[i]) * relaxationFactor_) * V[i];
   }
-
 }
+
 void Foam::fv::WRFCoupler::addSup
 (
     const volScalarField& alpha,
@@ -241,8 +253,9 @@ void Foam::fv::WRFCoupler::addSup
   auto psi_foam = mesh().lookupObjectRef<psiType>(fieldName);
   auto V = mesh().V();
   const psiType& psi(wrf_.var(fieldName));
-  tmp<volScalarField> tdeltaPsi = psi - psi_foam;
+  tmp<volScalarField> tdeltaPsi = psi - eqn.psi();
   volScalarField& deltaPsi(tdeltaPsi.ref());
+   
   // Set patchField values
   forAll(deltaPsi.boundaryFieldRef(), i)
   {

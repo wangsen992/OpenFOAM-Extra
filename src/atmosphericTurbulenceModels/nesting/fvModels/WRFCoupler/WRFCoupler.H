@@ -87,6 +87,7 @@ class WRFCoupler
         pointField nestingCellCentres_;
         volScalarField cellWeights_;
         scalar nestingDist_;
+        scalar nestingDistTop_;
         scalar relaxationFactor_;
 
         //- Flags to control update
@@ -94,6 +95,8 @@ class WRFCoupler
 
         //- Optional phase name
         word phaseName_;
+
+        //
 
     // Private Member Functions
 

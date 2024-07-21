@@ -482,11 +482,16 @@ void WRF::terraform_to_wrf(fvMesh& mesh)
     3
   );
   // Interp the ground points from openfoam to wrf bottom patch
-  Foam::vector ll{0,0,3000};
+  Foam::vector ll{0,0,10000};
   Foam::vector zvec{0,0,1};
   auto findVec = [&](const point& pt)
   {
     auto wrfHit =  wrfTree.findLine(pt-ll, pt+ll);
+    if (!wrfHit.hit())
+    {
+      Info << "WRF bounds " << wrfTree.bb() << endl;
+      Info << "WRF not hit " << pt << endl;
+    }
     point wrfPt = wrfHit.hitPoint(); 
     auto foamHit = foamTree.findLine(pt-ll, pt+ll);
     point foamPt;
@@ -521,7 +526,7 @@ void WRF::terraform_to_wrf(fvMesh& mesh)
     scalar vec_zmin(gMin(vec.component(2)));
     Info << vec_zmax - vec_zmin << endl;
 
-    vec = Foam::vector{0,0,vec_zmin} 
+    vec = Foam::vector{0,0,vec_zmin+300} 
         +(
             (zmax - foamPts.component(2))/(zmax-zmin)
            *(vec - Foam::vector{0,0,vec_zmin})
