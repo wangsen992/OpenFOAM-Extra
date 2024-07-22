@@ -95,7 +95,7 @@ Foam::fv::WRFCoupler::WRFCoupler
         IOobject::AUTO_WRITE
       ),
       mesh,
-      dimensionedScalar(dimless, 0),
+      dimensionedScalar(dimless/dimTime, dict.lookupOrDefault<scalar>("nudgingCoeff", 0.0003)),
       "zeroGradient"
     ),
     nestingDist_(dict.lookupOrDefault<scalar>("nestingDist", 500)),
@@ -129,6 +129,7 @@ Foam::fv::WRFCoupler::WRFCoupler
     {
       label celli = nestingCells_[i];
       cellWeights_[celli] = 1-nestingCellTbl_[celli]/nestingDist_;
+      cellWeights_[celli] *= relaxationFactor_;
     }
 
     nestingCells_.clear();
@@ -137,7 +138,8 @@ Foam::fv::WRFCoupler::WRFCoupler
     forAll(nestingCells_, i)
     {
       label celli = nestingCells_[i];
-      cellWeights_[celli] = 1 - nestingCellTbl_[celli]/100.0;
+      cellWeights_[celli] = 1 - nestingCellTbl_[celli]/nestingDistTop_;
+      cellWeights_[celli] *= relaxationFactor_;
     }
 
 }
@@ -146,7 +148,7 @@ Foam::fv::WRFCoupler::WRFCoupler
 
 Foam::wordList Foam::fv::WRFCoupler::addSupFields() const
 {
-    return wordList{"U.air", "e.air", "H2O.air", "dryAir.air","thermo:rho.air"};
+    return wordList{"U.air", "e.air", "H2O.air", "dryAir.air"};
     // return wordList{"U.air", "e.air", "H2O.air"};
 }
 
@@ -234,10 +236,11 @@ void Foam::fv::WRFCoupler::addSup
   Info << "[fvModel] averageDeltaPsi = " << average(mag(deltaPsi)) << endl;
   // eqn.source() += 0.1 * (alpha * rho * cellWeights_ * deltaPsi* relaxationFactor_)->field()
   //                     * V.field();
-  forAll(eqn.source(), i)
-  {
-    eqn.source()[i] -= 0.1 * (alpha[i] * rho[i] * cellWeights_[i] * (deltaPsi[i] - 0.0 * deltaPsiSmoothed.ref()[i]) * relaxationFactor_) * V[i];
-  }
+  eqn += alpha * rho * cellWeights_ * wrf_.U() - fvm::Sp(alpha * rho * cellWeights_, eqn.psi());
+  // forAll(eqn.source(), i)
+  // {
+  //   eqn.source()[i] -= (alpha[i] * rho[i] * cellWeights_[i] * (deltaPsi[i] - 0.0 * deltaPsiSmoothed.ref()[i]) ) * V[i];
+  // }
 }
 
 void Foam::fv::WRFCoupler::addSup
@@ -262,14 +265,14 @@ void Foam::fv::WRFCoupler::addSup
     deltaPsi.boundaryFieldRef()[i] = deltaPsi.boundaryFieldRef()[i].patchInternalField();
   }
   tmp<volScalarField> deltaPsiSmoothed = smooth<scalar>(deltaPsi, 5);
-  Info << "[fvModel] averageDeltaPsi = " << average(mag(deltaPsi)) << endl;
+  Info << "[fvModel] t= " << mesh().time().value() << ", " << "averageDeltaPsi = " << average(mag(deltaPsi)) << endl;
 
-  // eqn.source() += 0.1 * (alpha * rho * cellWeights_ * deltaPsi * relaxationFactor_)->field()
-  //                     * V.field();
-  forAll(eqn.source(), i)
-  {
-    eqn.source()[i] -= 0.1 * (alpha[i] * rho[i] * cellWeights_[i] * (deltaPsi[i] - 0.0 * deltaPsiSmoothed.ref()[i]) * relaxationFactor_) * V[i];
-  }
+  eqn += alpha * rho * cellWeights_ * psi - fvm::Sp(alpha * rho * cellWeights_, eqn.psi());
+
+  // forAll(eqn.source(), i)
+  // {
+  //   eqn.source()[i] -= (alpha[i] * rho[i] * cellWeights_[i] * (deltaPsi[i] - 0.0 * deltaPsiSmoothed.ref()[i])) * V[i];
+  // }
   Info << "[fvModel] source added" << endl;
 }
 

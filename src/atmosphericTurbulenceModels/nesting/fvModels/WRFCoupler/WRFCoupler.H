@@ -27,6 +27,8 @@ Class
 Description
     WRF coupler to be used for the atm*Foam solvers loading input 
 
+    Weight for each cell is a summation of nudging and lateral boundary coefficients
+
 Usage
     Example usage:
     \verbatim
