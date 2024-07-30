@@ -55,7 +55,9 @@ SourceFiles
 #include "uniformDimensionedFields.H"
 #include "dimensionedVector.H"
 #include "fluidAtmThermo.H"
-#include "WRF.H"
+#include "meshSearch.H"
+#include "interpolation.H"
+#include "nesting_utils.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -78,10 +80,12 @@ class WRFCoupler
 
         //- Host case fvMesh
         const fvMesh& mesh_;
+        Time wrfTime_;
+        autoPtr<fvMesh> pwrfMesh_;
         const fluidAtmThermo& thermo_;
+        autoPtr<meshSearch> tsearcher_;
 
-        //- WRF driver
-        WRF& wrf_;
+        dictionary varList_;
 
         //- CellList for applying nesting
         DynamicList<label, 20> nestingCells_;
@@ -98,7 +102,12 @@ class WRFCoupler
         //- Optional phase name
         word phaseName_;
 
-        //
+        //- 
+        label wrfi_;
+        volVectorField projUold_;
+        volVectorField projUnew_;
+        HashTable<autoPtr<volScalarField>, word> projVolScalarFieldPtrTableOld_;
+        HashTable<autoPtr<volScalarField>, word> projVolScalarFieldPtrTableNew_;
 
     // Private Member Functions
 
@@ -137,22 +146,6 @@ public:
 
         // Evaluate
 
-            //- Add explicit contribution to incompressible momentum equation
-            template<typename T>
-            void addSup
-            (
-                fvMatrix<T>& eqn,
-                const word& fieldName
-            ) const;
-
-            //- Add explicit contribution to compressible momentum equation
-            template<typename T>
-            void addSup
-            (
-                const volScalarField& rho,
-                fvMatrix<T>& eqn,
-                const word& fieldName
-            ) const;
 
             //- Add explicit contribution to phase momentum equation
             template<typename T>
@@ -163,6 +156,11 @@ public:
                 fvMatrix<T>& eqn,
                 const word& fieldName
             ) const;
+            
+           // interpolate multiple points from source field
+           template<typename Type>
+           Field<Type> interpolate(const Field<point>& pts, const GeometricField<Type, fvPatchField, volMesh>& psi, const word& interpMethod="pointMVC");
+ 
         
         // Correct fvModel
         void correct();
@@ -182,13 +180,6 @@ public:
         void addSup
         (
             const volScalarField& alpha,
-            fvMatrix<Foam::scalar>& eqn,
-            const word& fieldName
-        ) const;
-
-        void addSup
-        (
-            const volScalarField& alpha,
             const volScalarField& rho,
             fvMatrix<Foam::vector>& eqn,
             const word& fieldName
@@ -203,34 +194,32 @@ public:
 };
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-template<typename T>
-void Foam::fv::WRFCoupler::addSup
-(
-    fvMatrix<T>& eqn,
-    const word& fieldName
-) const
+
+template<typename Type>
+Field<Type> fv::WRFCoupler::interpolate(const Field<point>& pts, const GeometricField<Type, fvPatchField, volMesh>& psi, const word& interpMethod)
 {
-}
-
-
-template<typename T>
-void Foam::fv::WRFCoupler::addSup
-(
-    const volScalarField& rho,
-    fvMatrix<T>& eqn,
-    const word& fieldName
-) const
-{
-  typedef GeometricField<T, fvPatchField, volMesh> psiType;
-  auto psi = wrf_.time().lookupObjectRef<psiType>(fieldName);
-  auto psi_foam = mesh().time().lookupObjectRef<psiType>(fieldName);
-
-  const scalarField& V = mesh().V();
-  auto source = eqn.source();
-  for(auto i : nestingCells_)
+  autoPtr<interpolation<Type>> interp
+  (
+    interpolation<Type>::New(interpMethod, psi)
+  );
+  pointField wrf_pts = pts;
+  Field<Type> interpVals(pts.size());
+  for(size_t i=0; i < pts.size(); i++)
   {
-    source[i] -= V[i] * rho[i] * relaxationFactor_*(psi[i] - psi_foam[i]);
+    label cellInd = tsearcher_->findCell(wrf_pts[i]);
+    if(cellInd < 0)
+    {
+      Info << "[Debug] point not in domain: " << wrf_pts[i];
+      cellInd = tsearcher_->findNearestCell(wrf_pts[i]);
+      Info << " distance = " << tsearcher_->mesh().points()[cellInd].z() - wrf_pts[i].z() << endl;
+    }
+    interpVals[i] = interp->interpolate
+    (
+      wrf_pts[i],
+      tsearcher_->findCell(wrf_pts[i])
+    );
   }
+  return interpVals;
 }
 
 template<typename Type>
@@ -248,29 +237,6 @@ tmp<GeometricField<Type, fvPatchField, volMesh>> smooth(GeometricField<Type, fvP
     }
     return tmp<psiType> ( new psiType(f0));
 }
-
-
-// template<typename T>
-// void Foam::fv::WRFCoupler::addSup
-// (
-//     const volScalarField& alpha,
-//     const volScalarField& rho,
-//     fvMatrix<T>& eqn,
-//     const word& fieldName
-// ) const
-// {
-//   Info << "[fvModel] adding wrf field " << fieldName << endl;
-//   typedef GeometricField<T, fvPatchField, volMesh> psiType;
-//   auto psi = wrf_.time().lookupObjectRef<psiType>(fieldName);
-//   auto psi_foam = mesh().time().lookupObjectRef<psiType>(fieldName);
-// 
-//   auto source = eqn.source();
-//   const scalarField& V = mesh().V();
-//   for(auto i : nestingCells_)
-//   {
-//     source[i] += V[i] * alpha[i] * rho[i] * relaxationFactor_*(psi[i] - psi_foam[i]);
-//   }
-// }
 
 } // End namespace fv
 } // End namespace Foam

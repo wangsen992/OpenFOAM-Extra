@@ -1,4 +1,7 @@
 // WRF class as a connector from OpenFOAM to read netcdf read from WRF
+// WRF reads an foamcase created with the utility foamWRF
+// Used as a resource manager, and all data are stored in the master node,
+// whereas the rest simply request data from the master. 
 
 #ifndef WRF_H
 #define WRF_H
@@ -36,8 +39,6 @@ namespace Foam
         //- List of varialbes from netcdf
         volVectorField U_;
         HashTable<autoPtr<volScalarField>, word> volScalarFieldPtrTable_;
-        volVectorField projU_;
-        HashTable<autoPtr<volScalarField>, word> projVolScalarFieldPtrTable_;
         
         //- Flags to control update
         label currTimeInd_;
@@ -95,11 +96,11 @@ namespace Foam
 
       tmp<volScalarField> read_var2d(const word& name, dimensionSet ds, size_t it, IOobject::writeOption opt=IOobject::NO_WRITE);
 
-      const volVectorField& U(){return projU_;}
+      const volVectorField& U(){return U_;}
 
       const volScalarField& var(const word& name)
       {
-        return projVolScalarFieldPtrTable_[name]();
+        return volScalarFieldPtrTable_[name]();
       }
       
       //- Non-virtual update variables
@@ -124,11 +125,11 @@ namespace Foam
     // Interpolation functions
     // interpolate one point from source field
        template<typename Type>
-       Type interpolate(const point& pt, GeometricField<Type, fvPatchField, volMesh>& psi, const word& interpMethod="pointMVC");
+       Type interpolate(const point& pt, const GeometricField<Type, fvPatchField, volMesh>& psi, const word& interpMethod="pointMVC");
  
        // interpolate multiple points from source field
        template<typename Type>
-       Field<Type> interpolate(const Field<point>& pts, GeometricField<Type, fvPatchField, volMesh>& psi, const word& interpMethod="pointMVC");
+       Field<Type> interpolate(const Field<point>& pts, const GeometricField<Type, fvPatchField, volMesh>& psi, const word& interpMethod="pointMVC");
  
    };
 }

@@ -44,7 +44,6 @@ Description
 #include "fluidAtmThermo.H"
 #include "atmHydrostaticInitialisation.H"
 #include "referenceStateInitialisation.H"
-#include "WRF.H"
 
 #include "IOmanip.H"
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

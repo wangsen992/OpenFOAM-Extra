@@ -68,11 +68,11 @@ if (p_rgh.needReference() && fluid.incompressible())
 
 mesh.setFluxRequired(p_rgh.name());
 
-Switch wrfcoupling
-(
-  pimple.dict().lookupOrDefault<Switch>("WRFCoupling", false)
-);
-#include "createWRF.H"
+// Switch wrfcoupling
+// (
+//   pimple.dict().lookupOrDefault<Switch>("WRFCoupling", false)
+// );
+// #include "createWRF.H"
 
 // thermo initialisation
 forAll(fluid.movingPhases(), movingPhasei)

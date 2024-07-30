@@ -19,7 +19,7 @@ tmp<volVectorField> load_U(fvMesh& mesh, netCDF::NcFile& dataFile, size_t it, Fo
         (
           IOobject
           (
-            "Utmp",
+            "U",
             mesh.time().timeName(),
             mesh.time(),
             IOobject::NO_READ,
@@ -122,7 +122,7 @@ Foam::tmp<Foam::volScalarField> load_var
         (
           IOobject
           (
-            varname+"tmp",
+            varname,
             mesh.time().timeName(),
             mesh.time(),
             IOobject::NO_READ,
@@ -187,7 +187,7 @@ Foam::tmp<Foam::volScalarField> load_2dvar
       (
         IOobject
         (
-          varname+"tmp",
+          varname,
           mesh.time().timeName(),
           mesh.time(),
           IOobject::NO_READ,

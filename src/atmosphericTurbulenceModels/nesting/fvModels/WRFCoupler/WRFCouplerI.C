@@ -1,10 +1,10 @@
-#include "WRF.H"
+#include "WRFCoupler.H"
 #include "interpolation.H"
 
 using namespace Foam;
 
 template<typename Type>
-Type WRF::interpolate(const point& pt, const GeometricField<Type, fvPatchField, volMesh>& psi, const word& interpMethod)
+Type fv::WRFCoupler::interpolate(const point& pt, const GeometricField<Type, fvPatchField, volMesh>& psi, const word& interpMethod)
 {
   autoPtr<interpolation<Type>> interp
   (
