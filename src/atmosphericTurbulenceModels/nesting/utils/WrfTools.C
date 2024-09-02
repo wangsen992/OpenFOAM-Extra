@@ -224,6 +224,8 @@ autoPtr<polyMesh> meshFromNc(netCDF::NcFile& dataFile, Time& runTime, bool write
         netCDF::NcVar ph_nc(dataFile.getVar("PH"));
         phb_nc.getVar(phb);
         ph_nc.getVar(ph);
+        double Re(6371000.0);
+        double Phi;
 
         for (int k=0; k < N_bottom_top_stag; k++)
         {
@@ -232,7 +234,9 @@ autoPtr<polyMesh> meshFromNc(netCDF::NcFile& dataFile, Time& runTime, bool write
             for (int i=0; i < N_west_east; i++)
             {
               cc = k * N_south_north * N_west_east + j * N_west_east + i;
-              Z_stag[cc] = (phb[cc] + phb[cc]) / 9.81;
+              // Z_stag[cc] = (phb[cc] + phb[cc]) / 9.81;
+              Phi = ph[cc] + phb[cc];
+              Z_stag[cc] = (Phi * Re) / (9.81 * Re - Phi);
             }
           }
         }

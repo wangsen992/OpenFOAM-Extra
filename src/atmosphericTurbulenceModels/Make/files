@@ -27,6 +27,7 @@ nesting/utils/WrfTools.C
 nesting/WRF/WRF.C
 nesting/fvModels/WRFCoupler/WRFCoupler.C
 nesting/fvPatchFields/wrfFixedValue/wrfFixedValueFvPatchFields.C
+nesting/fvPatchFields/fixedPrghByP/fixedPrghByPPatchField.C
 
 radiationModels/absorptionEmissionModels/atmWideBand/atmWideBand.C
 # radiationModels/radiationModels/atmRadiationModel/atmRadiationModel.C

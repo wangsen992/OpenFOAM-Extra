@@ -1,5 +1,6 @@
 
 #include "wrfFixedValueFvPatchField.H"
+#include "nesting_utils.H"
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
@@ -35,7 +36,26 @@ Foam::wrfFixedValueFvPatchField<Type>::wrfFixedValueFvPatchField
 )
 :
     fixedValueFvPatchField<Type>(p, iF, dict, false),
-    fieldName_(dict.lookup<word>("field"))
+    fieldName_(dict.lookup<word>("field")),
+    wrf_case_root_(dict.lookup<string>("wrf_case_root")),
+    wrf_case_name_(dict.lookup<string>("wrf_case_name")),
+    pwrfTime_
+    (
+      autoPtr<Time>
+      (
+        new Time
+        (
+          Time::controlDictName, 
+          dict.lookup<string>("wrf_case_root"),
+          dict.lookup<string>("wrf_case_name")
+        )
+      )
+    ),
+    pwrfMesh_(),
+    wrfi_(-1),
+    psiOld_(p.size()),
+    psiNew_(p.size())
+
 {
     if (dict.found("value"))
     {
@@ -93,28 +113,86 @@ void Foam::wrfFixedValueFvPatchField<Type>::updateCoeffs()
         return;
     }
 
-    // Temporary fix, doesn't support restarting simulations
-    if(this->patch().boundaryMesh().mesh().time().timeIndex() > 0)
+    label curi(floor(this->db().time().value()/3600.0)+1);
+    Time& wrfTime_(pwrfTime_());
+
+    if (curi > wrfi_)
     {
-      const Time& runTime = this->patch().boundaryMesh().mesh().time();
-      WRF& wrf_ = runTime.template lookupObjectRef<WRF>("WRF");
-      Info << "[fvPatchField] update coeffs for patch " << this->patch().name() << " for field " << fieldName_ << endl;
-      const scalar t = this->db().time().timeOutputValue();
-      typedef GeometricField<Type, fvPatchField, volMesh> psiType;
-      psiType& psi
+      wrfi_ = curi;
+
+      pwrfMesh_.set
       (
-        runTime.lookupObjectRef<psiType>(IOobject::groupName(fieldName_, "proj"))
+        new fvMesh
+        (
+          IOobject
+          (
+            fvMesh::defaultRegion,
+            pwrfTime_->timeName(),
+            pwrfTime_(),
+            IOobject::MUST_READ
+          )
+        )
       );
 
-      this->operator==(psi.boundaryField()[this->patch().index()].patchInternalField());
+
+      {
+        wrfTime_.setTime
+        (
+          wrfTime_.times()[wrfi_].value(),
+          wrfi_
+        );
+        psiType psi
+        (
+          IOobject
+          (
+            fieldName_,
+            wrfTime_.timeName(),
+            wrfTime_,
+            IOobject::MUST_READ
+          ),
+          pwrfMesh_()
+        );
+
+        psiOld_ = interpolate(this->patch().Cf(), psi, "cell");
+      }
+
+
+      {
+        wrfTime_.setTime
+        (
+          wrfTime_.times()[wrfi_+1].value(),
+          wrfi_+1
+        );
+        psiType psi
+        (
+          IOobject
+          (
+            fieldName_,
+            wrfTime_.timeName(),
+            wrfTime_,
+            IOobject::MUST_READ
+          ),
+          pwrfMesh_()
+        );
+
+        psiNew_ = interpolate(this->patch().Cf(), psi, "cell");
+      }
+
+      pwrfMesh_.clear();
+
+    }
+
+    const fvMesh& mesh(this->patch().boundaryMesh().mesh());
+    auto t = mesh.time().value();
+    auto dt = mesh.time().deltaTValue();
+    auto told = wrfTime_.times()[wrfi_].value();
+    auto tnew = wrfTime_.times()[wrfi_+1].value();
+
+    // Temporary fix, doesn't support restarting simulations
+
+      this->operator==((tnew-t)/(tnew-told)*psiOld_ + (t-told)/(tnew-told)*psiNew_);
       Info << average(*this) << endl;
       fixedValueFvPatchField<Type>::updateCoeffs();
-    }
-    else
-    {
-      return;
-    }
-    
 
     fixedValueFvPatchField<Type>::updateCoeffs();
 }
@@ -125,6 +203,8 @@ void Foam::wrfFixedValueFvPatchField<Type>::write(Ostream& os) const
 {
     fvPatchField<Type>::write(os);
     writeEntry(os, "field", fieldName_);
+    writeEntry(os, "wrf_case_root", wrf_case_root_);
+    writeEntry(os, "wrf_case_name", wrf_case_name_);
     writeEntry(os, "value", *this);
 }
 

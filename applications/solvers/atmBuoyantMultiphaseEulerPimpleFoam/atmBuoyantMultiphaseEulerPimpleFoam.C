@@ -78,10 +78,10 @@ int main(int argc, char *argv[])
     );
 
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-    runTime++;
-    // 
-    // Info << "Writetime after setting variables: " << runTime.value() << endl;
-    runTime.write();
+    // runTime++;
+    // // 
+    // // Info << "Writetime after setting variables: " << runTime.value() << endl;
+    // runTime.write();
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
     #include "createRDeltaTf.H"
@@ -243,7 +243,7 @@ int main(int argc, char *argv[])
                         
                     }
 
-                    #include "pU/pEqnTest.H"
+                    #include "pU/pEqn.H"
                 }
 
                 fluid.correctKinematics();

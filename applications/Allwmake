@@ -14,3 +14,4 @@ echo $targetType $*
 wmake $targetType solvers/atmBuoyantPimpleFoam
 wmake $targetType solvers/atmBuoyantMultiphaseEulerPimpleFoam
 wmake $targetType solvers/explicitFoam
+wmake $targetType utilities/WRF/foamWRF

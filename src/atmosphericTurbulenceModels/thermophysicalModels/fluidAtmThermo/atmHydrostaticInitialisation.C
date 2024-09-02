@@ -79,9 +79,10 @@ void Foam::atmHydrostaticInitialisation
               volScalarField T_orig = thermo.T();
               volScalarField& p = thermo.p();
               volScalarField& he = thermo.he();
-              p = ph_rgh + rho*gh + pRef;
+              he = thermo.he(p, T_orig);
               thermo.correct();
               rho = thermo.rho();
+              p = ph_rgh + rho*gh + pRef;
               label nCorr
               (
                   dict.lookupOrDefault<label>("nHydrostaticCorrectors", 5)
@@ -102,9 +103,8 @@ void Foam::atmHydrostaticInitialisation
                   // [Temporary fix]
                   // ph_rgh = ph_rgh - max(ph_rgh);
                   // This is to fix the max value of ph_rgh to zero
-                  Pout << "gMax(ph_rgh) = " << max(ph_rgh) << endl;
-                  Pout << "gMax(ph_rgh) = " << gMax(ph_rgh) << endl;
-                  ph_rgh.primitiveFieldRef() = ph_rgh.primitiveField() - gMax(ph_rgh);
+                  Info << "gMax(ph_rgh) = " << gMax(ph_rgh) << endl;
+                  // ph_rgh.primitiveFieldRef() = ph_rgh.primitiveField() - gMax(ph_rgh);
 
                   fvScalarMatrix ph_rghEqn
                   (
@@ -130,6 +130,61 @@ void Foam::atmHydrostaticInitialisation
                   << (max(p) - min(p)).value() << endl;
               p_rgh = ph_rgh;
             }
+            else if (atmHydrostaticInitialisationMode == "dryFixedTTest")
+            {
+              // In this mode, both T and p are known before hand
+              // Original value must be cached for energy setting
+              volScalarField T_orig = thermo.T();
+              volScalarField p_orig = thermo.p();
+              volScalarField& he = thermo.he();
+              thermo.he() = thermo.he(p_orig, T_orig);
+              thermo.correct();
+              rho = thermo.rho();
+              label nCorr
+              (
+                  dict.lookupOrDefault<label>("nHydrostaticCorrectors", 5)
+              );
+
+              for (label i=0; i<nCorr; i++)
+              {
+                  surfaceScalarField rhof("rhof", fvc::interpolate(rho));
+
+                  surfaceScalarField phig
+                  (
+                      "phig",
+                      -rhof*ghf*fvc::snGrad(rho)*mesh.magSf()
+                  );
+
+                  // Update the pressure BCs to ensure flux consistency
+                  constrainPressure(ph_rgh, rho, U, phig, rhof);
+                  // [Temporary fix]
+                  // ph_rgh = ph_rgh - max(ph_rgh);
+                  // This is to fix the max value of ph_rgh to zero
+                  Pout << "gMax(ph_rgh) = " << max(ph_rgh) << endl;
+                  Pout << "gMax(ph_rgh) = " << gMax(ph_rgh) << endl;
+                  // ph_rgh.primitiveFieldRef() = ph_rgh.primitiveField() - gMax(ph_rgh);
+
+                  fvScalarMatrix ph_rghEqn
+                  (
+                      fvm::laplacian(rhof, ph_rgh) == fvc::div(phig)
+                  );
+
+                  Info << "ph_rghEqn eqn symmetric? " << ph_rghEqn.symmetric() << endl;
+
+
+                  SolverPerformance<scalar> sp = ph_rghEqn.solve();
+                  he = thermo.he(p_orig, T_orig);
+                  // p = ph_rgh + rho*gh + pRef;
+                  thermo.correct();
+                  rho = thermo.rho();
+
+              }
+
+              Info<< "Final Hydrostatic pressure variation "
+                  << (max(p_orig) - min(p_orig)).value() << endl;
+              p_rgh = ph_rgh;
+            }
+
             else if (atmHydrostaticInitialisationMode == "wetTheta") 
             {
               // Original value must be cached for energy setting

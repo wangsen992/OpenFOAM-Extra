@@ -55,8 +55,6 @@ SourceFiles
 #include "uniformDimensionedFields.H"
 #include "dimensionedVector.H"
 #include "fluidAtmThermo.H"
-#include "meshSearch.H"
-#include "interpolation.H"
 #include "nesting_utils.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -83,7 +81,6 @@ class WRFCoupler
         Time wrfTime_;
         autoPtr<fvMesh> pwrfMesh_;
         const fluidAtmThermo& thermo_;
-        autoPtr<meshSearch> tsearcher_;
 
         dictionary varList_;
 
@@ -159,7 +156,7 @@ public:
             
            // interpolate multiple points from source field
            template<typename Type>
-           Field<Type> interpolate(const Field<point>& pts, const GeometricField<Type, fvPatchField, volMesh>& psi, const word& interpMethod="pointMVC");
+           static Field<Type> interpolate(const Field<point>& pts, const GeometricField<Type, fvPatchField, volMesh>& psi, const word& interpMethod="cell");
  
         
         // Correct fvModel
@@ -198,27 +195,36 @@ public:
 template<typename Type>
 Field<Type> fv::WRFCoupler::interpolate(const Field<point>& pts, const GeometricField<Type, fvPatchField, volMesh>& psi, const word& interpMethod)
 {
+  meshSearch searcher(psi.mesh());
+
   autoPtr<interpolation<Type>> interp
   (
     interpolation<Type>::New(interpMethod, psi)
   );
+
   pointField wrf_pts = pts;
-  Field<Type> interpVals(pts.size());
+  Field<Type> interpVals(pts.size(), Zero);
+  Info << "[WRF] gAverage(interpVals) " << gAverage(interpVals)
+       << "; gAverage(interp->psi) = " << gAverage(interp->psi()) << endl;
   for(size_t i=0; i < pts.size(); i++)
   {
-    label cellInd = tsearcher_->findCell(wrf_pts[i]);
+    label cellInd = searcher.findCell(wrf_pts[i]);
     if(cellInd < 0)
     {
       Info << "[Debug] point not in domain: " << wrf_pts[i];
-      cellInd = tsearcher_->findNearestCell(wrf_pts[i]);
-      Info << " distance = " << tsearcher_->mesh().points()[cellInd].z() - wrf_pts[i].z() << endl;
+      cellInd = searcher.findNearestCell(wrf_pts[i]);
+      Info << " distance = " << searcher.mesh().points()[cellInd].z() - wrf_pts[i].z() << endl;
     }
     interpVals[i] = interp->interpolate
     (
       wrf_pts[i],
-      tsearcher_->findCell(wrf_pts[i])
+      cellInd
     );
   }
+  interp.clear();
+  Info << "[WRF] gAverage(psi) = " << gAverage(psi) 
+       << "gAverage(interpVals) = " << gAverage(interpVals)
+       << endl;
   return interpVals;
 }
 
@@ -246,3 +252,4 @@ tmp<GeometricField<Type, fvPatchField, volMesh>> smooth(GeometricField<Type, fvP
 #endif
 
 // ************************************************************************* //
+

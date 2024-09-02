@@ -15,6 +15,9 @@
 #include "fvMesh.H"
 #include "dimensionSet.H"
 
+#include "meshSearch.H"
+#include "interpolation.H"
+
 // Forward declarations to avoid namespace clash
 // namespace Foam
 // {
@@ -118,4 +121,37 @@ void interp3d
   std::vector<double>& u1
 );
 
+namespace Foam
+{
+template<typename Type>
+Foam::Field<Type> interpolate(const Field<point>& pts, const GeometricField<Type, fvPatchField, volMesh>& psi, const word& interpMethod="pointMVC")
+{
+  meshSearch searcher(psi.mesh());
+
+  autoPtr<interpolation<Type>> interp
+  (
+    interpolation<Type>::New(interpMethod, psi)
+  );
+
+  pointField wrf_pts = pts;
+  Field<Type> interpVals(pts.size(), Zero);
+  for(size_t i=0; i < pts.size(); i++)
+  {
+    label cellInd = searcher.findCell(wrf_pts[i]);
+    if(cellInd < 0)
+    {
+      Info << "[Debug] point not in domain: " << wrf_pts[i];
+      cellInd = searcher.findNearestCell(wrf_pts[i]);
+      Info << " distance = " << searcher.mesh().points()[cellInd].z() - wrf_pts[i].z() << endl;
+    }
+    interpVals[i] = interp->interpolate
+    (
+      wrf_pts[i],
+      cellInd
+    );
+  }
+  interp.clear();
+  return interpVals;
+}
+}
 #endif

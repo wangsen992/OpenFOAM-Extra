@@ -5,7 +5,6 @@
 #define wrfFixedValueFvPatchField_H
 
 #include "fixedValueFvPatchField.H"
-#include "WRF.H"
 
 namespace Foam
 {
@@ -14,9 +13,17 @@ template<typename Type>
 class wrfFixedValueFvPatchField
   : public fixedValueFvPatchField<Type>
 {
+    typedef GeometricField<Type, fvPatchField, volMesh> psiType;
 
     // autoPtr<WRF>  wrf_;
     word  fieldName_;
+    string wrf_case_root_;
+    string wrf_case_name_;
+    autoPtr<Time> pwrfTime_;
+    autoPtr<fvMesh> pwrfMesh_;
+    label wrfi_;
+    Field<Type> psiOld_;
+    Field<Type> psiNew_;
 
 public:
     //- Runtime Type Information

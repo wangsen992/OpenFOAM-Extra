@@ -40,7 +40,7 @@ void combineCloseCellTables(Foam::HashTable<Foam::scalar, Foam::label>& hostTbl,
       }
       else
       {
-          hostTbl.set(i, Foam::min(hostTbl[i], srcTbl[i]));
+          hostTbl.set(i, Foam::max(hostTbl[i], srcTbl[i]));
       }
     }
 }

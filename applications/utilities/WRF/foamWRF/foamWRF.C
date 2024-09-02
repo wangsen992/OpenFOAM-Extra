@@ -38,12 +38,14 @@ Description
 \*---------------------------------------------------------------------------*/
 
 #include "IOobject.H"
+#include "dimensionedScalarFwd.H"
 #include "fvCFD.H"
 // #include "WRF.H"
 #include "nesting_utils.H"
 #include "treeDataFace.H"
 #include "indexedOctree.H"
 #include "treeBoundBox.H"
+#include "fluidAtmThermo.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -94,6 +96,7 @@ int main(int argc, char *argv[])
         )
       );
     }
+    fvMesh& mesh(pmesh());
 
     // Read variables and write as needed
     if (dict.lookup<bool>("read_vars"))
@@ -119,13 +122,17 @@ int main(int argc, char *argv[])
 
         if(var_dict.found("var3d"))
         {
-          List<word> var_list = var_dict.lookup<List<word>>("var3d");
-          for(auto varname : var_list)
+          dictionary var_list = var_dict.subDict("var3d");
+          for(auto varname : var_list.keys())
           {
             volScalarField var
             (
-              load_var(pmesh(), ncfile, varname, {0,0,0,0,0}, i)
+              load_var(pmesh(), ncfile, varname, var_list.subDict(varname).lookup<dimensionSet>("dim"), i)
             );
+            if(var.name() == "P")
+            {
+              var.rename("PTURB");
+            }
             var.write();
             var.clear();
           }
@@ -242,7 +249,7 @@ int main(int argc, char *argv[])
           3
         );
         // Interp the ground points from openfoam to wrf bottom patch
-        Foam::vector ll{0,0,10000};
+        Foam::vector ll{0,0,40000};
         Foam::vector zvec{0,0,1};
         auto findVec = [&](const point& pt)
         {
@@ -304,6 +311,7 @@ int main(int argc, char *argv[])
 
     if(dict.lookup<bool>("prepare_variables"))
     {
+      runTime.setTime(runTime.times()[0].value(), 0);
       dictionary prep_dict(dict.subDict("prepare_variablesCoeff"));
       dimensionedScalar T0 (prep_dict.lookup<dimensionedScalar>("T0"));
       dimensionedScalar P0 (prep_dict.lookup<dimensionedScalar>("P0"));
@@ -319,9 +327,10 @@ int main(int argc, char *argv[])
       (
         IOobject ( "T.air", runTime.timeName(), runTime, IOobject::NO_READ, IOobject::AUTO_WRITE),
         pmesh(),
-        dimTemperature,
+        dimensionedScalar(dimTemperature, 290),
         "zeroGradient"
       );
+      Tair.write();
       volScalarField qv
       (
         IOobject ( "H2O.air", runTime.timeName(), runTime, IOobject::NO_READ, IOobject::AUTO_WRITE),
@@ -329,26 +338,103 @@ int main(int argc, char *argv[])
         dimless,
         "zeroGradient"
       );
+      qv.write();
+      volScalarField ydefault
+      (
+        IOobject ( "Ydefault.air", runTime.timeName(), runTime, IOobject::NO_READ, IOobject::AUTO_WRITE),
+        pmesh(),
+        dimensionedScalar(dimless, 1),
+        "zeroGradient"
+      );
+      ydefault.write();
+      volScalarField p
+      (
+        IOobject ( "p", runTime.timeName(), runTime, IOobject::NO_READ, IOobject::AUTO_WRITE),
+        pmesh(),
+        dimensionedScalar(dimPressure, 1e5),
+        "zeroGradient"
+      );
+      p.write();
+
+      volScalarField p_rgh
+      (
+        IOobject ( "p_rgh", runTime.timeName(), runTime, IOobject::NO_READ, IOobject::AUTO_WRITE),
+        pmesh(),
+        dimPressure,
+        "zeroGradient"
+      );
+      volScalarField rho
+      (
+        IOobject ( "thermo:rho.air", runTime.timeName(), runTime, IOobject::NO_READ, IOobject::AUTO_WRITE),
+        pmesh(),
+        dimensionedScalar(dimDensity, 1),
+        "zeroGradient"
+      );
+
+      #include "readpRef.H"
+      #include "readGravitationalAcceleration.H"
+      volVectorField ge
+      (
+        IOobject
+        (
+          "gEarth",
+          runTime.constant(),
+          runTime,
+          IOobject::NO_READ
+        ),
+        pmesh(),
+        dimensionedVector(dimAcceleration, vector(0,0,-9.81))
+      );
+      scalar re(6371000);
+      scalarField h(mesh.C().component(2));
+      ge.primitiveFieldRef() *=  sqr(re / (re + h));
+      Info << max(ge) << endl;
+      Info << min(ge) << endl;
+      // #include "readhRef.H"
+      // #include "gh.H"
+      volScalarField gh(ge & mesh.C());
+
+      // thermophysical models are used to compute thermodynamic properties
+      Info << "Instantiating thermo model" << endl;
+      autoPtr<fluidAtmThermo> pthermo
+      (
+        fluidAtmThermo::New(pmesh(), "air")
+      );
+      fluidAtmThermo& thermo(pthermo());
 
       for(int i = 0; i < runTime.times().size(); i++)
       {
         // Set the current time to load
         runTime.setTime(runTime.times()[i].value(), i);
+        Info << "time = " << runTime.timeName() << endl;
 
         // Get the variables needed for this time
         volVectorField U ( IOobject ( "U", runTime.timeName(), runTime, IOobject::MUST_READ), pmesh());
         volScalarField T ( IOobject ( "T", runTime.timeName(), runTime, IOobject::MUST_READ), pmesh());
-        volScalarField P ( IOobject ( "P", runTime.timeName(), runTime, IOobject::MUST_READ, IOobject::AUTO_WRITE), pmesh());
+        volScalarField PTURB ( IOobject ( "PTURB", runTime.timeName(), runTime, IOobject::MUST_READ), pmesh());
         volScalarField PB ( IOobject ( "PB", runTime.timeName(), runTime, IOobject::MUST_READ), pmesh());
         volScalarField QV ( IOobject ( "QVAPOR", runTime.timeName(), runTime, IOobject::MUST_READ), pmesh());
-        Tair.primitiveFieldRef() = ((T + T0) * pow((P + PB)/P0, 0.286))->primitiveField(); Tair.correctBoundaryConditions();
+
+        Info << "Updating T.air " << endl;
+        Tair.primitiveFieldRef() = ((T + T0) * pow((PTURB + PB)/P0, 0.286))->primitiveField(); Tair.correctBoundaryConditions();
         Info << "Load qv" << endl;
         Uair.primitiveFieldRef() = U.primitiveField(); Uair.correctBoundaryConditions();
         qv.primitiveFieldRef() =  QV.primitiveField(); qv.correctBoundaryConditions();
+        p.primitiveFieldRef() = (PTURB+PB)->primitiveField(); p.correctBoundaryConditions();
+        thermo.he() = thermo.he(p, Tair);
+        thermo.p() = p; 
+        thermo.T() = Tair;
+        thermo.correct();
+        rho = thermo.rho();
+        p_rgh = p - rho * gh - pRef;
 
         Uair.write();
         Tair.write();
         qv.write();
+        p.write();
+        rho.write();
+        p_rgh.write();
+
         
         // volScalarFieldPtrTable_["thermo:rho.air"]() = volScalarFieldPtrTable_["p"]() / (volScalarFieldPtrTable_["T.air"]() * dimensionedScalar(dimEnergy/(dimMass*dimTemperature), 287.05));
         // volScalarFieldPtrTable_["thermo:rho.air"]().correctBoundaryConditions();
@@ -356,6 +442,8 @@ int main(int argc, char *argv[])
 
     }
 
+      Info << runTime.times()[0] << endl;
+      Info << runTime.times()[1] << endl;
     // Conclude program with OpenFOAM boiler code
     Info << "Mesh points: " << pmesh->points().size() << endl;
 
