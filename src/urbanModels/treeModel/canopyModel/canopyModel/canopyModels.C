@@ -39,23 +39,23 @@ SourceFiles
 \*---------------------------------------------------------------------------*/
 
 #include "canopyModel.H"
-#include "canopySurfaceModel.H"
+// #include "canopySurfaceModel.H"
 #include "canopyTriSurfaceModel.H"
 #include "canopyKEpsilonModel.H"
 
 #include "canopyEnergyTransferModel.H"
 
+#include "canopyMomentumTransferModel.H"
 #include "compressibleMomentumTransportModel.H"
 #include "addToRunTimeSelectionTable.H"
 
 #include "HiraokakEpsSourceModel.H"
+#include "canopyCellSetModel.H"
 
 namespace Foam
 {
-
 // Basic drag model without turbulence source terms
-typedef 
-  canopyEnergyTransferModel
+typedef canopyEnergyTransferModel
   <
     canopyMomentumTransferModel
     <
@@ -98,4 +98,25 @@ addNamedToRunTimeSelectionTable
   triSurfaceKEpsilonCanopyModel
 );
 
+typedef
+  canopyEnergyTransferModel
+  <
+    canopyKEpsilonModel
+    <
+      canopyCellSetModel
+      <
+        canopyModel
+      >, 
+      HiraokakEpsSourceModel
+    >
+  > 
+    cellSetKEpsilonCanopyModel;
+
+addNamedToRunTimeSelectionTable
+(
+  canopyModel, 
+  cellSetKEpsilonCanopyModel,
+  treeModel, 
+  cellSetKEpsilonCanopyModel
+);
 }
