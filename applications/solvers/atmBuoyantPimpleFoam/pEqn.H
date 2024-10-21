@@ -75,19 +75,19 @@ if (pimple.transonic())
 }
 else
 {
-    // fvScalarMatrix p_rghDDtEqn
-    // (
-    //     fvc::ddt(rho) 
-    //    + psi*correction(fvm::ddt(p_rgh))
-    //   + fvc::div(phiHbyA)
-    //  ==
-    //     fvModels.source(psi, p_rgh, rho.name())
-    // );
+    fvScalarMatrix p_rghDDtEqn
+    (
+        fvc::ddt(rho) 
+       + psi*correction(fvm::ddt(p_rgh))
+      + fvc::div(phiHbyA)
+     ==
+        fvModels.source(psi, p_rgh, rho.name())
+    );
 
     while (pimple.correctNonOrthogonal())
     {
-        // p_rghEqn = p_rghDDtEqn - fvm::laplacian(rhorAUf, p_rgh);
-        p_rghEqn = fvc::div(phiHbyA) - fvm::laplacian(rhorAUf, p_rgh);
+        p_rghEqn = p_rghDDtEqn - fvm::laplacian(rhorAUf, p_rgh);
+        // p_rghEqn = fvc::div(phiHbyA) - fvm::laplacian(rhorAUf, p_rgh);
 
         p_rghEqn.setReference
         (
@@ -119,8 +119,8 @@ else
         rho = thermo.rho();
     }
 
-    // #include "myRhoEqn.H"
-    thermo.correct();
+    #include "rhoEqn.H"
+    // thermo.correct();
     #include "compressibleContinuityErrs.H"
 }
 
