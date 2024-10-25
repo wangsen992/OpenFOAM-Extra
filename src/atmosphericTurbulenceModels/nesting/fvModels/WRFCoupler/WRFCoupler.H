@@ -176,14 +176,12 @@ public:
         
         void addSup
         (
-            const volScalarField& alpha,
             const volScalarField& rho,
             fvMatrix<Foam::vector>& eqn,
             const word& fieldName
         ) const;
         void addSup
         (
-            const volScalarField& alpha,
             const volScalarField& rho,
             fvMatrix<Foam::scalar>& eqn,
             const word& fieldName

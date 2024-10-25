@@ -23,7 +23,6 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "hydrostaticInitialisation.H"
 #include "atmHydrostaticInitialisation.H"
 
 #include "fluidAtmThermo.H"
@@ -36,6 +35,7 @@ License
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
+using namespace Foam;
 void Foam::atmHydrostaticInitialisation
 (
     volScalarField& p_rgh,
@@ -251,6 +251,11 @@ void Foam::atmHydrostaticInitialisation
                         << (gMax(p) - gMin(p)) << endl;
               p_rgh = ph_rgh;
                 
+            }
+            else if (atmHydrostaticInitialisationMode == "presetPhrgh")
+            {
+              Info << "Using preset ph_rgh" << endl;
+              p_rgh = ph_rgh;
             }
         }
         else

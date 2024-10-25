@@ -50,6 +50,7 @@ Description
 #include "fvConstraints.H"
 #include "localEulerDdtScheme.H"
 #include "fvcSmooth.H"
+#include "myConstrainPressure/myConstrainPressure.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -77,6 +78,14 @@ int main(int argc, char *argv[])
 
 
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+    runTime++;
+    U.correctBoundaryConditions();
+    phi = linearInterpolate(rho * U) & mesh.Sf(); 
+    U.correctBoundaryConditions();
+    #include "incompressible/continuityErrs.H"
+    // 
+    // Info << "Writetime after setting variables: " << runTime.value() << endl;
+    runTime.write();
 
     Info<< "\nStarting time loop\n" << endl;
 
@@ -197,6 +206,8 @@ int main(int argc, char *argv[])
 
                     thermo.composition().normalise();
                 }
+                
+                
                 #include "UEqn.H"
 
                 if (pimple.thermophysics())

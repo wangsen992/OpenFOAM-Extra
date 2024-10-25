@@ -27,7 +27,10 @@ nesting/utils/WrfTools.C
 nesting/WRF/WRF.C
 nesting/fvModels/WRFCoupler/WRFCoupler.C
 nesting/fvPatchFields/wrfFixedValue/wrfFixedValueFvPatchFields.C
-nesting/fvPatchFields/fixedPrghByP/fixedPrghByPPatchField.C
+nesting/fvPatchFields/wrfInletOutlet/wrfInletOutletFvPatchFields.C
+nesting/fvPatchFields/wrfInletOutletVelocity/wrfInletOutletVelocityFvPatchField.C
+nesting/fvPatchFields/fixedFluxPressureInletOutlet/fixedFluxPressureInletOutletFvPatchScalarField.C
+# nesting/fvPatchFields/fixedPrghByP/fixedPrghByPPatchField.C
 
 radiationModels/absorptionEmissionModels/atmWideBand/atmWideBand.C
 # radiationModels/radiationModels/atmRadiationModel/atmRadiationModel.C
@@ -44,6 +47,7 @@ radiationModels/absorptionEmissionModels/atmWideBand/atmWideBand.C
 # 
 # radiationModels/fvModels/atmRadiation/atmRadiation.C
 
+adjustPhiWind/adjustPhiWind.C
 
 
 LIB = $(FOAM_USER_LIBBIN)/libatmosphericTurbulenceModels

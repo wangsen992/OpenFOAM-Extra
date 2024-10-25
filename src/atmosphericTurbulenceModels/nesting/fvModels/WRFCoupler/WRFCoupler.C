@@ -78,11 +78,7 @@ Foam::fv::WRFCoupler::WRFCoupler
     (
       mesh.lookupObjectRef<fluidAtmThermo>
       (
-        IOobject::groupName
-        (
-          "thermophysicalProperties",
-          "air"
-        )
+          "thermophysicalProperties"
       )
     ),
     varList_(dict.subDict("variables")),
@@ -93,7 +89,7 @@ Foam::fv::WRFCoupler::WRFCoupler
       IOobject
       (
         "cellWeights",
-        mesh.time().constant(),
+        mesh.time().timeName(),
         mesh.time(),
         IOobject::NO_READ,
         IOobject::AUTO_WRITE
@@ -112,7 +108,7 @@ Foam::fv::WRFCoupler::WRFCoupler
     (
       IOobject
       (
-        "U.air.projOld",
+        "U.projOld",
         mesh.time().timeName(),
         mesh.time(),
         IOobject::NO_READ,
@@ -126,7 +122,7 @@ Foam::fv::WRFCoupler::WRFCoupler
     (
       IOobject
       (
-        "U.air.projNew",
+        "U.projNew",
         mesh.time().timeName(),
         mesh.time(),
         IOobject::NO_READ,
@@ -163,7 +159,8 @@ Foam::fv::WRFCoupler::WRFCoupler
     {
       label celli = nestingCells_[i];
       // cellWeights_[celli] = 1 - sqr(nestingCellTbl_[celli]/nestingDist_);
-      cellWeights_[celli] += relaxationFactor_ * exp(-5*nestingCellTbl_[celli]/nestingDist_);
+      // cellWeights_[celli] += relaxationFactor_ * exp(-5*nestingCellTbl_[celli]/nestingDist_);
+      cellWeights_[celli] += relaxationFactor_ * 3 / (3 + nestingCellTbl_[celli]);
       // cellWeights_[celli] *= relaxationFactor_;
     }
 
@@ -177,19 +174,19 @@ Foam::fv::WRFCoupler::WRFCoupler
     //   cellWeights_[celli] *= relaxationFactor_;
     // }
 
-    nestingCells_.clear();
-    nestingCellTbl_.clear();
-    combineCloseCellTables(nestingCellTbl_, getPatchCloseCells(mesh, "bottom", nestingDistTop_));
-    nestingCells_ = nestingCellTbl_.sortedToc();
-    Info << "[DEBUG] size of nestingCellTbl_: " << nestingCellTbl_.size() << endl;
-    forAll(nestingCells_, i)
-    {
-      label celli = nestingCells_[i];
-      // Updated so that when closer to the ground, there
-      // is not forcing 
-      cellWeights_[celli] *= 1 - exp(-5 * nestingCellTbl_[celli]/nestingDistTop_);
-      // cellWeights_[celli] *= 0.0;
-    }
+    // nestingCells_.clear();
+    // nestingCellTbl_.clear();
+    // combineCloseCellTables(nestingCellTbl_, getPatchCloseCells(mesh, "bottom", nestingDistTop_));
+    // nestingCells_ = nestingCellTbl_.sortedToc();
+    // Info << "[DEBUG] size of nestingCellTbl_: " << nestingCellTbl_.size() << endl;
+    // forAll(nestingCells_, i)
+    // {
+    //   label celli = nestingCells_[i];
+    //   // Updated so that when closer to the ground, there
+    //   // is not forcing 
+    //   cellWeights_[celli] *= 1 - exp(-5 * nestingCellTbl_[celli]/nestingDistTop_);
+    //   // cellWeights_[celli] *= 0.0;
+    // }
     // Retrieve the pwrfMesh_
     pwrfMesh_.set
     (
@@ -212,14 +209,14 @@ Foam::fv::WRFCoupler::WRFCoupler
     Info << "creating old varialbes" << endl;
     projVolScalarFieldPtrTableOld_.set
     (
-      "T.air",
+      "T",
       autoPtr<volScalarField>
       (
         new volScalarField
         (
           IOobject
           (
-            IOobject::groupName("T.air", "projold"),
+            IOobject::groupName("T", "projold"),
             mesh.time().timeName(),
             mesh.time(),
             IOobject::NO_READ,
@@ -233,14 +230,14 @@ Foam::fv::WRFCoupler::WRFCoupler
     );
     projVolScalarFieldPtrTableOld_.set
     (
-      "e.air",
+      "e",
       autoPtr<volScalarField>
       (
         new volScalarField
         (
           IOobject
           (
-            IOobject::groupName("e.air", "projold"),
+            IOobject::groupName("e", "projold"),
             mesh.time().timeName(),
             mesh.time(),
             IOobject::NO_READ,
@@ -281,14 +278,14 @@ Foam::fv::WRFCoupler::WRFCoupler
     Info << "creating new varialbes" << endl;
     projVolScalarFieldPtrTableNew_.set
     (
-      "T.air",
+      "T",
       autoPtr<volScalarField>
       (
         new volScalarField
         (
           IOobject
           (
-            IOobject::groupName("T.air", "projnew"),
+            IOobject::groupName("T", "projnew"),
             mesh.time().timeName(),
             mesh.time(),
             IOobject::NO_READ,
@@ -302,14 +299,14 @@ Foam::fv::WRFCoupler::WRFCoupler
     );
     projVolScalarFieldPtrTableNew_.set
     (
-      "e.air",
+      "e",
       autoPtr<volScalarField>
       (
         new volScalarField
         (
           IOobject
           (
-            IOobject::groupName("e.air", "projnew"),
+            IOobject::groupName("e", "projnew"),
             mesh.time().timeName(),
             mesh.time(),
             IOobject::NO_READ,
@@ -353,86 +350,87 @@ Foam::fv::WRFCoupler::WRFCoupler
 Foam::wordList Foam::fv::WRFCoupler::addSupFields() const
 {
     // return wordList{"U.air", "e.air", "H2O.air"};
-    return wordList{"U.air", "e.air", "H2O.air"};
+    // return wordList{"U", "e", "H2O"};
+    return wordList{"U"};
 }
 
 void Foam::fv::WRFCoupler::correct()
 {
-    Info << "Loading wrf time" << endl;
-    //Time& wrfTime ( wrfTime_ );
-    label curi(floor(mesh().time().value()/3600.0)+1);
-    // label curi
-    // (
-    //   pwrfMesh_->time().findClosestTimeIndex
-    //   (
-    //     pwrfMesh_->time().times(),
-    //     mesh().time().value()
-    //   )
-    // );
+    // Info << "Loading wrf time" << endl;
+    // //Time& wrfTime ( wrfTime_ );
+    // label curi(floor(mesh().time().value()/3600.0)+1);
+    // // label curi
+    // // (
+    // //   pwrfMesh_->time().findClosestTimeIndex
+    // //   (
+    // //     pwrfMesh_->time().times(),
+    // //     mesh().time().value()
+    // //   )
+    // // );
 
-    // Update old and new data for interpolation
-    if (curi > wrfi_ )
-    {
-        Info << "Correcting WRF variables at t = " << curi << endl;
-        wrfi_ = curi;
+    // // Update old and new data for interpolation
+    // if (curi > wrfi_ )
+    // {
+    //     Info << "Correcting WRF variables at t = " << curi << endl;
+    //     wrfi_ = curi;
 
-        // load the wrfMesh varialbes
-      
-        {
-          wrfTime_.setTime
-          (
-            wrfTime_.times()[wrfi_].value(),
-            wrfi_
-          );
-          volVectorField U(volVectorField( IOobject ( "U.air", wrfTime_.timeName(), wrfTime_, IOobject::MUST_READ), pwrfMesh_()));
-          projUold_.primitiveFieldRef() = interpolate(mesh().cellCentres(), U);
-          Info << "[WRF] wrfTime = " << wrfTime_.timeName() 
-               << ", gAverage(U)= " << gAverage(U)
-               << ", gAverage(Uold)= " << gAverage(projUold_)
-               << endl;
-          projVolScalarFieldPtrTableOld_["T.air"]->primitiveFieldRef() = interpolate(mesh().cellCentres(), volScalarField ( IOobject ( "T.air", wrfTime_.timeName(), wrfTime_, IOobject::MUST_READ), pwrfMesh_()));
-          projVolScalarFieldPtrTableOld_["e.air"]->primitiveFieldRef() 
-            = thermo_.he(thermo_.p(), projVolScalarFieldPtrTableOld_["T.air"]);
-          for(auto k : projVolScalarFieldPtrTableOld_.toc())
-          {
-            if( k != "T.air" && k != "e.air" )
-            {
-              projVolScalarFieldPtrTableOld_[k]->primitiveFieldRef() = interpolate(mesh().cellCentres(), volScalarField ( IOobject ( k, wrfTime_.timeName(), wrfTime_, IOobject::MUST_READ), pwrfMesh_()));
-            }
-          }
-        }
-      
-          
-        // load the new ones
-        {
-          wrfTime_.setTime
-          (
-            wrfTime_.times()[wrfi_+1].value(),
-            wrfi_+1
-          );
-          wrfTime_.setUpToDate();
-          volVectorField U(volVectorField( IOobject ( "U.air", wrfTime_.timeName(), wrfTime_, IOobject::MUST_READ), pwrfMesh_()));
+    //     // load the wrfMesh varialbes
+    //   
+    //     {
+    //       wrfTime_.setTime
+    //       (
+    //         wrfTime_.times()[wrfi_].value(),
+    //         wrfi_
+    //       );
+    //       volVectorField U(volVectorField( IOobject ( "U", wrfTime_.timeName(), wrfTime_, IOobject::MUST_READ), pwrfMesh_()));
+    //       projUold_.primitiveFieldRef() = interpolate(mesh().cellCentres(), U);
+    //       Info << "[WRF] wrfTime = " << wrfTime_.timeName() 
+    //            << ", gAverage(U)= " << gAverage(U)
+    //            << ", gAverage(Uold)= " << gAverage(projUold_)
+    //            << endl;
+    //       projVolScalarFieldPtrTableOld_["T"]->primitiveFieldRef() = interpolate(mesh().cellCentres(), volScalarField ( IOobject ( "T", wrfTime_.timeName(), wrfTime_, IOobject::MUST_READ), pwrfMesh_()));
+    //       projVolScalarFieldPtrTableOld_["e"]->primitiveFieldRef() 
+    //         = thermo_.he(thermo_.p(), projVolScalarFieldPtrTableOld_["T"]);
+    //       for(auto k : projVolScalarFieldPtrTableOld_.toc())
+    //       {
+    //         if( k != "T" && k != "e" )
+    //         {
+    //           projVolScalarFieldPtrTableOld_[k]->primitiveFieldRef() = interpolate(mesh().cellCentres(), volScalarField ( IOobject ( k, wrfTime_.timeName(), wrfTime_, IOobject::MUST_READ), pwrfMesh_()));
+    //         }
+    //       }
+    //     }
+    //   
+    //       
+    //     // load the new ones
+    //     {
+    //       wrfTime_.setTime
+    //       (
+    //         wrfTime_.times()[wrfi_+1].value(),
+    //         wrfi_+1
+    //       );
+    //       wrfTime_.setUpToDate();
+    //       volVectorField U(volVectorField( IOobject ( "U", wrfTime_.timeName(), wrfTime_, IOobject::MUST_READ), pwrfMesh_()));
 
-          projUnew_.primitiveFieldRef() = interpolate(mesh().cellCentres(), U);
-          Info << "[WRF] wrfTime = " << wrfTime_.timeName() 
-               << ", gAverage(U)= " << gAverage(U)
-               << ", gAverage(Unew)= " << gAverage(projUnew_)
-               << ", interpVals = " << gAverage(interpolate(mesh().cellCentres(), U))
-               << endl;
+    //       projUnew_.primitiveFieldRef() = interpolate(mesh().cellCentres(), U);
+    //       Info << "[WRF] wrfTime = " << wrfTime_.timeName() 
+    //            << ", gAverage(U)= " << gAverage(U)
+    //            << ", gAverage(Unew)= " << gAverage(projUnew_)
+    //            << ", interpVals = " << gAverage(interpolate(mesh().cellCentres(), U))
+    //            << endl;
 
-          projVolScalarFieldPtrTableNew_["T.air"]->primitiveFieldRef() = interpolate(mesh().cellCentres(), volScalarField ( IOobject ( "T.air", wrfTime_.timeName(), wrfTime_, IOobject::MUST_READ), pwrfMesh_()));
-          projVolScalarFieldPtrTableNew_["e.air"]->primitiveFieldRef() 
-            = thermo_.he(thermo_.p(), projVolScalarFieldPtrTableNew_["T.air"]);
-          for(auto k : projVolScalarFieldPtrTableNew_.toc())
-          {
-            if( k != "T.air" && k != "e.air" )
-            {
-              projVolScalarFieldPtrTableNew_[k]->primitiveFieldRef() = interpolate(mesh().cellCentres(), volScalarField ( IOobject ( k, wrfTime_.timeName(), wrfTime_, IOobject::MUST_READ), pwrfMesh_()));
-            }
-          }
-        }
-      
-    }
+    //       projVolScalarFieldPtrTableNew_["T"]->primitiveFieldRef() = interpolate(mesh().cellCentres(), volScalarField ( IOobject ( "T", wrfTime_.timeName(), wrfTime_, IOobject::MUST_READ), pwrfMesh_()));
+    //       projVolScalarFieldPtrTableNew_["e"]->primitiveFieldRef() 
+    //         = thermo_.he(thermo_.p(), projVolScalarFieldPtrTableNew_["T"]);
+    //       for(auto k : projVolScalarFieldPtrTableNew_.toc())
+    //       {
+    //         if( k != "T" && k != "e" )
+    //         {
+    //           projVolScalarFieldPtrTableNew_[k]->primitiveFieldRef() = interpolate(mesh().cellCentres(), volScalarField ( IOobject ( k, wrfTime_.timeName(), wrfTime_, IOobject::MUST_READ), pwrfMesh_()));
+    //         }
+    //       }
+    //     }
+    //   
+    // }
 }
 
 
@@ -451,34 +449,33 @@ bool Foam::fv::WRFCoupler::read(const dictionary& dict)
 
 void Foam::fv::WRFCoupler::addSup
 (
-    const volScalarField& alpha,
     const volScalarField& rho,
     fvMatrix<Foam::vector>& eqn,
     const word& fieldName
 ) const
 {
   Info << "[fvModel] adding wrf field " << fieldName << endl;
-  typedef GeometricField<Foam::vector, fvPatchField, volMesh> psiType;
-  auto psi_foam = mesh().lookupObjectRef<psiType>(fieldName);
-  auto V = mesh().V();
+  // typedef GeometricField<Foam::vector, fvPatchField, volMesh> psiType;
+  // auto psi_foam = mesh().lookupObjectRef<psiType>(fieldName);
+  // auto V = mesh().V();
 
-  auto t = mesh().time().value();
-  auto dt = mesh().time().deltaTValue();
-  auto told = wrfTime_.times()[wrfi_].value();
-  auto tnew = wrfTime_.times()[wrfi_+1].value();
-  auto tprojPsi = (tnew - t)/(tnew-told) * projUold_ 
-              +  (t - told)/(tnew-told) * projUnew_;
-  volVectorField& projPsi(tprojPsi.ref());
-  tmp<volVectorField> tdeltaPsi = projPsi - eqn.psi();
-  volVectorField& deltaPsi(tdeltaPsi.ref());
+  // auto t = mesh().time().value();
+  // auto dt = mesh().time().deltaTValue();
+  // auto told = wrfTime_.times()[wrfi_].value();
+  // auto tnew = wrfTime_.times()[wrfi_+1].value();
+  // auto tprojPsi = (tnew - t)/(tnew-told) * projUold_ 
+  //             +  (t - told)/(tnew-told) * projUnew_;
+  // volVectorField& projPsi(tprojPsi.ref());
+  // tmp<volVectorField> tdeltaPsi = projPsi - eqn.psi();
+  // volVectorField& deltaPsi(tdeltaPsi.ref());
 
-  // Remove vertical velocity addition
-  std::for_each
-  (
-    deltaPsi.begin(), 
-    deltaPsi.end(), 
-    [](vector& v){v.z() = 0;}
-  );
+  // // Remove vertical velocity addition
+  // std::for_each
+  // (
+  //   deltaPsi.begin(), 
+  //   deltaPsi.end(), 
+  //   [](vector& v){v.z() = 0;}
+  // );
 
   // // Set patchField values
   // forAll(deltaPsi.boundaryFieldRef(), i)
@@ -492,17 +489,17 @@ void Foam::fv::WRFCoupler::addSup
   // eqn.source() += 0.1 * (alpha * rho * cellWeights_ * deltaPsi* relaxationFactor_)->field()
   //                     * V.field();
 
-  eqn += (alpha * rho * cellWeights_ * projPsi - fvm::Sp(alpha * rho * cellWeights_, eqn.psi()));
+  // eqn += (rho * cellWeights_ * dimensionedVector(dimVelocity, vector(5,0,0)) - fvm::Sp(rho * cellWeights_, eqn.psi()));
+  // eqn.source() -= rho.primitiveField() * cellWeights_.primitiveField() * (vector(8,0,0) - eqn.psi().primitiveField());
   // eqn += (alpha * rho * cellWeights_ * deltaPsi) / dt ;
-  // forAll(eqn.source(), i)
-  // {
-  //   eqn.source()[i] -= (alpha[i] * rho[i] * cellWeights_[i] * (deltaPsi[i] - 0.0 * deltaPsiSmoothed.ref()[i]) ) * V[i];
-  // }, "e.air"
+  forAll(eqn.source(), i)
+  {
+    eqn.source()[i] += rho[i] * cellWeights_[i] * (eqn.psi()[i] - vector(8, 0, 0));
+  }
 }
 
 void Foam::fv::WRFCoupler::addSup
 (
-    const volScalarField& alpha,
     const volScalarField& rho,
     fvMatrix<Foam::scalar>& eqn,
     const word& fieldName
@@ -534,7 +531,7 @@ void Foam::fv::WRFCoupler::addSup
   Info << "[fvModel] t= " << mesh().time().value() << ", " << "averageDeltaPsi = " << average(mag(deltaPsi)) << endl;
 
 
-  eqn += (alpha * rho * cellWeights_  * projPsi - fvm::Sp(alpha * rho * cellWeights_, eqn.psi()));
+  // eqn += (rho * cellWeights_  * projPsi - fvm::Sp(rho * cellWeights_, eqn.psi()));
 
   // forAll(eqn.source(), i)
   // {

@@ -26,6 +26,7 @@ surfaceScalarField phiHbyA
 MRF.makeRelative(fvc::interpolate(rho), phiHbyA);
 
 bool adjustMass = mesh.steady() && adjustPhi(phiHbyA, U, p_rgh);
+// bool adjustMass = adjustPhi(phiHbyA, U, p_rgh);
 
 surfaceScalarField phig(-rhorAUf*ghf*fvc::snGrad(rho)*mesh.magSf());
 
@@ -33,6 +34,8 @@ phiHbyA += phig;
 
 // Update the pressure BCs to ensure flux consistency
 constrainPressure(p_rgh, rho, U, phiHbyA, rhorAUf, MRF);
+myConstrainPressure(p_rgh, rho, U, phiHbyA, rhorAUf, MRF);
+// #include "constrainPressure.H"
 
 fvc::makeRelative(phiHbyA, rho, U);
 

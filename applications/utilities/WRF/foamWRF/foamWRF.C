@@ -133,6 +133,10 @@ int main(int argc, char *argv[])
             {
               var.rename("PTURB");
             }
+            if(var.name() == "T")
+            {
+              var.rename("THETA");
+            }
             var.write();
             var.clear();
           }
@@ -317,15 +321,15 @@ int main(int argc, char *argv[])
       dimensionedScalar P0 (prep_dict.lookup<dimensionedScalar>("P0"));
       volVectorField Uair
       (
-        IOobject ( "U.air", runTime.timeName(), runTime, IOobject::NO_READ, IOobject::AUTO_WRITE),
+        IOobject ( "U", runTime.timeName(), runTime, IOobject::NO_READ, IOobject::AUTO_WRITE),
         pmesh(),
-        dimTemperature,
+        dimVelocity,
         "zeroGradient"
       );
 
       volScalarField Tair
       (
-        IOobject ( "T.air", runTime.timeName(), runTime, IOobject::NO_READ, IOobject::AUTO_WRITE),
+        IOobject ( "T", runTime.timeName(), runTime, IOobject::NO_READ, IOobject::AUTO_WRITE),
         pmesh(),
         dimensionedScalar(dimTemperature, 290),
         "zeroGradient"
@@ -333,7 +337,7 @@ int main(int argc, char *argv[])
       Tair.write();
       volScalarField qv
       (
-        IOobject ( "H2O.air", runTime.timeName(), runTime, IOobject::NO_READ, IOobject::AUTO_WRITE),
+        IOobject ( "H2O", runTime.timeName(), runTime, IOobject::NO_READ, IOobject::AUTO_WRITE),
         pmesh(),
         dimless,
         "zeroGradient"
@@ -341,7 +345,7 @@ int main(int argc, char *argv[])
       qv.write();
       volScalarField ydefault
       (
-        IOobject ( "Ydefault.air", runTime.timeName(), runTime, IOobject::NO_READ, IOobject::AUTO_WRITE),
+        IOobject ( "Ydefault", runTime.timeName(), runTime, IOobject::NO_READ, IOobject::AUTO_WRITE),
         pmesh(),
         dimensionedScalar(dimless, 1),
         "zeroGradient"
@@ -363,9 +367,16 @@ int main(int argc, char *argv[])
         dimPressure,
         "zeroGradient"
       );
+      volScalarField ph_rgh
+      (
+        IOobject ( "ph_rgh", runTime.timeName(), runTime, IOobject::NO_READ, IOobject::AUTO_WRITE),
+        pmesh(),
+        dimPressure,
+        "zeroGradient"
+      );
       volScalarField rho
       (
-        IOobject ( "thermo:rho.air", runTime.timeName(), runTime, IOobject::NO_READ, IOobject::AUTO_WRITE),
+        IOobject ( "thermo:rho", runTime.timeName(), runTime, IOobject::NO_READ, IOobject::AUTO_WRITE),
         pmesh(),
         dimensionedScalar(dimDensity, 1),
         "zeroGradient"
@@ -398,7 +409,7 @@ int main(int argc, char *argv[])
       Info << "Instantiating thermo model" << endl;
       autoPtr<fluidAtmThermo> pthermo
       (
-        fluidAtmThermo::New(pmesh(), "air")
+        fluidAtmThermo::New(pmesh())
       );
       fluidAtmThermo& thermo(pthermo());
 
@@ -410,7 +421,7 @@ int main(int argc, char *argv[])
 
         // Get the variables needed for this time
         volVectorField U ( IOobject ( "U", runTime.timeName(), runTime, IOobject::MUST_READ), pmesh());
-        volScalarField T ( IOobject ( "T", runTime.timeName(), runTime, IOobject::MUST_READ), pmesh());
+        volScalarField T ( IOobject ( "THETA", runTime.timeName(), runTime, IOobject::MUST_READ), pmesh());
         volScalarField PTURB ( IOobject ( "PTURB", runTime.timeName(), runTime, IOobject::MUST_READ), pmesh());
         volScalarField PB ( IOobject ( "PB", runTime.timeName(), runTime, IOobject::MUST_READ), pmesh());
         volScalarField QV ( IOobject ( "QVAPOR", runTime.timeName(), runTime, IOobject::MUST_READ), pmesh());
@@ -427,6 +438,12 @@ int main(int argc, char *argv[])
         thermo.correct();
         rho = thermo.rho();
         p_rgh = p - rho * gh - pRef;
+        Info << "Update ph_rgh" << endl;
+        Info << "p_rgh " << p_rgh.dimensions() << endl;
+        Info << "rho " << rho.dimensions() << endl;
+        Info << "U " << U.dimensions() << endl;
+        ph_rgh = p_rgh + 0.5 * rho * magSqr(Uair);
+        Info << "Update ph_rgh complete" << endl;
 
         Uair.write();
         Tair.write();
@@ -434,6 +451,7 @@ int main(int argc, char *argv[])
         p.write();
         rho.write();
         p_rgh.write();
+        ph_rgh.write();
 
         
         // volScalarFieldPtrTable_["thermo:rho.air"]() = volScalarFieldPtrTable_["p"]() / (volScalarFieldPtrTable_["T.air"]() * dimensionedScalar(dimEnergy/(dimMass*dimTemperature), 287.05));
